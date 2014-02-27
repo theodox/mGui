@@ -4,76 +4,73 @@ Created on Feb 16, 2014
 @author: Stephen Theodore
 '''
 import maya.cmds as cmds
+from collections import Mapping
+import weakref
 
-BINDABLE_VALUES = ['value', 'label'
-                   ]
+BINDABLE_VALUES = ['value', 'label']
 
+BREAK_ON_BIND_FAILURE = False
 
-class TargetBinding(object):
+class BindingError(ValueError):
+    pass
+
+class Binding(object):
     '''
-    Provides a simple way for GUI controls to update the underlying model objects when their values change.
-    
-    Sample usage:
-    
-        start_field = cmds.intField(v=datum.Start, cc = mvc.Binding(datum, "Start"))
-
-    as long as datum is a reference type with a field named "Start", the binding will update the datum with the new values
+    Bind to an object field. 
     '''
     def __init__(self, datum, fieldName):
-        
         self.Target = datum
         self.FieldName = fieldName
         
-    def __call__(self,*args, **kwargs):
-        if isinstance(self.Target, dict):
-            self.Target[self.FieldName] = args[0]
-        else:
-            try:
-                v = getattr(self.Target, self.FieldName)
-                if callable(v):
-                    v(args[0])
-                    return
-            except AttributeError:
-                if hasattr(self.Target, 'attr'):
-                    self.Target.attr(self.FieldName).set(args[0])
-                    return
-                try:
-                    cmds.setAttr("%s.%s" % (self.Target, self.FieldName), args[0])
-                except RuntimeError:
-                    setattr(self.Target, self.FieldName, args[0])
-                
-    def update(self):
-        self()
-        
-
-class SourceBinding(object):
-    def __init__(self, sourceObject, sourceAttr, targetObject, targetAttr):
-        self.SourceObject = sourceObject
-        self.SourceAttr = sourceAttr
-        self._binding_type = None
-        self.TargetObject = targetObject
-        self.TargetAttr = targetAttr
-        
-
-    def update(self):
-        
-        def py_object_value():
-            v =  getattr(self.SourceObject, self.SourceAttr)
-            if callable (v):
-                return v()
-            else:
-                return v
-            
-        def maya_object_value():
-            return cmds.getAttr("%s.%s" % (self.SourceObject, self.SourceAttr))
-        
-        if not self._binding_type:
-            try:
-                setattr(self.TargetObject, self.TargetAttr, maya_object_value())
-                self._binding_type = maya_object_value
-            except RuntimeError:
-                setattr(self.TargetObject, self.TargetAttr, maya_object_value())
-                self._binding_type = py_object_value
-        else:
-            setattr(self.TargetObject, self.TargetAttr,  self._binding_type()) 
+    def _set(self, *args, **kwargs):
+        setattr(self.Target, self.FieldName, args[0])
     
+    def update(self, *args, **kwargs):
+        try:
+            self._set(*args, **kwargs)
+        except:
+            if BREAK_ON_BIND_FAILURE:
+                raise
+            
+class DictBinding(Binding):
+    '''Bind to a dictionary entry'''
+    def _set(self, *args, **kwargs):
+        self.Target[self.FieldName] = args[0]
+        
+class PyNodeBinding(Binding):
+    '''Bind to an attribute on a PyNode'''
+    def _set(self, *args, **kwargs):
+        getattr(self.Target, self.FieldName).set(args[0])
+    
+class CmdsBinding(Binding):
+    '''Bind to a maya attribute string'''    
+    def __init__(self, datum, fieldName):
+        super(CmdsBinding, self).__init__(datum, fieldName)
+        self._attrib = self.Target + "." + self.FieldName
+
+    def _set(self, *args, **kwargs):
+        cmds.setAttr(self._attrib, args[0])
+        
+class MethodBinding(Binding):
+    
+    def _set(self, *args, **kwargs):
+        getattr(self.Target, self.FieldName)(args[0])
+        
+        
+def binding(target, targetField):
+    '''
+    Returns an appropriate Binding object for the supplied target and target field.
+    '''
+    if isinstance(target, Mapping): return DictBinding(target, targetField)
+    if hasattr(target, '__melcmd__'): return PyNodeBinding(weakref.proxy(target), targetField)
+    if hasattr(target, targetField):
+        if callable(getattr(target, targetField)):
+            return MethodBinding (weakref.proxy(target), targetField)
+        else:
+            return Binding(weakref.proxy(target), targetField)
+    try:
+        cmds.attributeQuery(targetField, node=target, w=True)
+        return CmdsBinding(target, targetField)
+    except RuntimeError:
+        raise BindingError ("%s is not a bindable attribute of %s" % (targetField, target))
+        
