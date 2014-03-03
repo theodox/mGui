@@ -8,6 +8,8 @@ from collections import Mapping
 import weakref
 import sys
 
+
+
 # these are primarily intended for debugging.
 # Generally you want to break on access failure, since the Binding
 # will then invalidate itself and not run again, but you don't want
@@ -130,6 +132,7 @@ class PyNodeAccessor(Accessor):
     '''
     Accessor fpr  an attribute on a PyNode
     '''
+
     def _set(self, *args, **kwargs):
         getattr(self.Target, self.FieldName).set(args[0])
 
@@ -138,7 +141,31 @@ class PyNodeAccessor(Accessor):
 
     @classmethod 
     def can_access(cls, datum, fieldname):
-        return hasattr(datum, '__melcmd__') and hasattr(datum, fieldname)
+        return  hasattr(datum, '__melcmd__') and hasattr(datum, fieldname)
+
+
+class PyAttributeAccessor(Accessor):
+    '''
+    Accessor for a PyNode attribute
+    
+    Note this creates a _strong_ reference to the attribute, so it may leak
+    '''
+    def __init__(self, datum, fieldname):
+        pyAttr = datum
+        self.Target = pyAttr.node()
+        self.FieldName = pyAttr.attrName()
+        self.Attrib = pyAttr
+        
+    def _set(self, *args, **kwargs):
+        self.Attrib.set(args[0])
+
+    def _get(self, *args, **kwargs):
+        return self.Attrib.get()
+        
+        
+    @classmethod 
+    def can_access(cls, datum, fieldname):
+        return hasattr(datum, 'attrName') and hasattr(datum, 'node')
     
 class CmdsAccessor(Accessor):
     '''
@@ -202,22 +229,24 @@ class AccessorFactory(object):
     
     def __init__(self, *accessorClasses ):
         
-        self.Tests = [cls for cls in accessorClasses ] + [PyNodeAccessor, Accessor, MethodAccessor, DictAccessor, CmdsAccessor] 
+        self.Tests = [cls for cls in accessorClasses ] + [PyAttributeAccessor, PyNodeAccessor, Accessor, MethodAccessor, DictAccessor, CmdsAccessor] 
 
-    def accessor_class(self, datum, fieldname):
+    def accessor_class(self, *args):
         '''
         Finds an Accessor class which can access the supplied object and field.
         If no appropriate class is found, returns None
         '''
+        datum = args[0]
+        fieldname = args[-1]
+        
         for fclass in self.Tests:
             if fclass.can_access(datum, fieldname ):
                 return fclass
-        
         return None
     
 _DEFAULT_FACTORY = AccessorFactory()
 
-def get_accessor(datum, fieldname, factory_class = None):
+def get_accessor(datum, fieldname = None, factory_class = None):
     '''
     Returns an appropriate Accessor object for the supplied datum and datum
     field.
@@ -225,6 +254,7 @@ def get_accessor(datum, fieldname, factory_class = None):
     If an AccessorFactory instance is provided in <factory_class>, it will be
     used to find the correct Accessors; otherwise a default AccessorFactory will
     be used
+    
     
     '''
     
@@ -444,15 +474,24 @@ class Bindable (object):
 
        Barney + 'Val' >> (SomeClass, 'someAttr')  # bindable to object, attrib tuple
        Barney + 'Val' << (SomeClass, 'someAttr')  # tuple can update bindable
-       
-   however this will NOT work:
+
+    however this will NOT work:
    
        (SomeClass, 'someAttr')  >> Barney + 'Name'
        
     because the left hand pair is not a Bindable. You can, however, write
     
        BindProxy(SomeClass, 'someAttr') >> Barney + 'Name'
-           
+
+    Pymel objects can be bound using a tuple as above. PyMel Attribute objects are treated as bindables:
+    
+       ex = pm.PyNode('pCube1')
+       # these are equivalent
+       Barney + 'Val' >> (ex, 'tx')
+       Barney + 'Val' >> ex.tx
+
+    
+    To create a bi-directional binding, use <>. See the TwoWayBinding class for details.           
     '''
 
     def site(self):
@@ -487,13 +526,27 @@ class Bindable (object):
     def __add__(self, other):
         return BindProxy(self, other)
     
-    def _get_bindable(self, other, src_or_target ):
+    def _get_bindable(self, *args ):
+        other = args[0]
+        src_or_target = args[-1]
         if hasattr(other, 'site') and hasattr(other, src_or_target):
-            return other
+            return other  # a BindableObject
+        if hasattr(other, 'attrName'): 
+            # this is a PyAttr.  You can't get a pyNode for the 
+            # attribute without importing PyMel, so to keep 
+            # this module from forcing an import, we convert it 
+            # to a string
+            name, attr = str(other).split('.')
+            return BindProxy(other, attr)
         if hasattr(other, '__iter__') and len(other) == 2:
             return BindProxy(*other)
-
-        return None
+        
+        # finally, maybe it's an explicit cmds string
+        try:
+            name, attr = str(other).split('.')
+            return BindProxy(name, attr)
+        except:
+            return None
     
         
 
@@ -563,4 +616,10 @@ class BindProxy(Bindable):
         if hasattr(self.Item, 'site'): return self.Item.site()
         return self.Item
 
-    
+class PyAttrBindProxy(Bindable):
+    def __init__(self, pyAttr):
+        self.Item = pyAttr
+        self.bind_source = self.bind_target = pyAttr.attrName()
+
+    def site(self):
+        return self.Item.node()

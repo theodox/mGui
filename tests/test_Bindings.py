@@ -225,7 +225,19 @@ class Test_Accessors(TestCase):
         ac.push(55)
         assert front.attr('rx').get() == 55
         
-    
+    def test_py_attrib_accessor_get(self):
+        cmds.file(new=True, f=True)
+        front = pm.PyNode('front')
+        ac = bindings.PyAttributeAccessor(front.rx, None)
+        ac.push(55)
+        assert front.attr('rx').get() == 55
+        
+    def test_py_attrib_accessor_set(self):
+        cmds.file(new=True, f=True)
+        front = pm.PyNode('front')
+        ac = bindings.PyAttributeAccessor(front.rx, None)
+        ac.push(55)
+        assert front.attr('rx').get() == 55 
   
 class TestAccessorFactory(TestCase): 
     
@@ -296,6 +308,15 @@ class TestAccessorFactory(TestCase):
         cmds.file(new=True, f=True)
         cube, _ = pm.polyCube()        
         self.assertRaises(bindings.BindingError, lambda: bindings.get_accessor(cube, 'xyz'))
+        
+    def test_pyattr_accessor(self):
+        cmds.file(new=True, f=True)
+        cube, shape = pm.polyCube()
+        ac = bindings.get_accessor(cube.rx)
+        assert isinstance(ac, bindings.PyAttributeAccessor)
+        ac2 = bindings.get_accessor(shape.width)
+        assert isinstance(ac2, bindings.PyAttributeAccessor)
+        
         
 class TestBindings(TestCase):
     class Example(object):
@@ -409,6 +430,27 @@ class TestBindable(TestCase):
         tester = ex + 'Val' >> ('pCube1', 'tx')
         tester()
         assert cmds.getAttr('pCube1.tx') == 45
+        tester2 = ex + 'Val' >> 'pCube1.ty'
+        tester2()
+        assert cmds.getAttr('pCube1.ty') == 45
+        
+        
+    def test_bind_to_pyAttr(self):
+        ex = self.Example('cube', 45)
+        cmds.file(new=True, f=True)
+        cube, shape = pm.polyCube()
+        tester = ex + 'Val' >> cube.tx
+        tester()
+        assert cmds.getAttr('pCube1.tx') == 45
+        
+    def test_bind_to_pyNode(self):
+        ex = self.Example('cube', 45)
+        cmds.file(new=True, f=True)
+        cube, shape = pm.polyCube()
+        tester = ex + 'Val' >> (cube, 'tx')
+        tester()
+        assert cmds.getAttr('pCube1.tx') == 45
+        
     
 class TestBindableObject(TestCase):
     class Example(bindings.BindableObject):
@@ -623,7 +665,7 @@ class TestTwoWayBinding(TestCase):
         test = fred <> barney
         barney.Val = 'new'
         test()
-        assert fred.Name == barney.Val == 'new'
+        assert fred.Name == barney.Val and barney.Val == 'new'
         
         test = fred <> barney
         fred.Name= 'new'
