@@ -1,6 +1,6 @@
 import maya.cmds as cmds
 from .events import MayaEvent
-
+from .bindings import BindableObject
 
 class CtlProperty (object):
     '''
@@ -70,7 +70,7 @@ class ControlMeta(type):
 
         return super(ControlMeta, cls).__new__(cls, name, parents, kwargs)
 
-class Control(object):
+class Control(BindableObject):
     '''
     Base class for all mGui controls.  Provides the necessary frameworks for CtlProperty and CallbackProperty access to the underlying widget
     '''
@@ -81,14 +81,12 @@ class Control(object):
     __metaclass__ = ControlMeta
     
     
-    def __init__(self, name,  *args, **kwargs):
+    def __init__(self, key, *args, **kwargs):
 
-        self.Name = name
-        
         self.Style = kwargs.get('style', self.__class__.__name__)
         if 'style' in kwargs: del kwargs['style']
    
-        
+        self.Key = key
         self.Widget = self.CMD(*args, **kwargs)
         '''
         Widget is the gui element in the scene
@@ -97,7 +95,6 @@ class Control(object):
         '''
         A dictionary of Event objects
         '''
-
         Layout.add_current(self)
         
     def register_callback(self, callbackName, event):
@@ -124,7 +121,7 @@ class Control(object):
     def __iter__(self):
         yield self
         
-
+    
 
 
 # IMPORTANT NOTE
@@ -139,28 +136,33 @@ class Layout(Control):
     _READ_ONLY = ['isObscured', 'popupMenuArray', 'numberOfPopupMenus', 'childArray', 'numberOfChildren']
     ACTIVE_LAYOUT = None
     
-    def __init__(self, name,   *args, **kwargs):
-        super (Layout, self).__init__(self, name, *args, **kwargs)
+    def __init__(self, key,  *args, **kwargs):
         self.Controls = []
-        self.__cache_layout = self.ACTIVE_LAYOUT
-        Layout.ACTIVE_LAYOUT = self
+        super (Layout, self).__init__(key, *args, **kwargs)
         
     def __enter__( self ):
+        print 'entered', self.Key
+        self.__cache_layout = Layout.ACTIVE_LAYOUT
+        Layout.ACTIVE_LAYOUT = self
         return self
 
     def __exit__( self, typ, value, traceback ):
-        cmds.setParent( ".." ) #@UndefinedVariable
-        self.ACTIVE_LAYOUT = self.__cache_layout
         self.layout()
+        Layout.ACTIVE_LAYOUT = self.__cache_layout
+        self.__cache_layout = None
+        cmds.setParent( ".." ) 
         
+        print 'exited', self.Key, 'restored', Layout.ACTIVE_LAYOUT
+
     def layout(self):
-        pass
+        return len(self.Controls)
         
     def add(self, control):
-        if control.Name in self.__dict__:
-            raise RuntimeError, 'Children of a layout must have unique IDs'
         self.Controls.append(control)
-        self.__dict__[control.Name] = control
+        if control.Key in self.__dict__:
+            raise RuntimeError, 'Children of a layout must have unique IDs'
+        self.__dict__[control.Key] = control
+        print 'added', control.Key, 'to', self.Key
         
     def remove(self, control):
         self.Controls.remove(control)
@@ -175,6 +177,6 @@ class Layout(Control):
     
     @classmethod
     def add_current(cls, control):
-        if control.Name and cls.ACTIVE_LAYOUT:
+        if control.Key and cls.ACTIVE_LAYOUT:
             cls.ACTIVE_LAYOUT.add(control)
     
