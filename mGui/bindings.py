@@ -153,7 +153,7 @@ class CmdsAccessor(Accessor):
 
     def _set(self, *args, **kwargs):
         cmds.setAttr(self._attrib, args[0])
-
+        
     def _get(self, *args, **kwargs):
         return cmds.getAttr(self._attrib)
 
@@ -346,6 +346,9 @@ class Binding(object):
         the Setter. If the operation is successful, returns True; otherwise
         returns False.
         
+        In ordinary operation bindings should be exception safe, however you can
+        set BREAK_ON_BIND_FAILURE to true for debugging purposes or stricter compliance.
+        
         Typically the owning BindingContext will mark failed binds and delete
         them once they fail. If you wanted to create binding which could survive
         transient failures you'd want to make sure its __call__ would always
@@ -358,10 +361,53 @@ class Binding(object):
             val = self.Getter.pull()
             self.Setter.push(self.Translator(val))
             return True
-        except (ReferenceError, BindingError):
+        except (ReferenceError, BindingError, RuntimeError):
             if BREAK_ON_BIND_FAILURE:
                 raise BindingError ("Bind failure: %s" % str(sys.exc_info()[1]))
             return False
+            
+
+
+class TwoWayBinding(Binding):
+    '''
+    A two way binding caches the results of the last pull requests from both the
+    getter and the setter, and then pushes the value which changed to the value
+    which did not. If both values have changed, the first defined value wins
+    '''
+    def __init__(self,source, target, *extra, **kwargs):
+        super(TwoWayBinding, self).__init__(source, target, *extra, **kwargs)
+        self._last_getter_value = self.Getter.pull()
+        self._last_setter_value = self.Setter.pull()
+        
+    def __call__(self):
+        if self.__nonzero__() == False: return False
+    
+    
+        try:
+            getter_val = self.Getter.pull()
+            new_getter = getter_val != self._last_getter_value
+            setter_val = self.Setter.pull()
+            new_setter = setter_val != self._last_setter_value
+            
+            
+            if new_getter and not new_setter:    
+                self.Setter.push(self.Translator(getter_val))
+                self._last_setter_value = getter_val
+            if new_setter and not new_getter:
+                self.Getter.push(self.Translator(setter_val))
+                self._last_getter_value = setter_val
+            if new_setter and new_getter:
+                # 'getter' > setter wins
+                self.Setter.push(self.Translator(getter_val))    
+                self._last_getter_value = getter_val    
+                self._last_setter_value = getter_val
+            return True
+        except (ReferenceError, BindingError, RuntimeError):
+            if BREAK_ON_BIND_FAILURE:
+                raise BindingError ("Bind failure: %s" % str(sys.exc_info()[1]))
+            return False
+            
+        
 
 #============================================================================================
 
@@ -430,6 +476,22 @@ class Bindable (object):
         return  Binding( target.site(), target.bind_source,self.site(), self.bind_target)
 
             
+    def __le__(self, other):
+        if not self.bind_target:
+            raise BindingError("bind target is not set for %s" % self)
+        target = self._get_bindable(other, 'bind_source')
+        if not target: 
+            raise BindingError("bind source is not set for %s" % other)
+        return  TwoWayBinding( target.site(), target.bind_source,self.site(), self.bind_target)
+
+    def __ge__(self, other):
+        if not self.bind_target:
+            raise BindingError("bind target is not set for %s" % self)
+        target = self._get_bindable(other, 'bind_source')
+        if not target: 
+            raise BindingError("bind source is not set for %s" % other)
+        return TwoWayBinding(self.site(), self.bind_source, target.site(), target.bind_target)
+
 
     def __add__(self, other):
         return BindProxy(self, other)
@@ -442,7 +504,7 @@ class Bindable (object):
 
         return None
     
-    
+        
 
 class BindableObject(Bindable):
     '''
@@ -487,7 +549,11 @@ class BindableObject(Bindable):
         Returns all of the bindings attached to this object
         '''
         return [i for i in self.bindings]
-
+    
+    def update_bindings(self):
+        delenda = [i for i in self.bindings if not i()]
+        for d in delenda:
+            self.bindings.remove(d)
 
 class BindProxy(Bindable):
     '''

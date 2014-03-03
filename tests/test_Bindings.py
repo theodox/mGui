@@ -605,3 +605,43 @@ class TestBindingCollection(TestCase):
         assert wilma.Val == 'flintstone'
         assert bambam.Val == 'rubble'
         assert not guys == {'fred':'fred', 'barney':'barney'}
+        
+class TestTwoWayBinding(TestCase):
+
+    class Example(bindings.BindableObject):
+        _BIND_SRC = 'Name'
+        _BIND_TGT = 'Val'
+        
+        def __init__(self, name, val):
+            self.Name = name
+            self.Val = val 
+    
+    def test_ge_assignment(self):
+        fred = self.Example('fred', 'flintstone')
+        barney = self.Example('barney', 'rubble')
+        
+        test = fred >= barney
+        barney.Val = 'new'
+        test()
+        assert fred.Name == barney.Val == 'new'
+        
+        test = fred >= barney
+        fred.Name= 'new'
+        test()
+        assert fred.Name == barney.Val and fred.Name == 'new'
+        
+        
+    def test_le_assignment(self):
+        fred = self.Example('fred', 'flintstone')
+        barney = self.Example('barney', 'rubble')
+        
+        test = barney <= fred
+        barney.Val = 'new'
+        test()
+        assert fred.Name == barney.Val  and barney.Val == 'new'
+        
+        test = barney <= fred
+        fred.Name = 'new'
+        test()
+        assert fred.Name == barney.Val  and barney.Val == 'new'
+        
