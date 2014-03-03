@@ -475,16 +475,7 @@ class Bindable (object):
             raise BindingError("bind source is not set for %s" % other)
         return  Binding( target.site(), target.bind_source,self.site(), self.bind_target)
 
-            
-    def __le__(self, other):
-        if not self.bind_target:
-            raise BindingError("bind target is not set for %s" % self)
-        target = self._get_bindable(other, 'bind_source')
-        if not target: 
-            raise BindingError("bind source is not set for %s" % other)
-        return  TwoWayBinding( target.site(), target.bind_source,self.site(), self.bind_target)
-
-    def __ge__(self, other):
+    def __ne__(self, other):         
         if not self.bind_target:
             raise BindingError("bind target is not set for %s" % self)
         target = self._get_bindable(other, 'bind_source')

@@ -616,32 +616,20 @@ class TestTwoWayBinding(TestCase):
             self.Name = name
             self.Val = val 
     
-    def test_ge_assignment(self):
+    def test_ne_assignment(self):
         fred = self.Example('fred', 'flintstone')
         barney = self.Example('barney', 'rubble')
         
-        test = fred >= barney
+        test = fred <> barney
         barney.Val = 'new'
         test()
         assert fred.Name == barney.Val == 'new'
         
-        test = fred >= barney
+        test = fred <> barney
         fred.Name= 'new'
         test()
         assert fred.Name == barney.Val and fred.Name == 'new'
         
         
-    def test_le_assignment(self):
-        fred = self.Example('fred', 'flintstone')
-        barney = self.Example('barney', 'rubble')
-        
-        test = barney <= fred
-        barney.Val = 'new'
-        test()
-        assert fred.Name == barney.Val  and barney.Val == 'new'
-        
-        test = barney <= fred
-        fred.Name = 'new'
-        test()
-        assert fred.Name == barney.Val  and barney.Val == 'new'
+   
         
