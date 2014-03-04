@@ -22,3 +22,6 @@ The module has two main parts.
 *mGui.core* defines two classes, **Control** and **Layout**. These do the same job: wrapping maya UI objects with a property-oriented syntax.  The *mGui.controls* and *mGui.layouts* provide subclasses of these for all of the control and layout widgets in Maya.
 
 
+## Bindings
+
+A lot of repetitive GUI coding is simply about shuffling little bits of data around - set the name of a button to match the selected item, or change the color of a field based on what is selected and so on.  In order to simplify this we provide  _bindings_ - classes for getting information from one place and putting it somewhere else. The 
