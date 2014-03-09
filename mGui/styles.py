@@ -62,6 +62,22 @@ class CSS (dict):
             # based on class hierarchy among targets! If inner looked at MockButton 
             # (the parent class of MockRedButton) it would STILL win in this example
             
+            
+    The context manager functionality is REUSABLE. The examples above show how
+    nested contexts can be use to prioritize the search order for different
+    styles.  The other use is to activate a style for use in the creation of
+    controls:
+        with styles.CSS(StyledMockCtrl, width = 100, height = 100, expected = False) as outer:
+            with styles.CSS(StyledMockButton, bgc = (1,0,0), size = 3, expected = None):
+                deepest = styles.CSS(StyledMockRedButton, size = 4, expected = True)
+                        
+        with outer:
+            test = StyledMockRedButton('fred')  # uses deepest on creation, as in earlier example
+            test2 = StyledMockList('barney')    # uses uses outer, since its the closes match for the class
+            test3 = UnStyledButton('nostyle')   # if the class does not derive from Styled, nothing happens
+            test4 = StyledMockButton('custom', style = CSS('custom', width = 11, height=91)) 
+                                                # explicitly passed style wins over the styles in outer.
+                                
     '''
     
     ACTIVE = None
@@ -85,23 +101,54 @@ class CSS (dict):
     def __exit__(self, exc, val, tb):
         CSS.ACTIVE = self._cache_css
 
-    def applies(self, ctrl):
+
+        
+
+    def applies(self, *args):
         '''
-        return True if this style matches the name or class of <ctrl>
+        return True if this style matches the arguments.  Arguments are EITHER a control OR a class, key pair
         '''
-        return  (self.Target == ctrl.Key) or isinstance(ctrl, self.Target) 
+        if len(args) == 1:
+            ctrl = args[0]
+            return  (self.Target == ctrl.Key) or isinstance(ctrl, self.Target) 
+        if len(args) == 2:
+            cls, key = args
+            return issubclass(cls, self.Target) or self.Target == key
+        
     
-    def find(self, ctrl):
+    
+    def find(self, *args):
         '''
-        find the 
+        find the style in this nested style which matches the supplied arg.  See applies for arguments.
         '''
         for item in self.Children:
-            recurse = item.find(ctrl)
+            recurse = item.find(*args)
             if recurse: return recurse
             
-        if self.applies(ctrl):
+        if self.applies(*args):
             return self
         
-                
+    @classmethod
+    def current(cls):
+        return cls.ACTIVE
     
+    
+    
+    
+class Styled(object):
+    '''
+    Mixin class which makes an object try to hook the appropriate style from CSS.curretn
+    '''
+    def __new__(self, *args, **kwargs):
+        obj = object.__new__(self)
+        self.Style = kwargs.get('style', {})
+        current_style = CSS.current()
+        if current_style and not self.Style:
+            self.Style = current_style.find(self, args[0]) or self.Style
         
+        if 'style' in kwargs:
+            del kwargs['style']
+        
+        return obj
+                
+                            

@@ -21,6 +21,23 @@ class MockRedButton(MockButton):
 class MockList(object):
     pass
 
+class StyledMockCtrl(styles.Styled):
+    
+    def __init__(self, key, **kwargs):
+        super(StyledMockCtrl, self).__init__()
+        self.Key = key
+        
+class StyledMockButton(StyledMockCtrl):
+    pass
+
+class StyledMockRedButton(StyledMockButton):
+    pass
+
+class StyledMockList(StyledMockCtrl):
+    pass
+
+
+
 
 
 class Test_CSS(unittest.TestCase):
@@ -100,8 +117,8 @@ class Test_CSS(unittest.TestCase):
         note as written, this privileges POSITION hierarchy over CLASS hierarchy... is that bad?
         '''
         with styles.CSS(MockCtrl, name ='outer') as outer:
-            with styles.CSS(MockButton, name = 'middle') as middle:
-                inner = styles.CSS(MockRedButton, name = 'inner')
+            with styles.CSS(MockButton, name = 'middle'):
+                styles.CSS(MockRedButton, name = 'inner')
   
         test = MockRedButton('mrb')
         assert outer.find(test)['name'] == 'inner'
@@ -112,10 +129,21 @@ class Test_CSS(unittest.TestCase):
         see docs. Style hierarchy position matters, not class hieratchy!
         '''
         with styles.CSS(MockCtrl, name ='outer') as outer:
-            with styles.CSS(MockRedButton, name = 'middle') as middle:
-                inner = styles.CSS(MockButton, name = 'inner')
+            with styles.CSS(MockRedButton, name = 'middle'):
+                styles.CSS(MockButton, name = 'inner')
   
         test = MockRedButton('mrb')
         assert outer.find(test)['name'] == 'inner'
         
+    def test_CSS_as_style_context(self):
         
+        with styles.CSS(StyledMockCtrl, width = 100, height = 100, expected = False) as outer:
+            with styles.CSS(StyledMockButton, bgc = (1,0,0), size = 3, expected = None):
+                deepest = styles.CSS(StyledMockRedButton, size = 4, expected = True)
+                        
+        with outer:
+            test = StyledMockRedButton('fred')  # should find 'deepest'
+            test2 = StyledMockList('barney')  # defaults to outer
+        
+        assert test.Style == deepest
+        assert test2.Style == outer
