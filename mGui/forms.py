@@ -3,20 +3,41 @@ forms.py
 
 Extensions to formLayout for easier management
 @author: Stephen Theodore
+
+
+@note
+
+Did some empirical testing, and it appears that lots of attachments is slower
+than lots of simple forms. Thus generating a columnLayout containing 1000
+buttons, each wrapped in its own formlayout takes .86 seconds on my machine;
+where one formlayout with 1000 buttons takes 1.89 seconds if the buttons are
+attached to both sides of form and 1.25 if they are not; a differences of
+between 50 and 100%
+
+The same 1000 buttons with no individual form layouts  = .53 seconds
+
+For this reason prefer row or column or flowlayouts for repetitive stuff and use forms for the main architecture
+
+pretty consistenly groups of 100-odd sets of 3 controls (300 total) came in under .25s
+
 '''
 from mGui.layouts import FormLayout
+from mGui.styles import CSS
+
 import maya.cmds as cmds
 import itertools
+
+
+
 
 
 class FormBase( FormLayout ):
     
     def __init__(self, key, *args, **kwargs):
-        self.margin = kwargs.get('margin', 0)
-        if 'margin' in kwargs: del kwargs['margin']
-        self.spacing = kwargs.get('spacing', 1)
-        if 'spacing' in kwargs: del kwargs['spacing']
         super(FormBase, self).__init__(key, *args, **kwargs)
+        self.margin = self.Style.get('margin', 0)
+        self.spacing = self.Style.get('spacing', 0)
+
 
     def _fill( self, ctrl, margin, *sides ):
         '''
@@ -120,20 +141,49 @@ class VerticalForm(FormBase):
     
     def layout(self):
         m1, m2 = itertools.tee(self.Controls)
-        self.top(m1.next(), self.margin)
-        for t, b in itertools.izip(m1, m2):
-            self.snap(t, b, 'top', self.spacing)
-            self.dock(t, left=self.margin, right = self.margin)
+        ac  = []
+        af = []
+        af.append ( (m1.next(), 'top', self.margin))
+        
+        for b, t in itertools.izip(m1, m2):
+            ac.append( (b, 'top', self.margin, t) )
+            af.append( (t, 'left', self.margin) )
+            af.append( (t, 'right', self.margin)) 
+
+        last = m2.next()
+        af.append((last, 'left', self.margin))
+        af.append((last, 'right', self.margin))
+
+        self.attachControl = ac
+        self.attachForm = af
+        
         return len(self.Controls)
     
 class HorizontalForm(FormBase):
      
     def layout(self):
-        
         m1, m2 = itertools.tee(self.Controls)
-        self.left(m1.next(), self.margin)
-        for t, b in itertools.izip(m1, m2):
-            self.snap(t, b, 'left', self.spacing)
-            self.dock(t, top=self.margin, bottom = self.margin)
+        ac  = []
+        af = []
+        
+        # experimantal...
+        
+        totalmargin = lambda q: self.margin + q.Style.get('margin', 0)
+        
+        first = m1.next()
+        af.append( ( first, 'left', totalmargin(first) ))
+        
+        for b, t in itertools.izip(m1, m2):
+            ac.append( (b, 'left',  totalmargin(t), t) )
+            af.append( (t, 'top',  totalmargin(t) ) )
+            af.append( (t, 'bottom',  totalmargin(t)) )
+
+        last = m2.next()
+        af.append( (last, 'top',  totalmargin(last)) )
+        af.append(  (last, 'bottom',  totalmargin(last) ) )
+
+        self.attachControl = ac
+        self.attachForm = af
+
         return len(self.Controls)
 
