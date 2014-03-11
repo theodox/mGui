@@ -521,8 +521,8 @@ class Bindable (object):
         if not target: 
             raise BindingError("bind source is not set for %s" % other)
         return TwoWayBinding(self.site(), self.bind_source, target.site(), target.bind_target)
-
-
+    
+    
     def __add__(self, other):
         return BindProxy(self, other)
     
@@ -548,7 +548,11 @@ class Bindable (object):
         except:
             return None
     
-        
+    #@todo - need a single consistent way to parse a binding expression
+    # 1 val > bind default to bindableobject
+    # 2 vals> bind defsault to bindable + tgt OR bind srcfield to bindableObject default
+    # 3 vals > bind srcfield to bindable + tgt
+         
 
 class BindableObject(Bindable):
     '''
@@ -598,6 +602,10 @@ class BindableObject(Bindable):
         delenda = [i for i in self.bindings if not i()]
         for d in delenda:
             self.bindings.remove(d)
+            
+    def clear_bindings(self):
+        for item in self.bindings: item.invalidate()
+        self.bindings[:] = []
 
 class BindProxy(Bindable):
     '''
