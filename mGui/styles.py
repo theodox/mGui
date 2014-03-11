@@ -113,8 +113,11 @@ class CSS (dict):
             return  (self.Target == ctrl.Key) or isinstance(ctrl, self.Target) 
         if len(args) == 2:
             cls, key = args
-            return issubclass(cls, self.Target) or self.Target == key
-        
+            if self.Target == key:
+                return True
+            if isinstance(self.Target, type):
+                return issubclass(cls, self.Target)
+            return False
     
     
     def find(self, *args):
@@ -148,6 +151,8 @@ class Styled(object):
         
         if 'style' in kwargs:
             del kwargs['style']
+        
+        print 'styled', self
         
         return obj
                 
