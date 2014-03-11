@@ -1,6 +1,7 @@
 import maya.cmds as cmds
 from .events import MayaEvent
 from .bindings import BindableObject
+from .styles import CSS, Styled
 
 class CtlProperty (object):
     '''
@@ -70,9 +71,15 @@ class ControlMeta(type):
 
         return super(ControlMeta, cls).__new__(cls, name, parents, kwargs)
 
-class Control(BindableObject):
+class Control(Styled, BindableObject):
     '''
-    Base class for all mGui controls.  Provides the necessary frameworks for CtlProperty and CallbackProperty access to the underlying widget
+    Base class for all mGui controls.  Provides the necessary frameworks for
+    CtlProperty and CallbackProperty access to the underlying widget.
+    
+    Control inherits from BindableObject, so it supports binding operators.  All control will have the _
+    
+    Contropl inherits from Styled, so it supports styling.
+    
     '''
     CMD = cmds.control
     _ATTRIBS = ['annotation', 'backgroundColor', 'defineTemplate', 'docTag', 'dragCallback', 'dropCallback', 'enable', 'enableBackground', 'exists', 'fullPathName', 'height',  'manage', 'noBackground', 'numberOfPopupMenus', 'parent', 'popupMenuArray', 'preventOverride', 'useTemplate', 'visible', 'visibleChangeCommand', 'width']
@@ -82,12 +89,12 @@ class Control(BindableObject):
     
     
     def __init__(self, key, *args, **kwargs):
+        
+        _style = dict( (k,v) for k,v in self.Style.items() if k in self._ATTRIBS or k in Control._ATTRIBS)    
+        _style.update(kwargs)
 
-        self.Style = kwargs.get('style', self.__class__.__name__)
-        if 'style' in kwargs: del kwargs['style']
-   
         self.Key = key
-        self.Widget = self.CMD(*args, **kwargs)
+        self.Widget = self.CMD(*args, **_style)
         '''
         Widget is the gui element in the scene
         '''
@@ -141,7 +148,6 @@ class Layout(Control):
         super (Layout, self).__init__(key, *args, **kwargs)
         
     def __enter__( self ):
-        print 'entered', self.Key
         self.__cache_layout = Layout.ACTIVE_LAYOUT
         Layout.ACTIVE_LAYOUT = self
         return self
@@ -151,8 +157,6 @@ class Layout(Control):
         Layout.ACTIVE_LAYOUT = self.__cache_layout
         self.__cache_layout = None
         cmds.setParent( ".." ) 
-        
-        print 'exited', self.Key, 'restored', Layout.ACTIVE_LAYOUT
 
     def layout(self):
         return len(self.Controls)
@@ -162,7 +166,6 @@ class Layout(Control):
         if control.Key in self.__dict__:
             raise RuntimeError, 'Children of a layout must have unique IDs'
         self.__dict__[control.Key] = control
-        print 'added', control.Key, 'to', self.Key
         
     def remove(self, control):
         self.Controls.remove(control)
