@@ -1,7 +1,6 @@
 import maya.cmds as cmds
-from .events import MayaEvent
 from .bindings import BindableObject
-from .styles import CSS, Styled
+from .styles import Styled
 from .properties import CtlProperty, CallbackProperty
 
 
@@ -30,14 +29,76 @@ class ControlMeta(type):
 
         return super(ControlMeta, cls).__new__(cls, name, parents, kwargs)
 
+
+
+class Window(Styled, BindableObject):
+    '''
+ 
+    Window inherits from bindings.BindableObject, so it supports binding
+    operators.  All controls will have _bind_src and _bind_tgt fields, and 
+    if a derived control class indicates default(s) they will be used.
+    
+    Window inherits from styles.Styled, so it supports styling.
+    
+    '''
+    CMD = cmds.window
+    _ATTRIBS = ["backgroundColor", "defineTemplate", "docTag", "exists", "height", "iconify", "iconName", "leftEdge", "menuBarVisible", "menuIndex", "mainMenuBar", "minimizeButton", "maximizeButton",  "resizeToFitChildren", "sizeable", "title", "titleBar", "titleBarMenu", "topEdge", "toolbox", "topLeftCorner", "useTemplate", "visible", "width", "widthHeight"]
+    _CALLBACKS = ["minimizeCommand", "restoreCommand"]
+    _READONLY = [ "numberOfMenus", "menuArray", "menuBar",  "retain"]
+
+    __metaclass__ = ControlMeta
+    
+    
+    def __init__(self, key, *args, **kwargs):
+        
+        # this applies any keywords in the current style that are part of the Maya gui flags
+        # other flags (like float and margin) are ignored
+        _style = dict( (k,v) for k,v in self.Style.items() if k in self._ATTRIBS or k in Window._ATTRIBS)    
+        _style.update(kwargs)
+
+        self.Key = key
+        self.Widget = self.CMD(*args, **_style)
+        '''
+        Widget is the gui element in the scene
+        '''
+        self.Callbacks = {}
+        '''
+        A dictionary of Event objects
+        '''
+        
+    def register_callback(self, callbackName, event):
+        '''
+        when a callback property is first accessed this creates an Event for the specified callback and hooks it to the gui widget's callback function
+        '''
+        kwargs = {'e':True, callbackName:event}
+        self.CMD(self.Widget, **kwargs)
+
+                
+    def __nonzero__(self):
+        return self.exists
+    
+    def __repr__(self):
+        if self:
+            return self.Widget
+        else:
+            return "<deleted Window %s>" % self.Key
+        
+    def __str__(self):
+        return self.Widget
+    
+    def __iter__(self):
+        yield self
+
 class Control(Styled, BindableObject):
     '''
     Base class for all mGui controls.  Provides the necessary frameworks for
     CtlProperty and CallbackProperty access to the underlying widget.
     
-    Control inherits from BindableObject, so it supports binding operators.  All control will have the _
+    Control inherits from bindings.BindableObject, so it supports binding
+    operators.  All controls will have _bind_src and _bind_tgt fields, and 
+    if a derived control class indicates default(s) they will be used.
     
-    Contropl inherits from Styled, so it supports styling.
+    Control inherits from styles.Styled, so it supports styling.
     
     '''
     CMD = cmds.control
@@ -49,6 +110,8 @@ class Control(Styled, BindableObject):
     
     def __init__(self, key, *args, **kwargs):
         
+        # this applies any keywords in the current style that are part of the Maya gui flags
+        # other flags (like float and margin) are ignored
         _style = dict( (k,v) for k,v in self.Style.items() if k in self._ATTRIBS or k in Control._ATTRIBS)    
         _style.update(kwargs)
 
@@ -62,6 +125,7 @@ class Control(Styled, BindableObject):
         A dictionary of Event objects
         '''
         Layout.add_current(self)
+        
         
     def register_callback(self, callbackName, event):
         '''
