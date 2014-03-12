@@ -1,7 +1,7 @@
 import maya.mel as mel
 from StringIO import StringIO
 import constants
-        
+import mGui.core as core        
 
 _is_widget  = lambda helptext: 'dragCallback' in helptext
 _is_layout = lambda helptext: 'childArray' in helptext
@@ -23,7 +23,7 @@ class CommandInfo(object):
     '''
     This class uses the mel help strings for commands to generate class wrapper classes
     '''
-    DEFAULTS = constants.CONTROL_ATTRIBS
+    DEFAULTS = core.Control._ATTRIBS + core.Control._READ_ONLY
     INHERITS = 'Control'
     
     
@@ -37,10 +37,8 @@ class CommandInfo(object):
         code.write("    '''Wrapper class for cmds.%s'''\n"  % self.Name)
         code.write('    CMD = cmds.%s\n' % self.Name)
         attribs = [k for k in self.Flags.values() if not k in self.DEFAULTS]
-        ##attribs += [k for k in self.Flags.keys() if not k in _CONTROL_ATTRIBS]
         attribs.sort()
-        # note this deliberately excludes short names of callbacks!
-        callbacks = [c for c in attribs if 'Command' in c or 'Callback' in c] 
+        callbacks = [c for c in attribs if 'ommand' in c or 'allback' in c] 
         attribs = list(set(attribs) - set(callbacks))
         quoted = lambda p : "'%s'" % p
         attrib_names = map (quoted, attribs)
@@ -63,7 +61,7 @@ class CommandInfo(object):
 
 
 class LayoutInfo(CommandInfo):
-    DEFAULTS = constants.CONTROL_ATTRIBS + constants.LAYOUT_ATTRIBS
+    DEFAULTS = core.Layout._ATTRIBS + core.Layout._READ_ONLY
     INHERITS = 'Layout'
     
 
@@ -72,8 +70,6 @@ def generate_controls(filename):
         filehandle.write("'''\nmGui wrapper classes\n\nAuto-generated wrapper classes for use with mGui\n'''\n\n")
         filehandle.write('import maya.cmds as cmds\n')
         filehandle.write('from .core import Control\n')
-        
-        
         
         for each_class in constants.CONTROL_COMMANDS:
             try:
