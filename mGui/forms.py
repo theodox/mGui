@@ -22,7 +22,7 @@ pretty consistenly groups of 100-odd sets of 3 controls (300 total) came in unde
 
 '''
 from mGui.layouts import FormLayout
-from mGui.styles import CSS
+from mGui.styles import CSS, Margin
 
 import maya.cmds as cmds
 import itertools
@@ -37,12 +37,13 @@ class FormBase(FormLayout):
     Use this when you need precise control over form behavior.
     
     Formbase is entirely manual - it does no automatic layout behavior.
+    
     '''
     
     def __init__(self, key, *args, **kwargs):
         super(FormBase, self).__init__(key, *args, **kwargs)
-        self.margin = self.Style.get('margin', 0)
-        self.spacing = self.Style.get('spacing', 0)
+        self.margin = Margin (*self.Style.get('margin', (0, 0, 0, 0)))
+        self.spacing = Margin (*self.Style.get('spacing', (0, 0, 0, 0)))
 
 
     def _fill(self, ctrl, margin, *sides):
@@ -50,7 +51,7 @@ class FormBase(FormLayout):
         convenience wrapper for tedious formLayout editing
         '''
         ct = [ctrl for _ in sides]
-        mr = [margin for _ in sides]
+        mr = [margin[_] for _ in sides]
         self.attachForm = zip(ct, sides, mr) 
 
 
@@ -142,7 +143,7 @@ class FillForm (FormBase):
     '''
         
     def layout(self):
-        self.fill(self.Controls[0], self.margin)
+        self.fill(self.Controls[0], sum(self.margin) / 4)
         return len(self.Controls)
               
 class VerticalForm(FormBase):
@@ -151,20 +152,18 @@ class VerticalForm(FormBase):
         
         af = []
         for item in self.Controls:
-            af.append( (item, 'left', self.margin))
-            af.append( (item, 'right', self.margin))
-        
+            af.append((item, 'left', self.spacing.left))
+            af.append((item, 'right', self.spacing.right))
         
         m1, m2 = itertools.tee(self.Controls)
         ac = []
-        af = []
-        af.append ((m1.next(), 'top', self.margin))
+        af.append ((m1.next(), 'top', self.spacing.top))
         
         for b, t in itertools.izip(m1, m2):
-            ac.append((b, 'top', self.margin, t))
+            ac.append((b, 'top', self.spacing.top, t))
 
         last = m2.next()
-        af.append((last, 'bottom', self.margin))
+        af.append((last, 'bottom', self.spacing.bottom))
                 
         self.attachForm = af
         self.attachControl = ac
@@ -183,20 +182,20 @@ class HorizontalForm(FormBase):
         
         af = []
         for item in self.Controls:
-            af.append( (item, 'top', self.margin))
-            af.append( (item, 'bottom', self.margin))
+            af.append((item, 'top', self.spacing.top))
+            af.append((item, 'bottom', self.spacing.bottom))
         
         m1, m2 = itertools.tee(self.Controls)
         ac = []
         
         first = m1.next()
-        af.append((first, 'left', self.margin))
+        af.append((first, 'left', self.spacing.left))
         
         for b, t in itertools.izip(m1, m2):
-            ac.append((b, 'left', self.margin, t))
+            ac.append((b, 'left', self.spacing.left, t))
 
         last = m2.next()
-        af.append((last, 'right',self.margin))
+        af.append((last, 'right', self.spacing.right))
         self.attachControl = ac
         self.attachForm = af
 
@@ -207,26 +206,30 @@ class HorizontalStretchForm(FormBase):
     Lays out children horizontally. All children will scale proportionally as the form changes size
     '''
      
+     
+    # @todo - refactor this into a generic proportional layout,
+    # parameterizes direcitons
+    # allow controls to proclaim a width?
     def layout(self):
         
         af = []
         ap = []
         for item in self.Controls:
-            af.append( (item, 'top', self.margin))
-            af.append( (item, 'bottom', self.margin))
+            af.append((item, 'top', self.spacing.top))
+            af.append((item, 'bottom', self.spacing.bottom))
 
         widths = [i.width for i in self.Controls]
         total_width = sum(widths)
         proportions = map (lambda q: q * 100.0 / total_width, widths)
-        proportions.insert(0,0)
+        proportions.insert(0, 0)
         
         left = 0 
         right = 0
-        for idx, val in enumerate(proportions): #@UnusedVariable
+        for idx, val in enumerate(proportions):  # @UnusedVariable
             if right >= 100: continue
             right = left + proportions[idx + 1]
-            ap.append( (self.Controls[idx], 'left', 0, left )) 
-            ap.append( (self.Controls[idx], 'right', 0, right ))
+            ap.append((self.Controls[idx], 'left', 0, left)) 
+            ap.append((self.Controls[idx], 'right', 0, right))
             left = right
         self.attachForm = af
         self.attachPosition = ap
@@ -243,21 +246,21 @@ class VerticalStretchForm(FormBase):
         af = []
         ap = []
         for item in self.Controls:
-            af.append( (item, 'left', self.margin))
-            af.append( (item, 'right', self.margin))
+            af.append((item, 'left', self.spacing.left))
+            af.append((item, 'right', self.spacing.right))
 
         heights = [i.height for i in self.Controls]
         total_height = sum(heights)
         proportions = map (lambda q: q * 100.0 / total_height, heights)
-        proportions.insert(0,0)
+        proportions.insert(0, 0)
     
         top = 0 
         bottom = 0
-        for idx, val in enumerate(proportions): #@UnusedVariable
+        for idx, val in enumerate(proportions):  # @UnusedVariable
             if bottom >= 100: continue
             bottom = top + proportions[idx + 1]
-            ap.append( (self.Controls[idx], 'top', self.margin, top )) 
-            ap.append( (self.Controls[idx], 'bottom', self.margin, bottom ))
+            ap.append((self.Controls[idx], 'top', self.spacing.top, top)) 
+            ap.append((self.Controls[idx], 'bottom', self.spacing.bottom, bottom))
             top = bottom
             
         self.attachForm = af

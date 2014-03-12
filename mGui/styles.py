@@ -4,11 +4,12 @@ Created on Feb 13, 2014
 @author: Stephen Theodore
 '''
 
+from collections import namedtuple
 
+Margin = namedtuple('Margin', 'left right top bottom')
 
-
-
-class CSS (dict):    
+class CSS (dict):
+        
     '''
     A css is a dictionary of style values keyed to a particular target.
     
@@ -101,9 +102,6 @@ class CSS (dict):
     def __exit__(self, exc, val, tb):
         CSS.ACTIVE = self._cache_css
 
-
-        
-
     def applies(self, *args):
         '''
         return True if this style matches the arguments.  Arguments are EITHER a control OR a class, key pair
@@ -135,9 +133,6 @@ class CSS (dict):
     def current(cls):
         return cls.ACTIVE
     
-    
-    
-    
 class Styled(object):
     '''
     Mixin class which makes an object try to hook the appropriate style from CSS.curretn
@@ -153,9 +148,7 @@ class Styled(object):
         # non-style arguments are passed directly
         if 'style' in kwargs:
             del kwargs['style']
-        
-        print 'styled', self
-        
+                
         return obj
                 
                             

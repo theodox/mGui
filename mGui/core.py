@@ -89,6 +89,10 @@ class Window(Styled, BindableObject):
     def __iter__(self):
         yield self
 
+
+
+
+
 class Control(Styled, BindableObject):
     '''
     Base class for all mGui controls.  Provides the necessary frameworks for
