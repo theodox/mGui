@@ -102,7 +102,7 @@ class Control(Styled, BindableObject):
     
     '''
     CMD = cmds.control
-    _ATTRIBS = ['annotation', 'backgroundColor', 'defineTemplate', 'docTag', 'dragCallback', 'dropCallback', 'enable', 'enableBackground', 'exists', 'fullPathName', 'height',  'manage', 'noBackground', 'numberOfPopupMenus', 'parent', 'popupMenuArray', 'preventOverride', 'useTemplate', 'visible', 'visibleChangeCommand', 'width']
+    _ATTRIBS = ['annotation', 'backgroundColor', 'defineTemplate', 'docTag',  'enable', 'enableBackground', 'exists', 'fullPathName', 'height',  'manage', 'noBackground', 'numberOfPopupMenus', 'parent', 'popupMenuArray', 'preventOverride', 'useTemplate', 'visible', 'visibleChangeCommand', 'width']
     _CALLBACKS = ['dragCallback', 'dropCallback', 'visibleChangeCommand']
     _READ_ONLY = ['isObscured', 'popupMenuArray', 'numberOfPopupMenus']
     __metaclass__ = ControlMeta
