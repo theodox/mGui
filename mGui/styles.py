@@ -149,6 +149,8 @@ class Styled(object):
         if current_style and not self.Style:
             self.Style = current_style.find(self, args[0]) or self.Style
         
+        # intercept the style argument before __init__ so any
+        # non-style arguments are passed directly
         if 'style' in kwargs:
             del kwargs['style']
         
