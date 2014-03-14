@@ -6,6 +6,7 @@ Defines a simple event handler system similar to that used in C#.
 import weakref
 import inspect
 import maya.utils
+from functools import wraps, partial
 
 class Event( object ):
     '''
@@ -35,27 +36,21 @@ class Event( object ):
         > test = None
         > x()
 
-    Handlers must exhibit the *args, **kwargs signature.  It's the handler's job to decide what to do with them but they will be passed.  Use the Notification object to add a dummy args/kwargs wrapper to a callable which takes no arguments
+    Handlers must exhibit the *args, **kwargs signature.  It's the handler's job to decide what to do with them but they will be passed.  Use the Trigger object to add a dummy args/kwargs wrapper to a callable which takes no arguments
     '''
 
-    def __init__( self ):
+    def __init__( self, **data):
         self._Handlers = set()
         '''Set list of handlers callables. Use a set to avoid multiple calls on one handler'''
-
+        self.Data = data
+        self.Data['event'] = self
+        
     def _addHandler( self, handler ):
         '''
         Add a handler callable. Raises a ValueError if the argument is not callable
         '''
-        if not callable( handler ): raise ValueError( "Handler argument must be callable" )
-
-        code = handler
-        if hasattr(code, '__call__') and not inspect.isfunction(code):
-            code = handler.__call__
-
-        argspec = inspect.getargspec(code)
-        if (not argspec.varargs or not argspec.keywords):
-                raise ValueError( "Handler argument must accept *args and **keywordArgs" )
-        self._Handlers.add( weakref.ref(handler) )
+       
+        self._Handlers.add( WeakMethod(handler) )
         return self
 
     def _removeHandler( self, handler ):
@@ -73,14 +68,16 @@ class Event( object ):
         '''
         Call all handlers.  Any decayed references will be purged.
         '''
-        kwargs['event'] = self
+        d = {}
+        d.update(self.Data)
+        d.update(**kwargs)
+        
         delenda = []
         for handler in self._Handlers:
-            h = handler()
-            if h:
-                h( *args, **kwargs )
-            else:
-                delenda.append(h)
+            try:
+                handler( *args, **d )
+            except DeadReferenceError:
+                delenda.append(handler)
         self._Handlers = self._Handlers.difference(set(delenda))
 
     def _handlerCount ( self ):
@@ -114,28 +111,48 @@ class MayaEvent(Event):
         '''
         kwargs['event'] = self
         delenda = []
-        for handler in self._Handlers:
-            h = handler()
-            if h:
+        for handler in self._Handlers:        
+            try:
+                h = handler()
                 maya.utils.executeDeferred( h,  *args, **kwargs )
-            else:
-                delenda.append(h)
+            except DeadReferenceError:
+                delenda.append(handler)
+           
+                
         self._Handlers = self._Handlers.difference(set(delenda))
 
     __call__ = _fire
 
+class DeadReferenceError(TypeError):
+    pass
 
+## create weak references to both bound and unbound methods
+## recipce c/o Frederic Jolliton 
 
+class WeakMethodBound :
+    def __init__( self , f ) :
+        
+        self.f = f.im_func
+        self.c = weakref.ref( f.im_self )
+        
+    def __call__( self , *arg, **kwarg ) :
+        if self.c():
+            return apply( self.f , ( self.c() , ) + arg, kwarg )
+        else:
+            raise DeadReferenceError
+        
+class WeakMethodFree :
+    def __init__( self , f ) :
+        self.f = weakref.ref( f )
+    def __call__( self , *arg , **kwarg) :
+        if self.f():
+            return apply( self.f() , arg , kwarg)
+        else:
+            raise DeadReferenceError
 
-class Notification(object):
-    '''
-    wrapper for callables that don't present the *args, **kwargs signature
-
-    Calls the function when the event fires, but swallows any args or kwargs
-    '''
-    def __init__(self, callable):
-        self.callable = callable
-
-    def __call__(self, *args, **kwargs):
-        self.callable()
-            
+def WeakMethod( f ) :
+    try :
+        f.im_func
+    except AttributeError :
+        return WeakMethodFree( f )
+    return WeakMethodBound( f )
