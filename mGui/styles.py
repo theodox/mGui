@@ -4,10 +4,37 @@ Created on Feb 13, 2014
 @author: Stephen Theodore
 '''
 
-from collections import namedtuple
+class Bounds(object):
+    '''
+    A bounding area (in pixels).  Can be constructed 3 ways:
+    
+        Bounds (10) : 10 pixel margin on all sides
+        Bounds (5, 10):  5 pixel horizontal and 10 pixel vertical margin
+        Bounds (5, 10, 15, 20) : eplicit left, top, right, bottom
+    
+    left, right, top and bottom can be accessed by point or dictionary style
+    notation
+        B = Bounds(10,20)
+        B.left
+        # 10
+        B['top']
+        # 20
+    '''
+    def __init__(self, *args):
+        vals = list(args) * 2  + [0] * 4
+        if len(args) == 1:
+            vals = list(args) * 4
+        self.left, self.top, self.right, self.bottom = vals[:4]
 
-Margin = namedtuple('Margin', 'left right top bottom')
-
+    def __getitem__(self, key):
+        return {
+        'left':self.left,
+        'right':self.right,
+        'top':self.top,
+        'bottom': self.bottom
+         }[key]
+         
+        
 class CSS (dict):
         
     '''
@@ -85,10 +112,13 @@ class CSS (dict):
     
     def __init__(self, target, *templates, **kwarg):
         super(CSS,self).__init__()
+
         if CSS.ACTIVE:
             templates = [CSS.ACTIVE] + [i for i in templates]
         map(self.update, templates)
         self.update(**kwarg)
+        
+                
         self.Target = target
         self.Children = []
         if CSS.ACTIVE:
@@ -150,5 +180,5 @@ class Styled(object):
             del kwargs['style']
                 
         return obj
-                
-                            
+   
+                                
