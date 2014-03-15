@@ -22,7 +22,7 @@ pretty consistenly groups of 100-odd sets of 3 controls (300 total) came in unde
 
 '''
 from mGui.layouts import FormLayout
-from mGui.styles import CSS, Margin
+from mGui.styles import CSS, Bounds
 
 import maya.cmds as cmds
 import itertools
@@ -42,8 +42,8 @@ class FormBase(FormLayout):
     
     def __init__(self, key, *args, **kwargs):
         super(FormBase, self).__init__(key, *args, **kwargs)
-        self.margin = Margin (*self.Style.get('margin', (0, 0, 0, 0)))
-        self.spacing = Margin (*self.Style.get('spacing', (0, 0, 0, 0)))
+        self.margin = self.Style.get('margin',  Bounds(0, 0) )
+        self.spacing = self.Style.get('spacing', Bounds(0, 0) ) 
 
 
     def _fill(self, ctrl, margin, *sides):
@@ -51,7 +51,7 @@ class FormBase(FormLayout):
         convenience wrapper for tedious formLayout editing
         '''
         ct = [ctrl for _ in sides]
-        mr = [margin[_] for _ in sides]
+        mr = [self.margin[_] for _ in sides]
         self.attachForm = zip(ct, sides, mr) 
 
 
@@ -59,8 +59,8 @@ class FormBase(FormLayout):
         '''
         Docks 'ctrl' against the top of the form, with the supplied margin on top, left and right
         '''
-        sides = ['top', 'left', 'right']
-        self._fill(ctrl, margin, *sides)
+        
+        self._fill(ctrl, margin, 'top', 'left', 'right')
 
     def left(self, ctrl, margin):
         '''
@@ -98,7 +98,41 @@ class FormBase(FormLayout):
         self.attachControl = (ctrl1, edge, margin, ctrl2)
 
 
+    def form_attachments(self, *sides):
+        '''
+        returns a list of (control, side, spacing) values used by attachForm style commands
+        '''
+        attachments = ( [side, self.spacing[side]]  for side in sides)
+        ctls = itertools.product(self.Controls, attachments)
+        return [ [a] + b for a, b in ctls]
+        
+    def form_series (self, side):
+        '''
+        returns a series of (control, side, space, control) for use in serial placement
+        '''
+        first, second = itertools.tee(self.Controls)
+        second.next()
+        return [ (s, side, self.spacing[side], f) for f, s in itertools.izip(first, second)]
 
+    def percentage_series(self, side):
+        
+        side2 = {'left':'right', 'right':'left', 'top':'bottom', 'bottom':'top'}[side]
+        
+
+        widths = [i.width for i in self.Controls]
+        total_width = sum(widths)
+        proportions = map (lambda q: q * 100.0 / total_width, widths)
+        p_l = len(proportions)
+        left_edges = [sum(proportions[:r]) for r in range(0, p_l)]
+        right_edges = [sum(proportions[:r]) for r in range(1,p_l + 1)]
+        ap = []
+        for c, l,r in itertools.izip(self.Controls, left_edges, right_edges):
+            ap.append( ( c, side, self.spacing[side], l) ) 
+            ap.append( ( c, side2,self.spacing[side2], r) ) 
+        
+        print ap
+        return ap
+    
     def dock(self, ctrl, top=None, left=None, right=None, bottom=None):
         '''
         docks ctrl into the form.
@@ -151,20 +185,11 @@ class VerticalForm(FormBase):
     def layout(self):
         
         af = []
-        for item in self.Controls:
-            af.append((item, 'left', self.spacing.left))
-            af.append((item, 'right', self.spacing.right))
-        
-        m1, m2 = itertools.tee(self.Controls)
-        ac = []
-        af.append ((m1.next(), 'top', self.spacing.top))
-        
-        for b, t in itertools.izip(m1, m2):
-            ac.append((b, 'top', self.spacing.top, t))
-
-        last = m2.next()
-        af.append((last, 'bottom', self.spacing.bottom))
-                
+        af = self.form_attachments('left', 'right')
+        af.append ((self.Controls[0], 'top', self.spacing.top))
+        af.append((self.Controls[-1], 'bottom', self.spacing.bottom))
+        ac = self.form_series('top')
+            
         self.attachForm = af
         self.attachControl = ac
         
@@ -178,27 +203,14 @@ class HorizontalForm(FormBase):
     '''
      
     def layout(self):
-        
-        
-        af = []
-        for item in self.Controls:
-            af.append((item, 'top', self.spacing.top))
-            af.append((item, 'bottom', self.spacing.bottom))
-        
-        m1, m2 = itertools.tee(self.Controls)
-        ac = []
-        
-        first = m1.next()
-        af.append((first, 'left', self.spacing.left))
-        
-        for b, t in itertools.izip(m1, m2):
-            ac.append((b, 'left', self.spacing.left, t))
-
-        last = m2.next()
-        af.append((last, 'right', self.spacing.right))
-        self.attachControl = ac
+        af = self.form_attachments('top', 'bottom')
+        af.append ((self.Controls[0], 'left', self.spacing.top))
+        af.append((self.Controls[-1], 'right', self.spacing.bottom))
+        ac = self.form_series('left')
+                
         self.attachForm = af
-
+        self.attachControl = ac
+        
         return len(self.Controls)
 
 class HorizontalStretchForm(FormBase):
@@ -212,25 +224,9 @@ class HorizontalStretchForm(FormBase):
     # allow controls to proclaim a width?
     def layout(self):
         
-        af = []
-        ap = []
-        for item in self.Controls:
-            af.append((item, 'top', self.spacing.top))
-            af.append((item, 'bottom', self.spacing.bottom))
-
-        widths = [i.width for i in self.Controls]
-        total_width = sum(widths)
-        proportions = map (lambda q: q * 100.0 / total_width, widths)
-        proportions.insert(0, 0)
-        
-        left = 0 
-        right = 0
-        for idx, val in enumerate(proportions):  # @UnusedVariable
-            if right >= 100: continue
-            right = left + proportions[idx + 1]
-            ap.append((self.Controls[idx], 'left', 0, left)) 
-            ap.append((self.Controls[idx], 'right', 0, right))
-            left = right
+    
+        af = self.form_attachments('top', 'bottom')
+        ap = self.percentage_series('left')
         self.attachForm = af
         self.attachPosition = ap
 
@@ -245,24 +241,9 @@ class VerticalStretchForm(FormBase):
         
         af = []
         ap = []
-        for item in self.Controls:
-            af.append((item, 'left', self.spacing.left))
-            af.append((item, 'right', self.spacing.right))
-
-        heights = [i.height for i in self.Controls]
-        total_height = sum(heights)
-        proportions = map (lambda q: q * 100.0 / total_height, heights)
-        proportions.insert(0, 0)
-    
-        top = 0 
-        bottom = 0
-        for idx, val in enumerate(proportions):  # @UnusedVariable
-            if bottom >= 100: continue
-            bottom = top + proportions[idx + 1]
-            ap.append((self.Controls[idx], 'top', self.spacing.top, top)) 
-            ap.append((self.Controls[idx], 'bottom', self.spacing.bottom, bottom))
-            top = bottom
-            
+        
+        af = self.form_attachments('left', 'right')
+        ap = self.percentage_series('top')
         self.attachForm = af
         self.attachPosition = ap
 
