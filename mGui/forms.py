@@ -42,67 +42,65 @@ class FormBase(FormLayout):
     
     def __init__(self, key, *args, **kwargs):
         super(FormBase, self).__init__(key, *args, **kwargs)
-        self.margin = self.Style.get('margin',  Bounds(0, 0) )
-        self.spacing = self.Style.get('spacing', Bounds(0, 0) ) 
+        self.margin = Bounds(*self.Style.get('margin', (0, 0)))
+        self.spacing = Bounds(*self.Style.get('spacing', (0, 0))) 
 
 
-    def _fill(self, ctrl, margin, *sides):
+    def _fill(self, ctrl,  *sides, **kwargs):
         '''
         convenience wrapper for tedious formLayout editing
         '''
+        margin = kwargs.get('margin', None)
         ct = [ctrl for _ in sides]
-        mr = [self.margin[_] for _ in sides]
+        mr = [margin for _ in sides]
+        if margin is None:
+            mr = [self.margin[_] for _ in sides]
         self.attachForm = zip(ct, sides, mr) 
 
-
-    def top(self, ctrl, margin):
+    def top(self, ctrl, margin = None):
         '''
         Docks 'ctrl' against the top of the form, with the supplied margin on top, left and right
         '''
-        
-        self._fill(ctrl, margin, 'top', 'left', 'right')
+        self._fill(ctrl, 'top', 'left', 'right', margin = margin)
 
-    def left(self, ctrl, margin):
+    def left(self, ctrl, margin = None):
         '''
         dock 'ctrl' along the left side of the form with the supplied margin
         '''
-        sides = ['top', 'left', 'bottom']
-        self._fill(ctrl, margin, *sides)
+        self._fill(ctrl, 'top', 'left', 'bottom', margin = margin)
 
-    def right (self, ctrl, margin):
+    def right (self, ctrl, margin = None):
         '''
         dock 'ctrl' along the right side of the form with the supplied margin
         '''
-        sides = ['top', 'right', 'bottom']
-        self._fill(ctrl, margin, *sides)
+        self._fill(ctrl, 'top', 'bottom', 'right', margin = margin)
 
-    def bottom(self, ctrl, margin):
+
+    def bottom(self, ctrl, margin = None):
         '''
         dock 'ctrl' along the bottom of the form with the supplied margin
         '''
-        sides = ['bottom', 'left', 'right']
-        self._fill(ctrl, margin, *sides)
+        self._fill(ctrl, 'bottom', 'left', 'right', margin = margin)
 
-
-    def fill(self, ctrl, margin):
+    def fill(self, ctrl, margin = None):
         '''
         docks 'ctrl' into the form filling it completely with suppled margin on all sides
         '''
         sides = ['top', 'bottom', 'left', 'right']
-        self._fill(ctrl, margin, *sides)
+        self._fill(ctrl, *sides, margin = margin)
 
-    def snap(self, ctrl1, ctrl2, edge, margin):
+    def snap(self, ctrl1, ctrl2, edge, space = None):
         '''
         docs 'ctrl1' to 'ctrl2' along the supplied edge (top, left, etc) with the supplied margin
         '''
-        self.attachControl = (ctrl1, edge, margin, ctrl2)
-
+        if space is None: space = self.spacing[edge]
+        self.attachControl = (ctrl1, edge, space, ctrl2)
 
     def form_attachments(self, *sides):
         '''
         returns a list of (control, side, spacing) values used by attachForm style commands
         '''
-        attachments = ( [side, self.spacing[side]]  for side in sides)
+        attachments = ([side, self.margin[side]]  for side in sides)
         ctls = itertools.product(self.Controls, attachments)
         return [ [a] + b for a, b in ctls]
         
@@ -124,13 +122,12 @@ class FormBase(FormLayout):
         proportions = map (lambda q: q * 100.0 / total_width, widths)
         p_l = len(proportions)
         left_edges = [sum(proportions[:r]) for r in range(0, p_l)]
-        right_edges = [sum(proportions[:r]) for r in range(1,p_l + 1)]
+        right_edges = [sum(proportions[:r]) for r in range(1, p_l + 1)]
         ap = []
-        for c, l,r in itertools.izip(self.Controls, left_edges, right_edges):
-            ap.append( ( c, side, self.spacing[side], l) ) 
-            ap.append( ( c, side2,self.spacing[side2], r) ) 
+        for c, l, r in itertools.izip(self.Controls, left_edges, right_edges):
+            ap.append((c, side, self.spacing[side], l)) 
+            ap.append((c, side2, self.spacing[side2], r)) 
         
-        print ap
         return ap
     
     def dock(self, ctrl, top=None, left=None, right=None, bottom=None):
@@ -171,13 +168,16 @@ class FormBase(FormLayout):
         elif right[1]:
                 af('right', *right)
 
+
+
 class FillForm (FormBase):
     '''
     Docks the first child so it fills the entire form with the specified margin
     '''
         
     def layout(self):
-        self.fill(self.Controls[0], sum(self.margin) / 4)
+        for item in self.Controls:
+            self.fill(item)        
         return len(self.Controls)
               
 class VerticalForm(FormBase):
@@ -222,13 +222,7 @@ class HorizontalStretchForm(FormBase):
     Lays out children horizontally. All children will scale proportionally as the form changes size
     '''
      
-     
-    # @todo - refactor this into a generic proportional layout,
-    # parameterizes direcitons
-    # allow controls to proclaim a width?
     def layout(self):
-        
-    
         af = self.form_attachments('top', 'bottom')
         ap = self.percentage_series('left')
         self.attachForm = af
@@ -242,10 +236,6 @@ class VerticalStretchForm(FormBase):
     '''
      
     def layout(self):
-        
-        af = []
-        ap = []
-        
         af = self.form_attachments('left', 'right')
         ap = self.percentage_series('top')
         self.attachForm = af
