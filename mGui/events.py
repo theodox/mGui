@@ -110,7 +110,10 @@ class MayaEvent(Event):
         '''
         Call all handlers.  Any decayed references will be purged.
         '''
-        kwargs['event'] = self
+        d = {}
+        d.update(self.Data)
+        d.update(**kwargs)        
+        
         delenda = []
         for handler in self._Handlers:        
             try:
