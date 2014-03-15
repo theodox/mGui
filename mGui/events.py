@@ -79,6 +79,8 @@ class Event( object ):
         d.update(self.Data)
         d.update(**kwargs)
         
+        @TODO: fix the way events handle configuration so it is clearer!
+        
         delenda = []
         for handler in self._Handlers:
             try:
