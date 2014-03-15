@@ -4,8 +4,6 @@ Observable.py
 '''
 import events
 from bindings import BindableObject
-import maya.standalone
-maya.standalone.initialize()
 
 
 class ObservableCollection(BindableObject):
@@ -191,9 +189,12 @@ class BoundCollection(BindableObject):
         for a in additions:
             self._Public_Collecton[a] = self.Conversion(a)
         self._Internal_Collection = new_contents
-        if len(a) + len(d):
+        if len(additions) + len(deletions):
             self.CollectionChanged(collection = [self._Public_Collecton[i] for i in self._Internal_Collection])
     
+    def __iter__(self):
+        for item in self.Contents: yield item
+        
     @property
     def Contents(self):
         return [self._Public_Collecton[i] for i in self._Internal_Collection]
