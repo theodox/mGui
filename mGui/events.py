@@ -114,8 +114,7 @@ class MayaEvent(Event):
         delenda = []
         for handler in self._Handlers:        
             try:
-                h = handler()
-                maya.utils.executeDeferred( h,  *args, **kwargs )
+                maya.utils.executeDeferred( partial(handler,  *args, **kwargs ) )
             except DeadReferenceError:
                 delenda.append(handler)
         self._Handlers = self._Handlers.difference(set(delenda))
