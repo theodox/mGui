@@ -1,7 +1,10 @@
 '''
 events.py
 
-Defines a simple event handler system similar to that used in C#.
+Defines a simple event handler system similar to that used in C#.  Events allow
+multicast delegates and arbitrary message passing. They use weak references so
+they don't keep their handlers alive
+
 '''
 import weakref
 import inspect
@@ -36,7 +39,12 @@ class Event( object ):
         > test = None
         > x()
 
-    Handlers must exhibit the *args, **kwargs signature.  It's the handler's job to decide what to do with them but they will be passed.  Use the Trigger object to add a dummy args/kwargs wrapper to a callable which takes no arguments
+    Handlers must exhibit the *args, **kwargs signature.  It's the handler's job
+    to decide what to do with them but they will be passed.  Use the Trigger
+    object to add a dummy args/kwargs wrapper to a callable which takes no
+    arguments
+    
+    
     '''
 
     def __init__( self, **data):
@@ -49,18 +57,17 @@ class Event( object ):
         '''
         Add a handler callable. Raises a ValueError if the argument is not callable
         '''
+        wr = WeakMethod(handler)
        
-        self._Handlers.add( WeakMethod(handler) )
+        self._Handlers.add( wr )
         return self
 
     def _removeHandler( self, handler ):
         '''
         Remove a handler. Ignores handlers that are not present.
         '''
-        delenda = []
-        for h in self._list_handlers():
-            if h() == handler:
-                delenda.append(h)
+        wr = WeakMethod(handler)
+        delenda = [h for h in self._Handlers if h == wr]
         self._Handlers = self._Handlers.difference(set(delenda))
         return self
 
@@ -84,12 +91,7 @@ class Event( object ):
         '''
         Returns the count of the _Handlers field
         '''
-        return len( [i for i in self._list_handlers()] )
-
-    def _list_handlers( self ):
-        for item in self._Handlers: 
-            if item(): yield item()
-                
+        return len( [i for i in self._Handlers] )
 
     # hook up the instance methods to the base methods
     # doing it this way allows you to override more neatly
@@ -98,7 +100,6 @@ class Event( object ):
     __len__ = _handlerCount
     __iadd__ = _addHandler
     __isub__ = _removeHandler
-    __iter__ = _list_handlers
 
 
 class MayaEvent(Event):
@@ -117,40 +118,74 @@ class MayaEvent(Event):
                 maya.utils.executeDeferred( h,  *args, **kwargs )
             except DeadReferenceError:
                 delenda.append(handler)
-           
-                
         self._Handlers = self._Handlers.difference(set(delenda))
 
     __call__ = _fire
 
+
 class DeadReferenceError(TypeError):
+    '''
+    Raised when a WeakMethodBound or WeakMethodFree tries to fire a method that
+    has been garbage collected. Used by Events to know when to drop dead
+    references
+    '''
     pass
 
 ## create weak references to both bound and unbound methods
-## recipce c/o Frederic Jolliton 
+## hat tip to  Frederic Jolliton on ActiveState 
 
 class WeakMethodBound :
+    '''
+    Encapsulates a weak reference to a bound method on an object.  Has a
+    hashable ID so that Events can identify multiple references to the saame
+    method and not duplicate them
+    '''
     def __init__( self , f ) :
         
         self.f = f.im_func
         self.c = weakref.ref( f.im_self )
+        self.ID = id(f.im_self) ^  id(f.im_func.__name__)
         
     def __call__( self , *arg, **kwarg ) :
         if self.c():
             return apply( self.f , ( self.c() , ) + arg, kwarg )
         else:
             raise DeadReferenceError
+
+    def __eq__(self, other):
+        if not hasattr(other, 'ID'): return False
+        return self.ID == other.ID
+    
+    def __hash__(self):
+        return self.ID
         
 class WeakMethodFree :
+    '''
+    Encapsulates a weak reference to an unbound method
+    '''
     def __init__( self , f ) :
         self.f = weakref.ref( f )
+        self.ID = id (f)
+        
     def __call__( self , *arg , **kwarg) :
         if self.f():
             return apply( self.f() , arg , kwarg)
         else:
             raise DeadReferenceError
+    
+    def __eq__(self, other):
+        if not hasattr(other, 'ID'): return False
+        return self.ID == other.ID
+    
+    def __hash__(self):
+        return self.ID
+    
 
 def WeakMethod( f ) :
+    '''
+    Returns a WeakMethodFree or a WeakMethodBound for the supplied function, as
+    appropriate
+    '''
     try :
         f.im_func
     except AttributeError :
