@@ -66,6 +66,17 @@ class ObservableCollection(BindableObject):
             
             self.CollectionChanged()
             self.update_bindings()
+            
+    def insert (self, index, item): 
+        '''
+        Add <item> at position <index>
+        '''   
+        self._Internal_Collection.insert(index, item)    
+        self.ItemAdded(item, index)
+        self.CollectionChanged()
+        self.update_bindings()
+        
+        
         
     def remove(self, *delenda):
         '''
@@ -159,7 +170,39 @@ class ViewCollection(ObservableCollection):
         self.update_bindings()
         
         
-        
 
-          
+        
+class BoundCollection(BindableObject):
+    _BIND_TGT = 'set_collection'
+    
+    def __init__(self, conversion = lambda x: x):
+        self._Internal_Collection  = ()
+        self._Public_Collecton = {}
+        self.Conversion = conversion
+        self.CollectionChanged = events.Event()
+        
+    def set_collection(self, new_contents):
+        current = set(self._Internal_Collection)
+        incoming = set(new_contents)
+        additions = incoming.difference(current)
+        deletions = current.difference(incoming)
+        for d in deletions:
+            del (self._Public_Collecton[d])
+        for a in additions:
+            self._Public_Collecton[a] = self.Conversion(a)
+        self._Internal_Collection = new_contents
+        if len(a) + len(d):
+            self.CollectionChanged(collection = [self._Public_Collecton[i] for i in self._Internal_Collection])
+    
+    @property
+    def Contents(self):
+        return [self._Public_Collecton[i] for i in self._Internal_Collection]
+    @property
+    def Count(self):
+        return len(self._Internal_Collection)
+
+        
+        
+        
+    
 
