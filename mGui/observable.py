@@ -164,6 +164,7 @@ class ViewCollection(ObservableCollection):
         else:
             self.Filter = filter_fn
         
+        self._last_count = len(self.View)
         self.ViewChanged()
         self.update_bindings()
         
