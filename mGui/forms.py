@@ -181,7 +181,11 @@ class FillForm (FormBase):
         return len(self.Controls)
               
 class VerticalForm(FormBase):
-    
+    '''
+    Lays out children vertically. The first child is attached to the top of
+    the form, and the last to the bottom. The last division will expand with the
+    form.
+    '''
     def layout(self):
         
         af = []

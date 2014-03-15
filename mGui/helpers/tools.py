@@ -1,14 +1,22 @@
 '''
 mGui.helpers.tools
 
-This module provides services that can be useful of r
+Utility code for generating a complete copy of all the commands and layouts in the maya gui toolkit.
+
+In ordinary circumstance you won't need to run this if you're using
+mGui.controls and mGui.layouts, which were generated using the tools here.
+However it may be useful to be able to rebuild those modules from scratch if
+you're trying to make significant changes to the library.
+
+
+(c) 2014 Steve Theodore - see mGui/__init__.py for MIT license details
 '''
 
 
 import maya.mel as mel
 from StringIO import StringIO
 import constants
-import mGui.core as core        
+        
 
 _is_widget  = lambda helptext: 'dragCallback' in helptext
 _is_layout = lambda helptext: 'childArray' in helptext
@@ -30,7 +38,7 @@ class CommandInfo(object):
     '''
     This class uses the mel help strings for commands to generate class wrapper classes
     '''
-    DEFAULTS = core.Control._ATTRIBS + core.Control._READ_ONLY
+    DEFAULTS = constants.CONTROL_ATTRIBS
     INHERITS = 'Control'
     
     
@@ -39,13 +47,27 @@ class CommandInfo(object):
         self.Flags = flags
     
     def template(self):
+        '''
+        produces a string containing a complete class definition for a class derived from mGui.core.Control, such as:
+        
+            class AttrColorSliderGrp(Control):
+                ''Wrapper class for cmds.attrColorSliderGrp''
+                 CMD = cmds.attrColorSliderGrp
+                 _ATTRIBS = ['attribute','rowAttach','columnAttach','columnWidth2','columnWidth3','columnWidth1','columnWidth6','columnWidth4','columnWidth5','columnAlign6','columnAlign5','columnAlign4','columnAlign3','columnAlign2','label','adjustableColumn','columnAlign','columnAttach6','adjustableColumn5','adjustableColumn2','adjustableColumn3','adjustableColumn4','showButton','hsvValue','columnWidth','adjustableColumn6','columnOffset2','columnOffset3','columnOffset4','columnOffset5','columnOffset6','rgbValue','attrNavDecision','columnAttach4','columnAttach5','columnAttach2','columnAttach3']
+                 _CALLBACKS = []
+
+        @note the _ATTRIBS class field is usually over the pep-8 width limit. Sorry.
+        '''
+        
         code = StringIO()
         code.write('class %s(%s):\n' % (self.Name[0].upper() + self.Name[1:], self.INHERITS))
         code.write("    '''Wrapper class for cmds.%s'''\n"  % self.Name)
         code.write('    CMD = cmds.%s\n' % self.Name)
         attribs = [k for k in self.Flags.values() if not k in self.DEFAULTS]
+        ##attribs += [k for k in self.Flags.keys() if not k in _CONTROL_ATTRIBS]
         attribs.sort()
-        callbacks = [c for c in attribs if 'ommand' in c or 'allback' in c] 
+        # note this deliberately excludes short names of callbacks!
+        callbacks = [c for c in attribs if 'Command' in c or 'Callback' in c] 
         attribs = list(set(attribs) - set(callbacks))
         quoted = lambda p : "'%s'" % p
         attrib_names = map (quoted, attribs)
@@ -56,6 +78,9 @@ class CommandInfo(object):
         
     @classmethod    
     def from_command(cls, commandname):
+        '''
+        generate a CommandInfo object from a maya command name string OR a maya cmd from the cmds module
+        '''
         if hasattr(commandname, "__name__"): commandname = commandname.__name__
         helptext  = mel.eval("help %s;" % commandname)
         if not helptext: raise RuntimeError, 'no command "%s" found' % commandname
@@ -68,24 +93,35 @@ class CommandInfo(object):
 
 
 class LayoutInfo(CommandInfo):
-    DEFAULTS = core.Layout._ATTRIBS + core.Layout._READ_ONLY
+    '''
+    Produces classes for layouts, including all the Layout specific attributes
+    '''
+    DEFAULTS = constants.CONTROL_ATTRIBS + constants.LAYOUT_ATTRIBS
     INHERITS = 'Layout'
     
 
 def generate_controls(filename):
+    '''
+    Write a text file with class definitions for all of the control classes in Maya.
+    '''
     with open (filename, 'wt') as filehandle:
         filehandle.write("'''\nmGui wrapper classes\n\nAuto-generated wrapper classes for use with mGui\n'''\n\n")
         filehandle.write('import maya.cmds as cmds\n')
         filehandle.write('from .core import Control\n')
+        
+        
         
         for each_class in constants.CONTROL_COMMANDS:
             try:
                 filehandle.write(CommandInfo.from_command(each_class).template())
                 filehandle.write('\n\n')
             except RuntimeError:
-                filehandle.write("# command '%s' not present in this maya" % each_class)
+                filehandle.write("# command '%s' not present in this version of maya" % each_class)
 
 def generate_layouts(filename):
+    '''
+    Write a text file with class definitions for all of the layout classes in Maya.
+    '''
     with open (filename, 'wt') as filehandle:
         filehandle.write("'''\nmGui wrapper classes\n\nAuto-generated wrapper classes for use with mGui\n'''\n\n")
         filehandle.write('import maya.cmds as cmds\n')
