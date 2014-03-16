@@ -48,7 +48,7 @@ you can write this:
 	            
 And make adjustments like this:
 
-   main.buttons.refresh.backgroundColor = (.7, .7, .5)
+    main.buttons.refresh.backgroundColor = (.7, .7, .5)
    
 
 
