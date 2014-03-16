@@ -1,8 +1,4 @@
-'''
-Created on Mar 15, 2014
 
-@author: Stephen Theodore
-'''
 import sys
 import pymel.core as pm
 import maya.cmds as cmds
@@ -18,9 +14,7 @@ import mGui.forms as forms
 import mGui.styles as style
 import mGui.observable as obs
 import mGui.lists as lists
-#reload(core)
-reload(obs)
-reload(lists)
+
 
 class exx(object):
     def __init__(self, name):
@@ -37,16 +31,12 @@ def flt (*args, **kwargs):
      
 w = core.Window('window', title = 'fred')
 with bindings.BindingContext() as bc:
-    with forms.VerticalStretchForm('main') as main:
-        with forms.VerticalForm('sub'):
-            with lyt.ScrollLayout('scroll'):
-                test >> lists.VerticalListForm('lister', width = 200 ).Collection
-        with forms.HorizontalStretchForm('buttons'):
+    with forms.VerticalForm('main') as main:
+        with lyt.TabLayout('sub', height = 240):
+            test >> lists.VerticalListForm('lister' ).Collection
+        with forms.HorizontalStretchForm('buttons', height = 32):
             ctrl.TextField('filterbox', width = 300)
-            bb = ctrl.Text('counter', width = 60) 
+            bb = ctrl.Text(0, width = 60) 
             test + "ViewCount" >> bb + 'label'
             
 cmds.showWindow(w)                
-test.sort(reverse=False, key = lambda p: p.Name)
-main.buttons.filterbox.enterCommand += flt
-test.add(exx("goldenoodles"))
