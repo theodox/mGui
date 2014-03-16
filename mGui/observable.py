@@ -2,9 +2,8 @@
 Observable.py
 @author: stevetheodore
 '''
-import events
+from events import Event, MayaEvent
 from bindings import BindableObject
-
 
 class ObservableCollection(BindableObject):
     '''
@@ -33,10 +32,10 @@ class ObservableCollection(BindableObject):
     
     def __init__(self, *items):
         self._Internal_Collection = [i for i in items]
-        self.CollectionChanged = events.Event(collection = self)
-        self.ItemAdded = events.Event(collection = self)
-        self.ItemRemoved = events.Event(collection = self)
-        self.Reordered = events.Event(collection = self)
+        self.CollectionChanged = Event(collection = self)
+        self.ItemAdded = Event(collection = self)
+        self.ItemRemoved = Event(collection = self)
+        self.Reordered = Event(collection = self)
 
     @property
     def Contents(self):
@@ -64,6 +63,16 @@ class ObservableCollection(BindableObject):
             
             self.CollectionChanged()
             self.update_bindings()
+            
+    def add_group(self, *args):
+        '''
+        Add everything in <args>, but only fire the CollectionChanged event once
+        '''
+        for item in args:
+            self._Internal_Collection.append(item)
+        self.CollectionChanged()
+        self.update_bindings()
+        
             
     def insert (self, index, item): 
         '''
@@ -133,7 +142,7 @@ class ViewCollection(ObservableCollection):
     
     def __init__(self, *items):
         super(ViewCollection, self).__init__(*items)
-        self.ViewChanged = events.Event(collection = self)
+        self.ViewChanged = Event(collection = self)
 
         self.Filter = lambda p: p
         self._last_count = len(self._Internal_Collection)
@@ -178,7 +187,7 @@ class BoundCollection(BindableObject):
         self._Internal_Collection  = ()
         self._Public_Collecton = {}
         self.Conversion = conversion
-        self.CollectionChanged = events.Event()
+        self.CollectionChanged = Event()
         
     def set_collection(self, new_contents):
         current = set(self._Internal_Collection)
@@ -203,7 +212,6 @@ class BoundCollection(BindableObject):
     def Count(self):
         return len(self._Internal_Collection)
 
-        
         
         
     
