@@ -47,6 +47,6 @@ class CallbackProperty(object):
     def __get__(self, obj, objtype):
         cb = obj.Callbacks.get(self.Key, None)
         if not cb:
-            obj.Callbacks[self.Key] = MayaEvent(gui = obj)
+            obj.Callbacks[self.Key] = MayaEvent(sender = obj)
             obj.register_callback(self.Key, obj.Callbacks[self.Key])
         return obj.Callbacks[self.Key]
