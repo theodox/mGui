@@ -7,9 +7,8 @@ they don't keep their handlers alive
 
 '''
 import weakref
-import inspect
 import maya.utils
-from functools import wraps, partial
+from functools import  partial
 
 class Event( object ):
     '''
@@ -78,8 +77,6 @@ class Event( object ):
         d = {}
         d.update(self.Data)
         d.update(**kwargs)
-        
-        @TODO: fix the way events handle configuration so it is clearer!
         
         delenda = []
         for handler in self._Handlers:
