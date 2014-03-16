@@ -32,29 +32,21 @@ class exx(object):
 
 test = obs.ViewCollection(exx("hello"), exx("world"))
 def flt (*args, **kwargs):
-    print args, kwargs['event'].Data
-
+    lm = eval("lambda x: " + args[0])
+    test.update_filter(lm)
+     
 w = core.Window('window', title = 'fred')
 with bindings.BindingContext() as bc:
     with forms.VerticalStretchForm('main') as main:
         with forms.VerticalForm('sub'):
-            ctrl.Button('dummy')
-
-            bedtime = lists.ListForm('lister')
-            bedtime.Collection << test
+            with lyt.ScrollLayout('scroll'):
+                test >> lists.VerticalListForm('lister', width = 200 ).Collection
+        with forms.HorizontalStretchForm('buttons'):
+            ctrl.TextField('filterbox', width = 300)
+            bb = ctrl.Text('counter', width = 60) 
+            test + "ViewCount" >> bb + 'label'
             
 cmds.showWindow(w)                
-test.sort()
-bc.update()
-for item in bc.Bindings: print item
-bedtime.layout()
-test.add(exx("blah"))
-test.Contents[0].name = 'Fred'
-test.Contents[0]
-test.clear()
-
-
-for item in bedtime.Collection:
-    print item, type(item), dir(item)
-    
-    item.update_bindings()
+test.sort(reverse=False, key = lambda p: p.Name)
+main.buttons.filterbox.enterCommand += flt
+test.add(exx("goldenoodles"))
