@@ -232,8 +232,8 @@ class HudSliderButton(Control):
 class IconTextButton(Control):
     '''Wrapper class for cmds.iconTextButton'''
     CMD = cmds.iconTextButton
-    _ATTRIBS = ['imageOverlayLabel','actionIsSubstitute','style','font','marginHeight','sourceType','overlayLabelColor','align','command','image','label','selectionImage','image3','highlightImage','marginWidth','labelOffset','image2','disabledImage','commandRepeatable','image1','overlayLabelBackColor']
-    _CALLBACKS = ['doubleClickCommand','handleNodeDropCallback','labelEditingCallback']
+    _ATTRIBS = ['imageOverlayLabel','actionIsSubstitute','style','font','marginHeight','sourceType','overlayLabelColor','align','image','label','selectionImage','image3','highlightImage','marginWidth','labelOffset','image2','disabledImage','commandRepeatable','image1','overlayLabelBackColor']
+    _CALLBACKS = ['command', 'doubleClickCommand','handleNodeDropCallback','labelEditingCallback']
 
 
 class IconTextCheckBox(Control):
@@ -316,8 +316,8 @@ class IntSliderGrp(Control):
 class LayerButton(Control):
     '''Wrapper class for cmds.layerButton'''
     CMD = cmds.layerButton
-    _ATTRIBS = ['labelWidth','name','layerVisible','color','label','current','layerState','identification','command','transparent','select']
-    _CALLBACKS = ['changeCommand','doubleClickCommand','renameCommand','typeCommand','visibleCommand']
+    _ATTRIBS = ['labelWidth','name','layerVisible','color','label','current','layerState','identification','transparent','select']
+    _CALLBACKS = ['command','changeCommand','doubleClickCommand','renameCommand','typeCommand','visibleCommand']
 
 
 class MessageLine(Control):
