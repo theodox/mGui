@@ -3,6 +3,46 @@ from .bindings import BindableObject
 from .styles import Styled
 from .properties import CtlProperty, CallbackProperty
 
+'''
+# MGui.Core
+A system for defininng proxies that make it easier to work with maya GUI controls.
+
+Proxies are created using the ControlMeta metaclass, which maps existing maya
+GUI commands so that they look like proper object-oriented properties:
+   
+   example = Button('buttontest')
+   example.width = 120
+   example.backgroundColor = (1,0,0)
+   
+creates a 120 pixel wide red button. The properties work both ways, so you can
+query them:
+
+   print example.width
+   # 120
+   
+   
+## Base Classes
+This module defines the base classes Control and Layout, which are used by all
+wrapper classes. They use the same property-wrapping stategy but Layouts also work as 
+context managers, allowing them to call SetParent() when needed and also to 
+maintain links to child control wrappers:
+
+   with mGui.layouts.ColumnLayout('main'):
+       for n in range (5):
+           with mGui.Layout.RowLayout('row_%i' % n, nc = 2):
+               mGui.controls.Text('t_%i', label = 'label)
+               mGui.controls.CheckBox('b_%i')
+        mGui.controls.Button('btn', label = 'big button')
+        
+would create a columnLayout with 4 rows with a text and a checkbox, followed by a button.
+
+@Note: One minor drawback to using Metaclasses is that Maya's reload mechanism
+does not preserve the types created by a metaclass when you call reload(module).
+This manifests as a TypeError in code that calls super() -- in this case,
+typically in __init__ methods.  This problem is ONLY related to reload - if you
+restart Maya rather than using reload() it will disappear.
+'''
+
 
 class ControlMeta(type):
     '''
@@ -50,14 +90,15 @@ class Window(Styled, BindableObject):
     
     
     def __init__(self, key, *args, **kwargs):
-        
         # this applies any keywords in the current style that are part of the Maya gui flags
         # other flags (like float and margin) are ignored
+                
         _style = dict( (k,v) for k,v in self.Style.items() if k in self._ATTRIBS or k in Window._ATTRIBS)    
         _style.update(kwargs)
-
-        self.Key = key
+        
         self.Widget = self.CMD(*args, **_style)
+        self.Key = key or "__" + self.Widget.split("|")[-1]
+
         '''
         Widget is the gui element in the scene
         '''
@@ -113,14 +154,14 @@ class Control(Styled, BindableObject):
     
     
     def __init__(self, key, *args, **kwargs):
-        
         # this applies any keywords in the current style that are part of the Maya gui flags
         # other flags (like float and margin) are ignored
         _style = dict( (k,v) for k,v in self.Style.items() if k in self._ATTRIBS or k in Control._ATTRIBS)    
         _style.update(kwargs)
 
-        self.Key = key
         self.Widget = self.CMD(*args, **_style)
+        self.Key = key or "__" + self.Widget.split("|")[-1]
+
         '''
         Widget is the gui element in the scene
         '''
@@ -173,6 +214,7 @@ class Layout(Control):
     def __init__(self, key,  *args, **kwargs):
         self.Controls = []
         super (Layout, self).__init__(key, *args, **kwargs)
+
         
     def __enter__( self ):
         self.__cache_layout = Layout.ACTIVE_LAYOUT
