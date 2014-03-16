@@ -8,6 +8,7 @@ import mGui.forms as forms
 import mGui.observable as observable
 import mGui.controls as controls
 import mGui.bindings as b
+import mGui.layouts as layouts
 
 class ListFormBase(object):
     
@@ -55,17 +56,36 @@ class ListFormBase(object):
     def clickHandler(self, *args, **kwargs):
         print args, kwargs
         
-class VerticalListForm(forms.VerticalForm, ListFormBase):
+class VerticalList(forms.VerticalForm, ListFormBase):
 
     def __init__(self, key, *args, **kwargs):
+        self.ScrollLayout = layouts.ScrollLayout(key = "_scroll", *args, **kwargs)
+        self.ScrollLayout.__enter__()
         super(VerticalListForm, self).__init__(key, *args, **kwargs)
         self.__init_bound_collection__()
         self.__enter__()
         self.__exit__(None, None, None)
+        self.ScrollLayout.__exit__(None, None, None)
+        ## the enter/exits make sure that you can place a listForm as a single control without it
+        ## trying to gobble up subsequent objects
         
     def layout(self):
         super(VerticalListForm, self).layout()
         if len(self.Controls):
             self.attachNone = (self.Controls[-1], 'bottom')
-## kind of working for object collections... needs testing and bullet proofing
-## after that - need to make sure that the factory functions preserve bindings - the example here does not work
+
+class HorizontalList(forms.HorizontalForm, ListFormBase):
+
+    def __init__(self, key, *args, **kwargs):
+        self.ScrollLayout = layouts.ScrollLayout(key = "_scroll", *args, **kwargs)
+        self.ScrollLayout.__enter__()
+        super(HorizontalListForm, self).__init__(key, *args, **kwargs)
+        self.__init_bound_collection__()
+        self.__enter__()
+        self.__exit__(None, None, None)
+        self.ScrollLayout.__exit__(None, None, None)
+        
+    def layout(self):
+        super(HorizontalListForm, self).layout()
+        if len(self.Controls):
+            self.attachNone = (self.Controls[-1], 'right')
