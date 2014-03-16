@@ -69,19 +69,22 @@ class Event( object ):
         delenda = [h for h in self._Handlers if h == wr]
         self._Handlers = self._Handlers.difference(set(delenda))
         return self
+    
+    def metadata(self, kwargs):
+        md = {}
+        md.update(self.Data)
+        md.update(kwargs)
+        return md
 
     def _fire( self, *args, **kwargs ):
         '''
         Call all handlers.  Any decayed references will be purged.
         '''
-        d = {}
-        d.update(self.Data)
-        d.update(**kwargs)
         
         delenda = []
         for handler in self._Handlers:
             try:
-                handler( *args, **d )
+                handler( *args, **self.metadata(kwargs) )
             except DeadReferenceError:
                 delenda.append(handler)
         self._Handlers = self._Handlers.difference(set(delenda))
@@ -109,14 +112,11 @@ class MayaEvent(Event):
         '''
         Call all handlers.  Any decayed references will be purged.
         '''
-        d = {}
-        d.update(self.Data)
-        d.update(**kwargs)        
-        
+               
         delenda = []
         for handler in self._Handlers:        
             try:
-                maya.utils.executeDeferred( partial(handler,  *args, **kwargs ) )
+                maya.utils.executeDeferred( partial(handler,  *args, **self.metadata(kwargs) ) )
             except DeadReferenceError:
                 delenda.append(handler)
         self._Handlers = self._Handlers.difference(set(delenda))
