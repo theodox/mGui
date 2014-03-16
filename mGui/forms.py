@@ -188,15 +188,16 @@ class VerticalForm(FormBase):
     '''
     def layout(self):
         
-        af = []
-        af = self.form_attachments('left', 'right')
-        af.append ((self.Controls[0], 'top', self.spacing.top))
-        af.append((self.Controls[-1], 'bottom', self.spacing.bottom))
-        ac = self.form_series('top')
+        if len(self.Controls):
+            af = []
+            af = self.form_attachments('left', 'right')
+            af.append ((self.Controls[0], 'top', self.spacing.top))
+            af.append((self.Controls[-1], 'bottom', self.spacing.bottom))
+            ac = self.form_series('top')
+                
+            self.attachForm = af
+            self.attachControl = ac
             
-        self.attachForm = af
-        self.attachControl = ac
-        
         return len(self.Controls)
     
 class HorizontalForm(FormBase):
