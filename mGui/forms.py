@@ -189,12 +189,10 @@ class VerticalForm(FormBase):
     def layout(self):
         
         if len(self.Controls):
-            af = []
             af = self.form_attachments('left', 'right')
             af.append ((self.Controls[0], 'top', self.spacing.top))
             af.append((self.Controls[-1], 'bottom', self.spacing.bottom))
             ac = self.form_series('top')
-                
             self.attachForm = af
             self.attachControl = ac
             
@@ -208,13 +206,13 @@ class HorizontalForm(FormBase):
     '''
      
     def layout(self):
-        af = self.form_attachments('top', 'bottom')
-        af.append ((self.Controls[0], 'left', self.spacing.top))
-        af.append((self.Controls[-1], 'right', self.spacing.bottom))
-        ac = self.form_series('left')
-                
-        self.attachForm = af
-        self.attachControl = ac
+        if len(self.Controls):
+            af = self.form_attachments('top', 'bottom')
+            af.append ((self.Controls[0], 'left', self.spacing.top))
+            af.append((self.Controls[-1], 'right', self.spacing.bottom))
+            ac = self.form_series('left')
+            self.attachForm = af
+            self.attachControl = ac
         
         return len(self.Controls)
 
@@ -228,7 +226,6 @@ class HorizontalStretchForm(FormBase):
         ap = self.percentage_series('left')
         self.attachForm = af
         self.attachPosition = ap
-
         return len(self.Controls)
     
 class VerticalStretchForm(FormBase):
@@ -241,5 +238,4 @@ class VerticalStretchForm(FormBase):
         ap = self.percentage_series('top')
         self.attachForm = af
         self.attachPosition = ap
-
         return len(self.Controls) 
