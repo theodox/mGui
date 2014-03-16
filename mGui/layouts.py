@@ -5,7 +5,7 @@ Auto-generated wrapper classes for use with mGui
 '''
 
 import maya.cmds as cmds
-from .core import Layout
+from mGui.core import Layout
 
 class ColumnLayout(Layout):
     '''Wrapper class for cmds.columnLayout'''
@@ -49,11 +49,6 @@ class GridLayout(Layout):
     _CALLBACKS = []
 
 
-class Layout(Layout):
-    '''Wrapper class for cmds.layout'''
-    CMD = cmds.layout
-    _ATTRIBS = []
-    _CALLBACKS = []
 
 
 class MenuBarLayout(Layout):
