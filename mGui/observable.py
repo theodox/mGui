@@ -35,7 +35,6 @@ class ObservableCollection(BindableObject):
         self.CollectionChanged = Event(collection = self)
         self.ItemAdded = Event(collection = self)
         self.ItemRemoved = Event(collection = self)
-        self.Reordered = Event(collection = self)
 
     @property
     def Contents(self):
@@ -60,9 +59,8 @@ class ObservableCollection(BindableObject):
             for each_new  in additions:
                 self._Internal_Collection.append(each_new )
                 self.ItemAdded(each_new, len(self._Internal_Collection) - 1)
-            
-            self.CollectionChanged()
-            self.update_bindings()
+            self.update_bindings()            
+            self.CollectionChanged(added=True)
             
     def add_group(self, *args):
         '''
@@ -70,9 +68,9 @@ class ObservableCollection(BindableObject):
         '''
         for item in args:
             self._Internal_Collection.append(item)
-        self.CollectionChanged()
         self.update_bindings()
-        
+        self.CollectionChanged(added=True)
+
             
     def insert (self, index, item): 
         '''
@@ -80,8 +78,8 @@ class ObservableCollection(BindableObject):
         '''   
         self._Internal_Collection.insert(index, item)    
         self.ItemAdded(item, index)
-        self.CollectionChanged()
         self.update_bindings()
+        self.CollectionChanged(added=True)
         
         
         
@@ -98,16 +96,16 @@ class ObservableCollection(BindableObject):
         for item in delenda:
             self._Internal_Collection.remove(item)
         if _found: # if this > -1  something was deleted
-            self.CollectionChanged()
             self.update_bindings()
+            self.CollectionChanged(removed=True)
             
     def clear(self):
         '''
         Clear the collection
         '''
         self._Internal_Collection = []
-        self.CollectionChanged()
         self.update_bindings()
+        self.CollectionChanged(cleared=True)
                 
         
     def sort (self, comp=None, key=None, reverse=False):
@@ -116,8 +114,8 @@ class ObservableCollection(BindableObject):
         arguments (see list.sort)
         '''
         self._Internal_Collection.sort(comp, key, reverse)
-        self.Reordered()
         self.update_bindings()
+        self.CollectionChanged(sorted=True)
                 
 
     def __iter__(self):
@@ -174,9 +172,9 @@ class ViewCollection(ObservableCollection):
             self.Filter = filter_fn
         
         self._last_count = len(self.View)
-        self.ViewChanged()
         self.update_bindings()
-        
+        self.ViewChanged()
+
         
 
         
@@ -192,6 +190,7 @@ class BoundCollection(BindableObject):
     def set_collection(self, new_contents):
         current = set(self._Internal_Collection)
         incoming = set(new_contents)
+        reordered = sum ([x == y for x, y in zip(new_contents, self._Internal_Collection)])
         additions = incoming.difference(current)
         deletions = current.difference(incoming)
         for d in deletions:
@@ -200,7 +199,12 @@ class BoundCollection(BindableObject):
             self._Public_Collecton[a] = self.Conversion(a)
         self._Internal_Collection = new_contents
         if len(additions) + len(deletions):
-            self.CollectionChanged(collection = [self._Public_Collecton[i] for i in self._Internal_Collection])
+            self.CollectionChanged(collection = self.Contents)
+        else:
+            if reordered: 
+                self.CollectionChanged(sorted=True, collection = self.Contents)
+            else:
+                self.CollectionChanged(why="idontknow")
     
     def __iter__(self):
         for item in self.Contents: yield item
@@ -208,6 +212,7 @@ class BoundCollection(BindableObject):
     @property
     def Contents(self):
         return [self._Public_Collecton[i] for i in self._Internal_Collection]
+    
     @property
     def Count(self):
         return len(self._Internal_Collection)
