@@ -61,7 +61,7 @@ class VerticalList(forms.VerticalForm, ListFormBase):
     def __init__(self, key, *args, **kwargs):
         self.ScrollLayout = layouts.ScrollLayout(key = "_scroll", *args, **kwargs)
         self.ScrollLayout.__enter__()
-        super(VerticalListForm, self).__init__(key, *args, **kwargs)
+        super(VerticalList, self).__init__(key, *args, **kwargs)
         self.__init_bound_collection__()
         self.__enter__()
         self.__exit__(None, None, None)
@@ -70,7 +70,7 @@ class VerticalList(forms.VerticalForm, ListFormBase):
         ## trying to gobble up subsequent objects
         
     def layout(self):
-        super(VerticalListForm, self).layout()
+        super(VerticalList, self).layout()
         if len(self.Controls):
             self.attachNone = (self.Controls[-1], 'bottom')
 
@@ -79,13 +79,13 @@ class HorizontalList(forms.HorizontalForm, ListFormBase):
     def __init__(self, key, *args, **kwargs):
         self.ScrollLayout = layouts.ScrollLayout(key = "_scroll", *args, **kwargs)
         self.ScrollLayout.__enter__()
-        super(HorizontalListForm, self).__init__(key, *args, **kwargs)
+        super(HorizontalList, self).__init__(key, *args, **kwargs)
         self.__init_bound_collection__()
         self.__enter__()
         self.__exit__(None, None, None)
         self.ScrollLayout.__exit__(None, None, None)
         
     def layout(self):
-        super(HorizontalListForm, self).layout()
+        super(HorizontalList, self).layout()
         if len(self.Controls):
             self.attachNone = (self.Controls[-1], 'right')
