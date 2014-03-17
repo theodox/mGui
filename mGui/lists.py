@@ -17,7 +17,7 @@ class ListFormBase(object):
     layout() method when the collection changes, and will prune the layouts
     control sets as items are added to or removed from the bound collection.
     '''
-    def __init_bound_collection__(self):
+    def __init_bound_collection__(self, kwargs):
         '''
         initialize the mixin. Call after the layout constructor, eg:
         
@@ -25,19 +25,19 @@ class ListFormBase(object):
             self.__init_bound_collection__()
         
         '''
-        self.Collection = observable.BoundCollection(self.create_item)
-        self.Collection.CollectionChanged += self.redraw
+        self.Template = ItemTemplate(self)  # default
+        if 'template' in kwargs:
+            self.ItemTemplate = kwargs['template']
+            del kwargs['template']
         
-    def create_item(self, item):
-        r = controls.IconTextButton(str(id(item)),
-                                     label=str(item),
-                                      ann = "hello", 
-                                      st = "textOnly",
-                                      parent = self) 
-        r.command += self.clickHandler
-        return r
+        self.Collection = observable.BoundCollection(self.Template)
+        self.Collection.CollectionChanged += self.redraw
+  
         
     def redraw(self, *args, **kwargs):
+        '''
+        redraw the GUI for this item when the collection changes
+        '''
         _collection = self.Collection.Contents
         delenda = [i for i in self.Controls if i not in _collection]
         for item in delenda:
@@ -53,16 +53,27 @@ class ListFormBase(object):
         self.attachNone = an
         self.layout()
         
-    def clickHandler(self, *args, **kwargs):
-        print args, kwargs
+    def set_template(self, template):
+        '''
+        sets the item template for this list
+        '''
+        self.Template = template
         
+
+
 class VerticalList(forms.VerticalForm, ListFormBase):
+    '''
+    A vertical list of items with an automatic scrollbar
+    '''
 
     def __init__(self, key, *args, **kwargs):
-        self.ScrollLayout = layouts.ScrollLayout(key = "_scroll", *args, **kwargs)
+        
+        self.ScrollLayout = layouts.ScrollLayout(key = "_scroll", *args)
         self.ScrollLayout.__enter__()
+
+        self.__init_bound_collection__(kwargs)    
         super(VerticalList, self).__init__(key, *args, **kwargs)
-        self.__init_bound_collection__()
+        
         self.__enter__()
         self.__exit__(None, None, None)
         self.ScrollLayout.__exit__(None, None, None)
@@ -75,12 +86,14 @@ class VerticalList(forms.VerticalForm, ListFormBase):
             self.attachNone = (self.Controls[-1], 'bottom')
 
 class HorizontalList(forms.HorizontalForm, ListFormBase):
-
+    '''
+    A horizontal list of Items with an automatic scrollbar
+    '''
     def __init__(self, key, *args, **kwargs):
-        self.ScrollLayout = layouts.ScrollLayout(key = "_scroll", *args, **kwargs)
+        self.ScrollLayout = layouts.ScrollLayout(key = "_scroll", *args)
         self.ScrollLayout.__enter__()
+        self.__init_bound_collection__(kwargs)    
         super(HorizontalList, self).__init__(key, *args, **kwargs)
-        self.__init_bound_collection__()
         self.__enter__()
         self.__exit__(None, None, None)
         self.ScrollLayout.__exit__(None, None, None)
@@ -89,3 +102,41 @@ class HorizontalList(forms.HorizontalForm, ListFormBase):
         super(HorizontalList, self).layout()
         if len(self.Controls):
             self.attachNone = (self.Controls[-1], 'right')
+
+class WrapList(layouts.FlowLayout, ListFormBase):
+    '''
+    A flowLayout based list of items with optional wrapping. This will clip if
+    the width exceeds the layout width unles 'wrap' is set to true
+    '''
+    def __init__(self, key, *args, **kwargs):
+        self.__init_bound_collection__(kwargs)
+        super(WrapList, self).__init__(key, *args, **kwargs)
+
+        self.__enter__()
+        self.__exit__(None, None, None)
+
+
+class ItemTemplate(object):
+    '''
+    Base class for item template classes.
+    
+    The job of an itemTemplate is to provide a GUI widget (which can be a single
+    control or a layout with other controls) that represents the underying data
+    item in the bound data collection.  
+    
+    '''
+    def __init__(self, parent, **handlers):
+        self.Parent = parent
+        self.Handlers = handlers
+        
+    def widget(self, item):
+        r = controls.Button(0, label=str(item), parent = self.Parent) 
+        for message, handler in self.Handlers.items():
+           r_event = getattr(r, message)
+           r_event += handler
+        return r
+    
+    def __call__ (self, item):
+        return self.widget(item)
+        
+        
