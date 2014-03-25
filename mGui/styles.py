@@ -169,15 +169,15 @@ class Styled(object):
     '''
     def __new__(self, *args, **kwargs):
         obj = object.__new__(self)
-        self.Style = kwargs.get('style', {})
+        self.Style = kwargs.get('css', {})
         current_style = CSS.current()
         if current_style and not self.Style:
             self.Style = current_style.find(self, args[0]) or self.Style
         
         # intercept the style argument before __init__ so any
         # non-style arguments are passed directly
-        if 'style' in kwargs:
-            del kwargs['style']
+        if 'css' in kwargs:
+            del kwargs['css']
                 
         return obj
    
