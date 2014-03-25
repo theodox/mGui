@@ -188,8 +188,8 @@ class FloatSlider(Control):
 class FloatSlider2(Control):
     '''Wrapper class for cmds.floatSlider2'''
     CMD = cmds.floatSlider2
-    _ATTRIBS = []
-    _CALLBACKS = []
+    _ATTRIBS = ['horizontal','step','maxValue','value','minValue']
+    _CALLBACKS = ['changeCommand','dragCommand']
 
 
 class FloatSliderButtonGrp(Labeled):
@@ -251,7 +251,7 @@ class HudSliderButton(Control):
 class IconTextButton(Control):
     '''Wrapper class for cmds.iconTextButton'''
     CMD = cmds.iconTextButton
-    _ATTRIBS = ['imageOverlayLabel','actionIsSubstitute','style','font','marginHeight','sourceType','overlayLabelColor','align','image','label','selectionImage','image3','highlightImage','marginWidth','labelOffset','image2','disabledImage','commandRepeatable','image1','overlayLabelBackColor']
+    _ATTRIBS = ['imageOverlayLabel','actionIsSubstitute','font','marginHeight', 'style', 'sourceType','overlayLabelColor','align','image','label','selectionImage','image3','highlightImage','marginWidth','labelOffset','image2','disabledImage','commandRepeatable','image1','overlayLabelBackColor']
     _CALLBACKS = ['command', 'doubleClickCommand','handleNodeDropCallback','labelEditingCallback']
 
 
