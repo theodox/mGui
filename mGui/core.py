@@ -158,6 +158,10 @@ class Control(Styled, BindableObject):
         # other flags (like float and margin) are ignored
         _style = dict( (k,v) for k,v in self.Style.items() if k in self._ATTRIBS or k in Control._ATTRIBS)    
         _style.update(kwargs)
+        
+        # arbitrary tag data. Use with care to avoid memory leaks
+        self.Tag = kwargs.get('tag', None)
+        if 'tag' in kwargs: del kwargs['tag']
 
         self.Widget = self.CMD(*args, **_style)
         self.Key = key or "__" + self.Widget.split("|")[-1]
