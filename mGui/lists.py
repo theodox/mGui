@@ -80,10 +80,7 @@ class VerticalList(forms.VerticalForm, ListFormBase):
         ## the enter/exits make sure that you can place a listForm as a single control without it
         ## trying to gobble up subsequent objects
         
-    def layout(self):
-        super(VerticalList, self).layout()
-        if len(self.Controls):
-            self.attachNone = (self.Controls[-1], 'bottom')
+
 
 class HorizontalList(forms.HorizontalForm, ListFormBase):
     '''
@@ -98,10 +95,7 @@ class HorizontalList(forms.HorizontalForm, ListFormBase):
         self.__exit__(None, None, None)
         self.ScrollLayout.__exit__(None, None, None)
         
-    def layout(self):
-        super(HorizontalList, self).layout()
-        if len(self.Controls):
-            self.attachNone = (self.Controls[-1], 'right')
+
 
 class WrapList(layouts.FlowLayout, ListFormBase):
     '''
