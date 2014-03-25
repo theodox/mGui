@@ -1,40 +1,66 @@
 '''
 mGui wrapper classes
 
-Auto-generated wrapper classes for use with mGui
+Originally auto generated using helpers.tools
 '''
 
 import maya.cmds as cmds
 from .core import Control
-class AttrColorSliderGrp(Control):
+
+
+class Labeled(Control):
+    '''
+    This is an abstract class which is inherited by all XXXGrp controls to allow
+    easier styling. By setting a style with the Labeled class as a target you
+    can make sure all the label and control widths line up neatly.  It's OK
+    to use the column____2  and column____3 attributes in the same style since 
+    Maya will ignore the unwanted ones in a Grp control that has the wrong number
+    of columns.  For example:
+    
+    
+    label_style_256 = mGui.styles.CSS (Labeled, 
+                                        columnWidth2 = (64, 192), 
+                                        columnWidth3 = (64, 128, 64),
+                                        columnAttach2= ("right", "both"), 
+                                        columnAttach3 =("right", "both", "both"),
+                                        columnOffset2= (4, 0), 
+                                        columnOffset3= (4, 0, 0), 
+                                        margin = (4,4))
+    would create a 64 pixel label for both 2-unit and 3-unit label controls like
+    AttrFieldGrp
+    '''
+    pass
+
+
+class AttrColorSliderGrp(Labeled):
     '''Wrapper class for cmds.attrColorSliderGrp'''
     CMD = cmds.attrColorSliderGrp
     _ATTRIBS = ['attribute','rowAttach','columnAttach','columnWidth2','columnWidth3','columnWidth1','columnWidth6','columnWidth4','columnWidth5','columnAlign6','columnAlign5','columnAlign4','columnAlign3','columnAlign2','label','adjustableColumn','columnAlign','columnAttach6','adjustableColumn5','adjustableColumn2','adjustableColumn3','adjustableColumn4','showButton','hsvValue','columnWidth','adjustableColumn6','columnOffset2','columnOffset3','columnOffset4','columnOffset5','columnOffset6','rgbValue','attrNavDecision','columnAttach4','columnAttach5','columnAttach2','columnAttach3']
     _CALLBACKS = []
 
 
-class AttrControlGrp(Control):
+class AttrControlGrp(Labeled):
     '''Wrapper class for cmds.attrControlGrp'''
     CMD = cmds.attrControlGrp
     _ATTRIBS = ['attribute','handlesAttribute','label','hideMapButton']
     _CALLBACKS = ['changeCommand']
 
 
-class AttrFieldGrp(Control):
+class AttrFieldGrp(Labeled):
     '''Wrapper class for cmds.attrFieldGrp'''
     CMD = cmds.attrFieldGrp
     _ATTRIBS = ['attribute','rowAttach','columnAttach','extraLabel','minValue','columnWidth2','columnWidth3','columnWidth1','columnWidth6','columnWidth4','columnWidth5','columnAlign6','columnAlign5','columnAlign4','columnAlign3','columnAlign2','label','numberOfFields','adjustableColumn','columnAlign','maxValue','precision','step','hideMapButton','adjustableColumn2','adjustableColumn3','adjustableColumn4','adjustableColumn5','adjustableColumn6','columnWidth','columnOffset2','columnOffset3','columnOffset4','columnOffset5','columnOffset6','columnAttach6','columnAttach4','columnAttach5','columnAttach2','columnAttach3']
     _CALLBACKS = ['changeCommand']
 
 
-class AttrFieldSliderGrp(Control):
+class AttrFieldSliderGrp(Labeled):
     '''Wrapper class for cmds.attrFieldSliderGrp'''
     CMD = cmds.attrFieldSliderGrp
     _ATTRIBS = ['attribute','rowAttach','sliderMaxValue','columnAttach','minValue','columnWidth2','columnWidth3','columnWidth1','columnWidth6','columnWidth4','columnWidth5','columnAlign6','columnAlign5','columnAlign4','columnAlign3','columnAlign2','label','columnOffset3','adjustableColumn','columnAlign','vertical','sliderMinValue','fieldMaxValue','maxValue','precision','step','hideMapButton','adjustableColumn2','adjustableColumn3','adjustableColumn4','adjustableColumn5','fieldMinValue','columnWidth','sliderStep','adjustableColumn6','columnOffset2','fieldStep','columnOffset4','columnOffset5','columnOffset6','columnAttach6','columnAttach4','columnAttach5','columnAttach2','columnAttach3']
     _CALLBACKS = ['changeCommand']
 
 
-class AttrNavigationControlGrp(Control):
+class AttrNavigationControlGrp(Labeled):
     '''Wrapper class for cmds.attrNavigationControlGrp'''
     CMD = cmds.attrNavigationControlGrp
     _ATTRIBS = ['connectAttrToDropped','attribute','rowAttach','columnAttach','createNew','adjustableColumn3','columnWidth2','columnWidth3','columnWidth1','columnWidth6','columnWidth4','columnWidth5','columnAlign6','columnAlign5','columnAlign4','columnAlign3','columnAlign2','label','columnOffset4','adjustableColumn','columnAlign','unignore','connectToExisting','disconnect','ignoreNotSupported','adjustableColumn2','defaultTraversal','adjustableColumn4','adjustableColumn5','adjustableColumn6','columnWidth','columnAttach3','ignore','columnOffset2','columnOffset3','relatedNodes','columnOffset5','columnOffset6','columnAttach6','attrNavDecision','columnAttach4','columnAttach5','columnAttach2','connectNodeToDropped','delete']
@@ -68,7 +94,7 @@ class CheckBox(Control):
     _CALLBACKS = ['changeCommand','offCommand','onCommand']
 
 
-class CheckBoxGrp(Control):
+class CheckBoxGrp(Labeled):
     '''Wrapper class for cmds.checkBoxGrp'''
     CMD = cmds.checkBoxGrp
     _ATTRIBS = ['rowAttach','columnAttach','labelArray3','adjustableColumn3','columnWidth2','columnWidth3','columnWidth1','columnWidth6','columnWidth4','columnWidth5','columnAlign6','columnAlign5','columnAlign4','columnAlign3','columnAlign2','label','numberOfCheckBoxes','value4','value3','value2','value1','editable','enable1','enable2','enable3','enable4','columnAlign','vertical','label1','label2','label3','label4','valueArray3','valueArray2','labelArray4','labelArray2','valueArray4','adjustableColumn2','adjustableColumn','adjustableColumn4','adjustableColumn5','adjustableColumn6','columnWidth','columnOffset2','columnOffset3','columnOffset4','columnOffset5','columnOffset6','columnAttach6','columnAttach4','columnAttach5','columnAttach2','columnAttach3']
@@ -96,21 +122,21 @@ class CmdShell(Control):
     _CALLBACKS = []
 
 
-class ColorIndexSliderGrp(Control):
+class ColorIndexSliderGrp(Labeled):
     '''Wrapper class for cmds.colorIndexSliderGrp'''
     CMD = cmds.colorIndexSliderGrp
     _ATTRIBS = ['rowAttach','columnAttach','extraLabel','minValue','columnWidth2','columnWidth3','columnWidth1','columnWidth6','columnWidth4','columnWidth5','columnAlign6','columnAlign5','columnAlign4','columnAlign3','columnAlign2','label','adjustableColumn','columnAlign','maxValue','forceDragRefresh','invisible','adjustableColumn2','adjustableColumn3','adjustableColumn4','adjustableColumn5','adjustableColumn6','columnWidth','value','columnOffset2','columnOffset3','columnOffset4','columnOffset5','columnOffset6','columnAttach6','columnAttach4','columnAttach5','columnAttach2','columnAttach3']
     _CALLBACKS = ['changeCommand','dragCommand']
 
 
-class ColorSliderButtonGrp(Control):
+class ColorSliderButtonGrp(Labeled):
     '''Wrapper class for cmds.colorSliderButtonGrp'''
     CMD = cmds.colorSliderButtonGrp
     _ATTRIBS = ['image','columnAttach','columnWidth2','columnWidth3','columnWidth1','columnWidth6','buttonLabel','columnWidth4','columnWidth5','columnAlign6','columnAlign5','columnAlign4','columnAlign3','columnAlign2','label','adjustableColumn','rowAttach','columnAlign','forceDragRefresh','columnAttach6','adjustableColumn2','adjustableColumn3','adjustableColumn4','adjustableColumn5','hsvValue','columnWidth','adjustableColumn6','columnOffset2','columnOffset3','columnOffset4','columnOffset5','columnOffset6','rgbValue','symbolButtonDisplay','columnAttach4','columnAttach5','columnAttach2','columnAttach3']
     _CALLBACKS = ['buttonCommand','changeCommand','dragCommand','symbolButtonCommand']
 
 
-class ColorSliderGrp(Control):
+class ColorSliderGrp(Labeled):
     '''Wrapper class for cmds.colorSliderGrp'''
     CMD = cmds.colorSliderGrp
     _ATTRIBS = ['rowAttach','columnAttach','columnWidth2','columnWidth3','columnWidth1','columnWidth6','columnWidth4','columnWidth5','columnAlign6','columnAlign5','columnAlign4','columnAlign3','columnAlign2','label','adjustableColumn','columnAlign','forceDragRefresh','columnAttach6','adjustableColumn2','adjustableColumn3','adjustableColumn4','adjustableColumn5','hsvValue','columnWidth','adjustableColumn6','columnOffset2','columnOffset3','columnOffset4','columnOffset5','columnOffset6','rgbValue','columnAttach4','columnAttach5','columnAttach2','columnAttach3']
@@ -131,13 +157,6 @@ class ComponentBox(Control):
     _CALLBACKS = []
 
 
-class Control(Control):
-    '''Wrapper class for cmds.control'''
-    CMD = cmds.control
-    _ATTRIBS = []
-    _CALLBACKS = []
-
-
 class FloatField(Control):
     '''Wrapper class for cmds.floatField'''
     CMD = cmds.floatField
@@ -145,7 +164,7 @@ class FloatField(Control):
     _CALLBACKS = ['changeCommand','dragCommand','enterCommand','receiveFocusCommand']
 
 
-class FloatFieldGrp(Control):
+class FloatFieldGrp(Labeled):
     '''Wrapper class for cmds.floatFieldGrp'''
     CMD = cmds.floatFieldGrp
     _ATTRIBS = ['rowAttach','columnAttach','extraLabel','columnWidth2','columnWidth3','columnWidth1','columnWidth6','columnWidth4','columnWidth5','columnAlign6','columnAlign5','columnAlign4','columnAlign3','columnAlign2','label','value4','value3','numberOfFields','value1','enable1','enable2','adjustableColumn','enable4','value2','columnAlign','precision','adjustableColumn3','adjustableColumn2','enable3','adjustableColumn4','adjustableColumn5','adjustableColumn6','columnWidth','value','columnOffset2','columnOffset3','columnOffset4','columnOffset5','columnOffset6','columnAttach6','columnAttach4','columnAttach5','columnAttach2','columnAttach3']
@@ -173,14 +192,14 @@ class FloatSlider2(Control):
     _CALLBACKS = []
 
 
-class FloatSliderButtonGrp(Control):
+class FloatSliderButtonGrp(Labeled):
     '''Wrapper class for cmds.floatSliderButtonGrp'''
     CMD = cmds.floatSliderButtonGrp
     _ATTRIBS = ['rowAttach','columnAttach','extraLabel','minValue','columnWidth2','columnWidth3','columnWidth1','columnWidth6','buttonLabel','columnWidth4','columnWidth5','columnAlign6','columnAlign5','columnAlign4','columnAlign3','columnAlign2','label','field','columnOffset3','adjustableColumn','image','columnAlign','fieldMaxValue','maxValue','precision','step','adjustableColumn2','adjustableColumn3','adjustableColumn4','adjustableColumn5','fieldMinValue','columnWidth','value','sliderStep','adjustableColumn6','columnOffset2','fieldStep','columnOffset4','columnOffset5','columnOffset6','columnAttach6','symbolButtonDisplay','columnAttach4','columnAttach5','columnAttach2','columnAttach3']
     _CALLBACKS = ['buttonCommand','changeCommand','dragCommand','symbolButtonCommand']
 
 
-class FloatSliderGrp(Control):
+class FloatSliderGrp(Labeled):
     '''Wrapper class for cmds.floatSliderGrp'''
     CMD = cmds.floatSliderGrp
     _ATTRIBS = ['rowAttach','columnAttach','extraLabel','minValue','columnWidth2','columnWidth3','columnWidth1','columnWidth6','columnWidth4','columnWidth5','columnAlign6','columnAlign5','columnAlign4','columnAlign3','columnAlign2','label','field','columnOffset3','adjustableColumn','columnAlign','fieldMaxValue','maxValue','precision','step','adjustableColumn2','adjustableColumn3','adjustableColumn4','adjustableColumn5','fieldMinValue','columnWidth','value','sliderStep','adjustableColumn6','columnOffset2','fieldStep','columnOffset4','columnOffset5','columnOffset6','columnAttach6','columnAttach4','columnAttach5','columnAttach2','columnAttach3']
@@ -285,7 +304,7 @@ class IntField(Control):
     _CALLBACKS = ['changeCommand','dragCommand','enterCommand','receiveFocusCommand']
 
 
-class IntFieldGrp(Control):
+class IntFieldGrp(Labeled):
     '''Wrapper class for cmds.intFieldGrp'''
     CMD = cmds.intFieldGrp
     _ATTRIBS = ['rowAttach','columnAttach','extraLabel','columnWidth2','columnWidth3','columnWidth1','columnWidth6','columnWidth4','columnWidth5','columnAlign6','columnAlign5','columnAlign4','columnAlign3','columnAlign2','label','value4','value3','numberOfFields','value1','enable1','enable2','adjustableColumn','enable4','value2','columnAlign','adjustableColumn3','adjustableColumn2','enable3','adjustableColumn4','adjustableColumn5','adjustableColumn6','columnWidth','value','columnOffset2','columnOffset3','columnOffset4','columnOffset5','columnOffset6','columnAttach6','columnAttach4','columnAttach5','columnAttach2','columnAttach3']
@@ -306,7 +325,7 @@ class IntSlider(Control):
     _CALLBACKS = ['changeCommand','dragCommand']
 
 
-class IntSliderGrp(Control):
+class IntSliderGrp(Labeled):
     '''Wrapper class for cmds.intSliderGrp'''
     CMD = cmds.intSliderGrp
     _ATTRIBS = ['rowAttach','columnAttach','extraLabel','minValue','columnWidth2','columnWidth3','columnWidth1','columnWidth6','columnWidth4','columnWidth5','columnAlign6','columnAlign5','columnAlign4','columnAlign3','columnAlign2','label','field','columnOffset3','adjustableColumn','columnAlign','fieldMaxValue','maxValue','step','adjustableColumn2','adjustableColumn3','adjustableColumn4','adjustableColumn5','fieldMinValue','columnWidth','value','sliderStep','adjustableColumn6','columnOffset2','fieldStep','columnOffset4','columnOffset5','columnOffset6','columnAttach6','columnAttach4','columnAttach5','columnAttach2','columnAttach3']
@@ -369,7 +388,7 @@ class RadioButton(Control):
     _CALLBACKS = ['changeCommand','offCommand','onCommand']
 
 
-class RadioButtonGrp(Control):
+class RadioButtonGrp(Labeled):
     '''Wrapper class for cmds.radioButtonGrp'''
     CMD = cmds.radioButtonGrp
     _ATTRIBS = ['rowAttach','columnAttach','columnWidth2','columnWidth3','columnWidth1','columnWidth6','select','columnWidth5','columnAlign6','columnAlign5','columnAlign4','columnAlign3','columnAlign2','label','columnWidth4','editable','data4','enable2','adjustableColumn','enable4','data3','data2','columnAlign','vertical','label1','label2','label3','label4','adjustableColumn3','enable1','labelArray4','labelArray2','labelArray3','adjustableColumn2','enable3','adjustableColumn4','adjustableColumn5','adjustableColumn6','numberOfRadioButtons','data1','shareCollection','columnOffset2','columnOffset3','columnOffset4','columnOffset5','columnOffset6','columnWidth','columnAttach6','columnAttach4','columnAttach5','columnAttach2','columnAttach3']
@@ -467,14 +486,14 @@ class TextField(Control):
     _CALLBACKS = ['alwaysInvokeEnterCommandOnReturn','changeCommand','enterCommand','receiveFocusCommand']
 
 
-class TextFieldButtonGrp(Control):
+class TextFieldButtonGrp(Labeled):
     '''Wrapper class for cmds.textFieldButtonGrp'''
     CMD = cmds.textFieldButtonGrp
     _ATTRIBS = ['insertText','enableButton','rowAttach','columnAttach','columnWidth2','columnWidth3','columnWidth1','columnWidth6','buttonLabel','columnWidth4','columnWidth5','columnAlign6','columnAlign5','columnAlign4','columnAlign3','columnAlign2','insertionPosition','label','text','adjustableColumn','columnAlign','editable','fileName','adjustableColumn2','adjustableColumn3','adjustableColumn4','adjustableColumn5','adjustableColumn6','columnWidth','columnOffset2','columnOffset3','columnOffset4','columnOffset5','columnOffset6','columnAttach6','columnAttach4','columnAttach5','columnAttach2','columnAttach3']
     _CALLBACKS = ['buttonCommand','changeCommand','forceChangeCommand']
 
 
-class TextFieldGrp(Control):
+class TextFieldGrp(Labeled):
     '''Wrapper class for cmds.textFieldGrp'''
     CMD = cmds.textFieldGrp
     _ATTRIBS = ['insertText','text','rowAttach','columnAttach','columnWidth2','columnWidth3','columnWidth1','columnWidth6','columnWidth4','columnWidth5','columnAlign6','columnAlign5','columnAlign4','columnAlign3','columnAlign2','insertionPosition','label','adjustableColumn','columnAlign','editable','fileName','adjustableColumn2','adjustableColumn3','adjustableColumn4','adjustableColumn5','adjustableColumn6','columnWidth','columnOffset2','columnOffset3','columnOffset4','columnOffset5','columnOffset6','columnAttach6','columnAttach4','columnAttach5','columnAttach2','columnAttach3']
