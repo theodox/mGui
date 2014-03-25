@@ -71,65 +71,6 @@ class ControlMeta(type):
 
 
 
-class Window(Styled, BindableObject):
-    '''
- 
-    Window inherits from bindings.BindableObject, so it supports binding
-    operators.  All controls will have _bind_src and _bind_tgt fields, and 
-    if a derived control class indicates default(s) they will be used.
-    
-    Window inherits from styles.Styled, so it supports styling.
-    
-    '''
-    CMD = cmds.window
-    _ATTRIBS = ["backgroundColor", "defineTemplate", "docTag", "exists", "height", "iconify", "iconName", "leftEdge", "menuBarVisible", "menuIndex", "mainMenuBar", "minimizeButton", "maximizeButton",  "resizeToFitChildren", "sizeable", "title", "titleBar", "titleBarMenu", "topEdge", "toolbox", "topLeftCorner", "useTemplate", "visible", "width", "widthHeight"]
-    _CALLBACKS = ["minimizeCommand", "restoreCommand"]
-    _READONLY = [ "numberOfMenus", "menuArray", "menuBar",  "retain"]
-
-    __metaclass__ = ControlMeta
-    
-    
-    def __init__(self, key, *args, **kwargs):
-        # this applies any keywords in the current style that are part of the Maya gui flags
-        # other flags (like float and margin) are ignored
-                
-        _style = dict( (k,v) for k,v in self.Style.items() if k in self._ATTRIBS or k in Window._ATTRIBS)    
-        _style.update(kwargs)
-        
-        self.Widget = self.CMD(*args, **_style)
-        self.Key = key or "__" + self.Widget.split("|")[-1]
-
-        '''
-        Widget is the gui element in the scene
-        '''
-        self.Callbacks = {}
-        '''
-        A dictionary of Event objects
-        '''
-        
-    def register_callback(self, callbackName, event):
-        '''
-        when a callback property is first accessed this creates an Event for the specified callback and hooks it to the gui widget's callback function
-        '''
-        kwargs = {'e':True, callbackName:event}
-        self.CMD(self.Widget, **kwargs)
-
-                
-    def __nonzero__(self):
-        return self.exists
-    
-    def __repr__(self):
-        if self:
-            return self.Widget
-        else:
-            return "<deleted Window %s>" % self.Key
-        
-    def __str__(self):
-        return self.Widget
-    
-    def __iter__(self):
-        yield self
-
 
 
 
@@ -154,14 +95,17 @@ class Control(Styled, BindableObject):
     
     
     def __init__(self, key, *args, **kwargs):
+        # arbitrary tag data. Use with care to avoid memory leaks
+        self.Tag = kwargs.get('tag', None)
+        if 'tag' in kwargs: 
+            del kwargs['tag']
+        
         # this applies any keywords in the current style that are part of the Maya gui flags
         # other flags (like float and margin) are ignored
         _style = dict( (k,v) for k,v in self.Style.items() if k in self._ATTRIBS or k in Control._ATTRIBS)    
         _style.update(kwargs)
         
-        # arbitrary tag data. Use with care to avoid memory leaks
-        self.Tag = kwargs.get('tag', None)
-        if 'tag' in kwargs: del kwargs['tag']
+
 
         self.Widget = self.CMD(*args, **_style)
         self.Key = key or "__" + self.Widget.split("|")[-1]
@@ -203,31 +147,24 @@ class Control(Styled, BindableObject):
     
 
 
-# IMPORTANT NOTE
-# this intentionally duplicates redundant property names from Control. That forces the metaclass to re-define the CtlProperties using cmds.layout
-# instead of cmds.control. In Maya 2014, using cmds.control to query a layout fails, evem for flags they have in common
 
-class Layout(Control):
-    
-    CMD = cmds.layout
-    _ATTRIBS = ['annotation', 'backgroundColor', 'defineTemplate', 'docTag', 'dragCallback', 'dropCallback', 'enable', 'enableBackground', 'exists', 'fullPathName', 'height',  'manage', 'noBackground', 'numberOfPopupMenus', 'parent', 'popupMenuArray', 'preventOverride', 'useTemplate', 'visible', 'visibleChangeCommand', 'width']
-    _CALLBACKS = ['dragCallback', 'dropCallback', 'visibleChangeCommand']
-    _READ_ONLY = ['isObscured', 'popupMenuArray', 'numberOfPopupMenus', 'childArray', 'numberOfChildren']
+
+class Nested(Control):
     ACTIVE_LAYOUT = None
-    
+   
+   
     def __init__(self, key,  *args, **kwargs):
         self.Controls = []
-        super (Layout, self).__init__(key, *args, **kwargs)
-
-        
+        super (Nested, self).__init__(key, *args, **kwargs)
+   
     def __enter__( self ):
-        self.__cache_layout = Layout.ACTIVE_LAYOUT
-        Layout.ACTIVE_LAYOUT = self
+        self.__cache_layout = Nested.ACTIVE_LAYOUT
+        Nested.ACTIVE_LAYOUT = self
         return self
 
     def __exit__( self, typ, value, traceback ):
         self.layout()
-        Layout.ACTIVE_LAYOUT = self.__cache_layout
+        Nested.ACTIVE_LAYOUT = self.__cache_layout
         self.__cache_layout = None
         cmds.setParent( ".." ) 
 
@@ -235,6 +172,7 @@ class Layout(Control):
         return len(self.Controls)
         
     def add(self, control):
+        print "adding", control
         self.Controls.append(control)
         if control.Key in self.__dict__:
             raise RuntimeError, 'Children of a layout must have unique IDs'
@@ -254,5 +192,53 @@ class Layout(Control):
     @classmethod
     def add_current(cls, control):
         if control.Key and cls.ACTIVE_LAYOUT:
-            cls.ACTIVE_LAYOUT.add(control)
+            Nested.ACTIVE_LAYOUT.add(control)
+
+
+# IMPORTANT NOTE
+# this intentionally duplicates redundant property names from Control. That forces the metaclass to re-define the CtlProperties using cmds.layout
+# instead of cmds.control. In Maya 2014, using cmds.control to query a layout fails, evem for flags they have in common
+
+class Layout(Nested):
+    
+    CMD = cmds.layout
+    _ATTRIBS = ['annotation', 'backgroundColor', 'defineTemplate', 'docTag', 'dragCallback', 'dropCallback', 'enable', 'enableBackground', 'exists', 'fullPathName', 'height',  'manage', 'noBackground', 'numberOfPopupMenus', 'parent', 'popupMenuArray', 'preventOverride', 'useTemplate', 'visible', 'visibleChangeCommand', 'width']
+    _CALLBACKS = ['dragCallback', 'dropCallback', 'visibleChangeCommand']
+    _READ_ONLY = ['isObscured', 'popupMenuArray', 'numberOfPopupMenus', 'childArray', 'numberOfChildren']
+
+
+
+
+
+class Window(Nested):
+    '''
+ 
+    Window inherits from bindings.BindableObject, so it supports binding
+    operators.  All controls will have _bind_src and _bind_tgt fields, and 
+    if a derived control class indicates default(s) they will be used.
+    
+    Window inherits from styles.Styled, so it supports styling.
+    
+    '''
+    CMD = cmds.window
+    _ATTRIBS = ["backgroundColor", "defineTemplate", "docTag", "exists", "height", "iconify", "iconName", "leftEdge", "menuBarVisible", "menuIndex", "mainMenuBar", "minimizeButton", "maximizeButton",  "resizeToFitChildren", "sizeable", "title", "titleBar", "titleBarMenu", "topEdge", "toolbox", "topLeftCorner", "useTemplate", "visible", "width", "widthHeight"]
+    _CALLBACKS = ["minimizeCommand", "restoreCommand"]
+    _READ_ONLY = [ "numberOfMenus", "menuArray", "menuBar",  "retain"]
+
+
+class Menu(Nested):
+    CMD = cmds.menu
+    _ATTRIBS = ['allowOptionBoxes', 'deleteAllItems', 'defineTemplate', 'docTag',  'enable', 'enableBackground', 'exists', 'familyImage', 'helpMenu',   'label', 'mnemonic', 'parent',  'useTemplate', 'visible']
+    _CALLBACKS = ['postMenuCommand', 'postMenuCommandOnce']
+    _READ_ONLY = ['itemArray', 'numberOfItems']
+
+
+class MenuItem(Control):
+    CMD = cmds.menuItem
+    _ATTRIBS= ["altModifier","annotation","allowOptionBoxes","boldFont","checkBox","collection","commandModifier","ctrlModifier","divider","data","defineTemplate","docTag","echoCommand","enableCommandRepeat","enable","exists","familyImage","image","insertAfter","imageOverlayLabel","italicized","keyEquivalent","label","mnemonic","optionBox","optionBoxIcon","optionModifier","parent","radioButton","radialPosition","shiftModifier","subMenu","sourceType","tearOff","useTemplate", "version"]
+    _READ_ONLY = ['isCheckBox', 'isOptionBox', 'isRadioButton']             
+    _CALLBACKS = ['command', 'dragDoubleClickCommand', 'dragMenuCommand','postMenuCommand', 'postMenuCommandOnce']
+    
+
+
     
