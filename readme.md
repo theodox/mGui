@@ -52,10 +52,13 @@ And make adjustments like this:
    
 
 
+# Key parts
 
-The module has two main parts.
+## Wrappers and Properties
 
-*mGui.core* defines two classes, **Control** and **Layout**. These do the same job: wrapping maya UI objects with a property-oriented syntax.  The *mGui.controls* and *mGui.layouts* provide subclasses of these for all of the control and layout widgets in Maya.
+mGui.core defines two key classes: Control and Layout. These are the abstract bases for all of the widgets in the Maya GUI library.  
+These classes are assembled using a special metaclass and property descriptors defined in mGui.properties. Together, these allow 
+for property-style access to the GUI widgets, both for layout and value purposes.
 
 
 ## Bindings

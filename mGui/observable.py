@@ -179,6 +179,14 @@ class ViewCollection(ObservableCollection):
 
         
 class BoundCollection(BindableObject):
+    '''
+    An iterable object which can be bound to a collection. When the source
+    collection updates, the BoundCollection will fire appropriate update
+    callbacks.
+    
+    The optional conversion argument is a callable which will be run on every
+    item being forwarded from the source collection.  
+    '''
     _BIND_TGT = 'set_collection'
     
     def __init__(self, conversion = lambda x: x):

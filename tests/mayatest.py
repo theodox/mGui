@@ -1,42 +1,44 @@
-
-import sys
-import pymel.core as pm
-import maya.cmds as cmds
-sys.path.append(r"C:\Users\Stephen Theodore\Documents\GitHub\mGui")
-###
-import mGui.core as core
-import mGui.controls as ctrl
-import mGui.layouts as lyt
-import mGui.styles as styles
-import mGui.bindings as bindings
-import mGui.events as events
-import mGui.forms as forms
-import mGui.styles as style
-import mGui.observable as obs
-import mGui.lists as lists
+import mGui
+from mGui.controls import *
+from mGui.layouts import *
+from mGui.core import Window
 
 
-class exx(object):
-    def __init__(self, name):
-        self.Name = name
-        self.Value = 5
+window = Window('main window', title="Ugly version")
+with ColumnLayout('gui', width = 256) as gui:
+    with FrameLayout("t_buttons", label = "buttons column"):
+        with ColumnLayout("col"):
+            Button('mkSphere', label = "Make Sphere")
+            Button('mkCone', label ="Make Cone")
+            Button('mkCube', label ="Make Cube")
+       
+    with FrameLayout("r_buttons", label = "buttons row"):
+        with RowLayout ("row", numberOfColumns=3):
+            Button('mkSphere', label = "Make Sphere")
+            Button('mkCone', label ="Make Cone")
+            Button('mkCube', label ="Make Cube")
+
+    with FrameLayout("g_buttons", label = "buttons grid"):
+        with GridLayout("grid", numberOfColumns = 2):
+            Button('mkSphere', label = "Make Sphere")
+            Button('mkCone', label ="Make Cone")
+            Button('mkCube', label ="Make Cube")
+            Button('mkCircle', label = "Make Circle")
+
+
+# using the iterability of the layout to set widths 
+
+for item in gui.t_buttons:
+    item.width = 256
     
-    def __str__(self):
-       return str(self.Name)
+for item in gui.r_buttons.row:
+    item.width = 85
+item.width = 256
+item.columnWidth3 = (85,85,85)    
+    
+for item in gui.g_buttons.grid:
+    item.width = 128
+item.width = 256
+item.cellWidth = 128
 
-test = obs.ViewCollection(exx("hello"), exx("world"))
-def flt (*args, **kwargs):
-    lm = eval("lambda x: " + args[0])
-    test.update_filter(lm)
-     
-w = core.Window('window', title = 'fred')
-with bindings.BindingContext() as bc:
-    with forms.VerticalForm('main') as main:
-        with lyt.TabLayout('sub', height = 240):
-            test >> lists.VerticalListForm('lister' ).Collection
-        with forms.HorizontalStretchForm('buttons', height = 32):
-            ctrl.TextField('filterbox', width = 300)
-            bb = ctrl.Text(0, width = 60) 
-            test + "ViewCount" >> bb + 'label'
-            
-cmds.showWindow(w)                
+cmds.showWindow(window)
