@@ -347,7 +347,7 @@ class Binding(object):
         except IndexError:
             raise BindingError('get_accessor requires 2 or 4 arguments')
 
-        self.Translator = kwargs.get('translate', lambda v: v)
+        self.Translator = kwargs.get('translator',  lambda v: v)
         assert callable(self.Translator), 'Translator must be a single argument callable'
 
         BindingContext.add(self)
@@ -503,7 +503,10 @@ class Bindable (object):
         target = self._get_bindable(other, 'bind_target')
         if not target: 
             raise BindingError("bind target is not set for %s" % other)
-        return Binding(self.site(), self.bind_source, target.site(), target.bind_target)
+        translator = lambda x : x
+        if hasattr(self, 'bind_translate'):
+            translator = self.bind_translate
+        return Binding(self.site(), self.bind_source, target.site(), target.bind_target, translator = translator)
 
         
     def __lshift__(self, other):
@@ -512,7 +515,10 @@ class Bindable (object):
         target = self._get_bindable(other, 'bind_source')
         if not target: 
             raise BindingError("bind source is not set for %s" % other)
-        return  Binding( target.site(), target.bind_source,self.site(), self.bind_target)
+        translator = lambda x: x
+        if hasattr(target, 'bind_translate'):
+            translator = target.bind_translate
+        return  Binding( target.site(), target.bind_source,self.site(), self.bind_target, translator = translator)
 
     def __ne__(self, other):         
         if not self.bind_target:
@@ -589,6 +595,7 @@ class BindableObject(Bindable):
         obj = object.__new__(self)
         self.bind_source = self._BIND_SRC
         self.bind_target = self._BIND_TGT
+        self.bind_translator = None
         self.bindings = []
         return obj
 
@@ -616,9 +623,10 @@ class BindProxy(Bindable):
     
     '''
     
-    def __init__(self, item, attrib):
+    def __init__(self, item, attrib, translator = None):
         self.Item = item
         self.bind_source = self.bind_target = attrib
+        self.bind_translate = translator
 
     def site(self):
         if hasattr(self.Item, 'site'): return self.Item.site()
