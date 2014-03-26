@@ -2,7 +2,7 @@
 Observable.py
 @author: stevetheodore
 '''
-from events import Event, MayaEvent
+from events import Event
 from bindings import BindableObject
 
 class ObservableCollection(BindableObject):
@@ -14,9 +14,8 @@ class ObservableCollection(BindableObject):
     
        * ItemAdded(item, collection = self) for each item added
        * ItemRemoved(item, collection = self) for each item removed
-       * Reordered(collection = self) when the internal collection is sorted
-       * CollectionChanged(collection = self) for all changes apart from reordering
-    
+       * CollectionChanged(collection = self) for all other changes 
+       
     This collections outgoing data bindings will be updated automatically on
     these events as well, so it's not necessary to explicitly handle them
     although that can be done if you need more control over the changes.
