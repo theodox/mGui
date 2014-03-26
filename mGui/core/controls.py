@@ -5,7 +5,7 @@ Originally auto generated using helpers.tools
 '''
 
 import maya.cmds as cmds
-from .core import Control
+from mGui.core import Control
 
 
 class Labeled(Control):

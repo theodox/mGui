@@ -4,11 +4,11 @@ Created on Mar 15, 2014
 @author: Stephen Theodore
 '''
 import maya.cmds as cmds
-import mGui.forms as forms
+import mGui.core.forms as forms
 import mGui.observable as observable
-import mGui.controls as controls
-import mGui.bindings as b
-import mGui.layouts as layouts
+import mGui.core.controls as controls
+import mGui.bindings as bindings
+import mGui.core.layouts as layouts
 
 class FormList(object):
     
