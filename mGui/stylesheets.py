@@ -1,6 +1,10 @@
+'''
+helper functions for creating default CSS sheet
+'''
+
 from mGui.styles import CSS, Bounds
 from mGui.controls import *
-from mGui.core import Control
+from mGui.core import Control, Labeled
 
 
 

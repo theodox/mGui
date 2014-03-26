@@ -1,7 +1,7 @@
 '''
-Created on Feb 13, 2014
+Defines the CSS class, a cascading style sheet like class for GUI layout.
 
-@author: Stephen Theodore
+Also defines the Bounds class, which reprsents margins
 '''
 
 class Bounds(object):
