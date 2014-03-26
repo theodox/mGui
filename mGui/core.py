@@ -1,7 +1,7 @@
 import maya.cmds as cmds
-from .bindings import BindableObject
-from .styles import Styled
-from .properties import CtlProperty, CallbackProperty
+from mGui.bindings import BindableObject
+from mGui.styles import Styled
+from mGui.properties import CtlProperty, CallbackProperty
 
 '''
 # MGui.Core
@@ -144,9 +144,6 @@ class Control(Styled, BindableObject):
     def __iter__(self):
         yield self
         
-    
-
-
 
 
 class Nested(Control):
@@ -229,20 +226,9 @@ class Window(Nested):
     _CALLBACKS = ["minimizeCommand", "restoreCommand"]
     _READ_ONLY = [ "numberOfMenus", "menuArray", "menuBar",  "retain"]
 
-
-class Menu(Nested):
-    CMD = cmds.menu
-    _ATTRIBS = ['allowOptionBoxes', 'deleteAllItems', 'defineTemplate', 'docTag',  'enable', 'enableBackground', 'exists', 'familyImage', 'helpMenu',   'label', 'mnemonic', 'parent',  'useTemplate', 'visible']
-    _CALLBACKS = ['postMenuCommand', 'postMenuCommandOnce']
-    _READ_ONLY = ['itemArray', 'numberOfItems']
-
-
-class MenuItem(Control):
-    CMD = cmds.menuItem
-    _ATTRIBS= ["altModifier","annotation","allowOptionBoxes","boldFont","checkBox","collection","commandModifier","ctrlModifier","divider","data","defineTemplate","docTag","echoCommand","enableCommandRepeat","enable","exists","familyImage","image","insertAfter","imageOverlayLabel","italicized","keyEquivalent","label","mnemonic","optionBox","optionBoxIcon","optionModifier","parent","radioButton","radialPosition","shiftModifier","subMenu","sourceType","tearOff","useTemplate", "version"]
-    _READ_ONLY = ['isCheckBox', 'isOptionBox', 'isRadioButton']             
-    _CALLBACKS = ['command', 'dragDoubleClickCommand', 'dragMenuCommand','postMenuCommand', 'postMenuCommandOnce']
-    
-
-
-    
+    def show(self):
+        cmds.showWindow(self.Widget)
+        
+    def hide(self):
+        self.visible = False
+        
