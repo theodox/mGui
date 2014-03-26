@@ -150,6 +150,9 @@ class Control(Styled, BindableObject):
 
 
 class Nested(Control):
+    '''
+    Base class for all the nested context-manager classes which automatically parent themselves
+    '''
     ACTIVE_LAYOUT = None
    
    
@@ -169,10 +172,13 @@ class Nested(Control):
         cmds.setParent( ".." ) 
 
     def layout(self):
+        '''
+        this is called at the end of a context, it can be used to (for example) perform attachments
+        in a formLayout.  Override in derived classes for different behaviors.
+        '''
         return len(self.Controls)
         
     def add(self, control):
-        print "adding", control
         self.Controls.append(control)
         if control.Key in self.__dict__:
             raise RuntimeError, 'Children of a layout must have unique IDs'
@@ -205,8 +211,6 @@ class Layout(Nested):
     _ATTRIBS = ['annotation', 'backgroundColor', 'defineTemplate', 'docTag', 'dragCallback', 'dropCallback', 'enable', 'enableBackground', 'exists', 'fullPathName', 'height',  'manage', 'noBackground', 'numberOfPopupMenus', 'parent', 'popupMenuArray', 'preventOverride', 'useTemplate', 'visible', 'visibleChangeCommand', 'width']
     _CALLBACKS = ['dragCallback', 'dropCallback', 'visibleChangeCommand']
     _READ_ONLY = ['isObscured', 'popupMenuArray', 'numberOfPopupMenus', 'childArray', 'numberOfChildren']
-
-
 
 
 
