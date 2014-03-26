@@ -10,7 +10,7 @@ import mGui.controls as controls
 import mGui.bindings as b
 import mGui.layouts as layouts
 
-class ListFormBase(object):
+class FormList(object):
     
     '''
     Adds a BoundCollection to a Layout class. Will call the owning class's
@@ -61,7 +61,7 @@ class ListFormBase(object):
         
 
 
-class VerticalList(forms.VerticalForm, ListFormBase):
+class VerticalList(forms.VerticalForm, FormList):
     '''
     A vertical list of items with an automatic scrollbar
     '''
@@ -82,7 +82,7 @@ class VerticalList(forms.VerticalForm, ListFormBase):
         
 
 
-class HorizontalList(forms.HorizontalForm, ListFormBase):
+class HorizontalList(forms.HorizontalForm, FormList):
     '''
     A horizontal list of Items with an automatic scrollbar
     '''
@@ -97,7 +97,7 @@ class HorizontalList(forms.HorizontalForm, ListFormBase):
         
 
 
-class WrapList(layouts.FlowLayout, ListFormBase):
+class WrapList(layouts.FlowLayout, FormList):
     '''
     A flowLayout based list of items with optional wrapping. This will clip if
     the width exceeds the layout width unles 'wrap' is set to true

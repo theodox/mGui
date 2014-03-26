@@ -49,8 +49,6 @@ class GridLayout(Layout):
     _CALLBACKS = []
 
 
-
-
 class MenuBarLayout(Layout):
     '''Wrapper class for cmds.menuBarLayout'''
     CMD = cmds.menuBarLayout

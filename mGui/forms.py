@@ -28,10 +28,7 @@ import maya.cmds as cmds
 import itertools
 
 
-
-
-
-class FormBase(FormLayout):
+class Form(FormLayout):
     '''
     A wrapper for FormLayout with convenience methods for attaching controls.
     Use this when you need precise control over form behavior.
@@ -41,7 +38,7 @@ class FormBase(FormLayout):
     '''
     
     def __init__(self, key, *args, **kwargs):
-        super(FormBase, self).__init__(key, *args, **kwargs)
+        super(Form, self).__init__(key, *args, **kwargs)
         self.margin = Bounds(*self.Style.get('margin', (0, 0)))
         self.spacing = Bounds(*self.Style.get('spacing', (0, 0))) 
 
@@ -130,6 +127,21 @@ class FormBase(FormLayout):
         
         return ap
     
+    def equal_series(self, side):
+        side2 = {'left':'right', 'right':'left', 'top':'bottom', 'bottom':'top'}[side]
+        
+        widths = [1 for each_item in self.Controls]
+        total_width = sum(widths)
+        proportions = map (lambda q: q * 100.0 / total_width, widths)
+        p_l = len(proportions)
+        left_edges = [sum(proportions[:r]) for r in range(0, p_l)]
+        right_edges = [sum(proportions[:r]) for r in range(1, p_l + 1)]
+        ap = []
+        for c, l, r in itertools.izip(self.Controls, left_edges, right_edges):
+            ap.append((c, side, self.spacing[side], l)) 
+            ap.append((c, side2, self.spacing[side2], r)) 
+        
+        return ap
     def dock(self, ctrl, top=None, left=None, right=None, bottom=None):
         '''
         docks ctrl into the form.
@@ -168,9 +180,7 @@ class FormBase(FormLayout):
         elif right[1]:
                 af('right', *right)
 
-
-
-class FillForm (FormBase):
+class FillForm (Form):
     '''
     Docks the first child so it fills the entire form with the specified margin
     '''
@@ -180,7 +190,7 @@ class FillForm (FormBase):
             self.fill(item)        
         return len(self.Controls)
               
-class VerticalForm(FormBase):
+class VerticalForm(Form):
     '''
     Lays out children vertically. The first child is attached to the top of
     the form, all children are attached to the left and right
@@ -196,7 +206,7 @@ class VerticalForm(FormBase):
             
         return len(self.Controls)
     
-class HorizontalForm(FormBase):
+class HorizontalForm(Form):
     '''
     Lays out children horizontally. The first child is attacked to the left of
     the form, all children are attached to the top and bottom
@@ -211,7 +221,7 @@ class HorizontalForm(FormBase):
             self.attachControl = ac
         return len(self.Controls)
 
-class VerticalExpandForm(FormBase):
+class VerticalExpandForm(Form):
     '''
     Lays out children vertically. The first child is attached to the top of
     the form, and the last to the bottom. The last division will expand with the
@@ -228,7 +238,7 @@ class VerticalExpandForm(FormBase):
             self.attachControl = ac
         return len(self.Controls)
     
-class HorizontalExpandForm(FormBase):
+class HorizontalExpandForm(Form):
     '''
     Lays out children horizontally. The first child is attacked to the left of
     the form, and the last to the right. The last division will expand with the
@@ -244,28 +254,30 @@ class HorizontalExpandForm(FormBase):
             self.attachControl = ac
         return len(self.Controls)
 
-class HorizontalStretchForm(FormBase):
+class HorizontalStretchForm(Form):
     '''
     Lays out children horizontally. All children will scale proportionally as the form changes size
     '''
      
     def layout(self):
-        if len(self.controls):
+        if len(self.Controls):
             af = self.form_attachments('top', 'bottom')
             ap = self.percentage_series('left')
             self.attachForm = af
             self.attachPosition = ap
         return len(self.Controls)
     
-class VerticalStretchForm(FormBase):
+class VerticalStretchForm(Form):
     '''
     Lays out children vertically, with sizes proportional to their original heights
     '''
      
     def layout(self):
-        if len(self.controls):    
+        if len(self.Controls):    
             af = self.form_attachments('left', 'right')
             ap = self.percentage_series('top')
             self.attachForm = af
             self.attachPosition = ap
         return len(self.Controls) 
+
+__all__ = ['FillForm', 'VerticalForm', 'HorizontalForm', 'VerticalExpandForm', 'HorizontalExpandForm', 'VerticalStretchForm', 'HorizontalStretchForm']
