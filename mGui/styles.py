@@ -21,9 +21,11 @@ class Bounds(object):
         # 20
     '''
     def __init__(self, *args):
-        vals = list(args) * 2  + [0] * 4
         if len(args) == 1:
             vals = list(args) * 4
+        else:
+            vals = list(args) * 2  + [0] * 4
+
         self.left, self.top, self.right, self.bottom = vals[:4]
 
     def __getitem__(self, key):
@@ -33,8 +35,16 @@ class Bounds(object):
         'top':self.top,
         'bottom': self.bottom
          }[key]
-         
-        
+
+    def __iter__(self):
+        yield self.left
+        yield self.top
+        yield self.right
+        yield self.bottom
+
+    def __repr__(self):
+        return "< %i, %i, %i, %i >" % (self.left, self.top, self.right, self.bottom)
+
 class CSS (dict):
         
     '''
