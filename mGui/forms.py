@@ -21,7 +21,7 @@ For this reason prefer row or column or flowlayouts for repetitive stuff and use
 pretty consistenly groups of 100-odd sets of 3 controls (300 total) came in under .25s
 
 '''
-from mGui.layouts import FormLayout
+from mGui.core.layouts import FormLayout
 from mGui.styles import CSS, Bounds
 
 import maya.cmds as cmds
