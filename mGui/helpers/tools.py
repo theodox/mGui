@@ -46,7 +46,7 @@ class CommandInfo(object):
         self.Name = name
         self.Flags = flags
     
-    def template(self):
+    def template(self, includeShortNames = False):
         '''
         produces a string containing a complete class definition for a class derived from mGui.core.Control, such as:
         
@@ -64,7 +64,9 @@ class CommandInfo(object):
         code.write("    '''Wrapper class for cmds.%s'''\n"  % self.Name)
         code.write('    CMD = cmds.%s\n' % self.Name)
         attribs = [k for k in self.Flags.values() if not k in self.DEFAULTS]
-        ##attribs += [k for k in self.Flags.keys() if not k in _CONTROL_ATTRIBS]
+        if includeShortNames:
+            attribs += [k for k in self.Flags.keys() if not k in self.DEFAULTS]
+            
         attribs.sort()
         # note this deliberately excludes short names of callbacks!
         callbacks = [c for c in attribs if 'Command' in c or 'Callback' in c] 
@@ -100,7 +102,7 @@ class LayoutInfo(CommandInfo):
     INHERITS = 'Layout'
     
 
-def generate_controls(filename):
+def generate_controls(filename, includeShortNames=False):
     '''
     Write a text file with class definitions for all of the control classes in Maya.
     '''
@@ -113,12 +115,12 @@ def generate_controls(filename):
         
         for each_class in constants.CONTROL_COMMANDS:
             try:
-                filehandle.write(CommandInfo.from_command(each_class).template())
+                filehandle.write(CommandInfo.from_command(each_class).template(includeShortNames))
                 filehandle.write('\n\n')
             except RuntimeError:
                 filehandle.write("# command '%s' not present in this version of maya" % each_class)
 
-def generate_layouts(filename):
+def generate_layouts(filename, includeShortNames=False):
     '''
     Write a text file with class definitions for all of the layout classes in Maya.
     '''
@@ -128,7 +130,7 @@ def generate_layouts(filename):
         filehandle.write('from .core import Layout\n\n')
         for each_class in constants.LAYOUT_COMMANDS:
             try:
-                filehandle.write(LayoutInfo.from_command(each_class).template())
+                filehandle.write(LayoutInfo.from_command(each_class).template(includeShortNames))
                 filehandle.write('\n\n')
             except RuntimeError:
                 filehandle.write("# command '%s' not present in this maya" % each_class)
