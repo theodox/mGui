@@ -158,6 +158,19 @@ class CSS (dict):
             return False
     
     
+    def begin(self):
+        '''
+        Set this style to be active; the same as entering it via a context manager
+        '''
+        self.__enter__()
+        
+    
+    def end(self):
+        self.__exit__(None, None, None)
+        '''
+        Unset this style; the same as the end of a context block
+        '''
+    
     def find(self, *args):
         '''
         find the style in this nested style which matches the supplied arg.  See applies for arguments.
