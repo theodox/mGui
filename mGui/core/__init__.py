@@ -1,5 +1,5 @@
 import maya.cmds as cmds
-from mGui.bindings import BindableObject
+from mGui.bindings import BindableObject, BindingContext
 from mGui.styles import Styled
 from mGui.properties import CtlProperty, CallbackProperty
 
@@ -103,8 +103,10 @@ class Control(Styled, BindableObject):
         # this applies any keywords in the current style that are part of the Maya gui flags
         # other flags (like float and margin) are ignored
         _style = dict( (k,v) for k,v in self.Style.items() if k in self._ATTRIBS or k in Control._ATTRIBS)    
+
         _style.update(kwargs)
-        
+        if 'css' in _style:
+            del _style['css']
 
 
         self.Widget = self.CMD(*args, **_style)
@@ -232,3 +234,22 @@ class Window(Nested):
     def hide(self):
         self.visible = False
         
+class BindingWindow(Window):
+    
+    def __init__(self, key, *args, **kwargs):
+        super(BindingWindow, self).__init__(key, *args, **kwargs)
+        self.bindingContext = BindingContext()
+   
+    def __enter__(self):
+        self.bindingContext.__enter__()
+        return super(BindingWindow, self).__enter__()
+        
+    def __exit__(self,typ, value, traceback):
+        super(BindingWindow, self). __exit__(typ, value, traceback)
+        self.bindingContext.__exit__(None, None, None)
+        
+            
+    def update_bindings(self):
+        self.bindingContext.update(True)
+        
+    
