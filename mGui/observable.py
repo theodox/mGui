@@ -197,9 +197,9 @@ class BoundCollection(BindableObject):
         for d in deletions:
             del (self._Public_Collecton[d])
         for a in additions:
-            new_items = self.Conversion(a)
-            self._Public_Collecton[a] = new_items['widget']
-            self.WidgetCreated(new_items)
+            templated = self.Conversion(a)
+            self._Public_Collecton[a] = templated.Widget
+            self.WidgetCreated(templated)
 
         self._Internal_Collection = new_contents
         if len(additions) + len(deletions):

@@ -1,29 +1,58 @@
 import maya.cmds as cmds
 import mGui.gui as gui
 import mGui.observable as observable
-import mGui.stylesheets as stylesheets
 import mGui.lists as lists
 import mGui.forms as forms
-import mGui.styles as st
 
-import mGui.bindings as bindings
-reload(bindings)
-reload(lists)
+'''
+This sample shows a basic example of using a bound collection
 
-class TestWidget(lists.ItemTemplate):
+Key points:
+
+    1) The ViewCollection object is a list of scene objects. Adding or removing
+    items to the collection automatically adds or removes their widgets from the
+    UI
+
+    2) The ViewCollection can be filtered; this will show or hide widgets (but does
+    not destroy them so they come back quickly if the filter changes)
+
+    3) The ViewCollection is bound to the VerticalList -- Lists contain an internal
+    BoundCollection and are an easy way to fill a list with widgets representing
+    stuff in another list. So the working logic interacts with the ViewCollection,
+    the List (or more correctly, the List's BoundCollection) displays stuff.
+
+    4) The ExampleTemplate class is responsible for creating the actual
+    UI for each object in the collection. It can be changed without altering the
+    main UI
+
+    5) The individual item widget can have their own events. They can be handled locally
+    or forwarded. To forward an event, return any events you want to forward as keywords
+    in the Templated() call.
+
+    6) The List raises a NewWidget event when a new GUI item is created for a
+    list item. You can look at the widget created and add event handlers at that
+    time, as is done in the hook_widget_events function.  (This is optional,
+    it's only needed if you want the outer code to handle events instead of
+    localizing them to widgets. Typically this would only be for things which
+    affect the original collection (such as deletion) rather than stuff which
+    only affects a single item in the collection.
+
+'''
+
+
+class ExampleTemplate(lists.ItemTemplate):
     def widget(self, item):
-        with forms.HorizontalExpandForm('tmp_%i' % id(item), parent=self.Parent, width=250, backgroundColor=(.7, .2, .2)) as root:
+        with forms.HorizontalExpandForm('tmp_%i' % id(item), parent=self.Parent, width=250,) as root:
                 gui.IconTextButton('delete', style='iconAndTextHorizontal', image='delete', tag=item)
                 with forms.VerticalForm('names'):
-                    fred = gui.NameField(0, object=item, width=250)
+                    gui.NameField(0, object=item, width=250)
                 with forms.VerticalForm('xform'):
                     gui.AttrFieldGrp('t', label='translate', attribute=item + ".t")
 
-        return {'widget':root, 'delete':root.delete.command}
+        return lists.Templated(item, root, request_delete=root.delete.command)
 
 
 class BoundCollectionWindow(object):
-
     def __init__(self, collection):
 
         # this is the collection of stuff to manage
@@ -43,9 +72,9 @@ class BoundCollectionWindow(object):
                         gui.Text(None, '/')
                         gui.Text('total') + "label" << self.Collection + "Count"
 
-                self.Collection >> lists.VerticalList('itemList', itemTemplate=TestWidget).Collection
+                self.Collection >> lists.VerticalList('itemList', itemTemplate=ExampleTemplate).Collection
 
-        self.Window.main.itemList.NewWidget += self.request_delete
+        self.Window.main.itemList.NewWidget += self.hook_widget_events
         flt.filtertext.enterCommand += self.update_filter
 
     def update_filter(self, *args, **kwargs):
@@ -58,14 +87,16 @@ class BoundCollectionWindow(object):
         except:
             self.Collection.update_filter(None)
 
+    def do_delete(self, *args, **kwargs):
+        self.Collection.remove(kwargs['sender'].Tag)
+        cmds.delete(kwargs['sender'].Tag)
 
-    def request_delete(*args, **kwargs):
-        print args
-        print kwargs
+    def hook_widget_events(self, *args, **kwargs):
+        kwargs['item'].Events['hook_widget_events'] += self.do_delete
 
     def show(self):
         self.Window.show()
 
 test = BoundCollectionWindow([])
 test.show()
-test.Collection.add('pCylinder1')
+test.Collection.add(*cmds.ls(type='transform'))

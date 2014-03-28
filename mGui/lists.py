@@ -54,8 +54,9 @@ class FormList(object):
 
         self.Collection = observable.BoundCollection(self.Template)
         self.Collection.CollectionChanged += self.redraw  # automatically forward collection changes
-        self.NewWidget = events.MayaEvent()
-        self.Collection.WidgetCreated += self.NewWidget
+        self.Collection.WidgetCreated += self.widget_created
+        self.NewWidget = events.MayaEvent(type='widget created')
+
 
 
     def redraw(self, *args, **kwargs):
@@ -76,6 +77,9 @@ class FormList(object):
             an.append((item, 'bottom'))
         self.attachNone = an
         self.layout()
+
+    def widget_created(self, *args, **kwargs):
+        self.NewWidget(item=args[0])
 
 
 class VerticalList(forms.VerticalForm, FormList):
@@ -132,6 +136,14 @@ class WrapList(layouts.FlowLayout, FormList):
         self.__exit__(None, None, None)
 
 
+class Templated(object):
+
+    def __init__(self, datum, widget, **events):
+        self.Datum = datum
+        self.Widget = widget
+        self.Events = events
+
+
 class ItemTemplate(object):
     '''
     Base class for item template classes.
@@ -145,8 +157,11 @@ class ItemTemplate(object):
         self.Parent = parent
 
     def widget(self, item):
+        '''
+        returns the topmost mGui item of a templated list item, along with any events defined in the widgetx`
+        '''
         r = controls.Button(0, label=str(item), parent=self.Parent)
-        return {'widget': r}
+        return Templated(item, r)
 
     def __call__(self, item):
         return self.widget(item)
