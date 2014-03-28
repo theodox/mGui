@@ -92,7 +92,7 @@ class Accessor(object):
         Derived classes should implement this so that the AccessorFactory can
         pick the correct Accessor for a given object
         '''
-        return hasattr(datum, fieldname) and not callable(getattr(datum, fieldname))
+        return fieldname and hasattr(datum, fieldname) and not callable(getattr(datum, fieldname))
 
     def __nonzero__(self):
         try:
@@ -152,7 +152,7 @@ class PyAttributeAccessor(Accessor):
     def __init__(self, datum, fieldname):
         pyAttr = datum
         self.Target = pyAttr.node()
-        self.FieldName = pyAttr.attrName()
+        self.FieldName = pyAttr.plugAttr()
         self.Attrib = pyAttr
 
     def _set(self, *args, **kwargs):
@@ -164,7 +164,7 @@ class PyAttributeAccessor(Accessor):
 
     @classmethod
     def can_access(cls, datum, fieldname):
-        return hasattr(datum, 'attrName') and hasattr(datum, 'node')
+        return 'Attribute' in datum.__class__.__name__
 
 class CmdsAccessor(Accessor):
     '''
@@ -204,7 +204,7 @@ class MethodAccessor(Accessor):
 
     @classmethod
     def can_access(cls, datum, fieldname):
-        return hasattr(datum, fieldname) and callable(getattr(datum, fieldname))
+        return fieldname and hasattr(datum, fieldname) and callable(getattr(datum, fieldname))
 
 
 class AccessorFactory(object):
@@ -228,7 +228,7 @@ class AccessorFactory(object):
 
     def __init__(self, *accessorClasses):
 
-        self.Tests = [cls for cls in accessorClasses ] + [PyAttributeAccessor, PyNodeAccessor, Accessor, MethodAccessor, DictAccessor, CmdsAccessor]
+        self.Tests = [cls for cls in accessorClasses] + [PyAttributeAccessor, PyNodeAccessor, Accessor, MethodAccessor, DictAccessor, CmdsAccessor]
 
     def accessor_class(self, *args):
         '''
@@ -543,7 +543,7 @@ class Bindable (object):
         src_or_target = args[-1]
         if hasattr(other, 'site') and hasattr(other, src_or_target):
             return other  # a BindableObject
-        if hasattr(other, 'attrName'):
+        if hasattr(other, 'attrName') or hasattr(other, 'plugAttr'):
             # this is a PyAttr.  You can't get a pyNode for the
             # attribute without importing PyMel, so to keep
             # this module from forcing an import, we convert it
