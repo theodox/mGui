@@ -280,4 +280,39 @@ class VerticalStretchForm(Form):
             self.attachPosition = ap
         return len(self.Controls)
 
+
+class VerticalThreePane(Form):
+    '''
+    First child is glued to the top, last child is glued to the bottom, intermediate childredn are stretched
+    '''
+    def layout(self):
+        if len(self.Controls) < 3:
+            raise ValueError("VerticalThreePane requires at least 3 children")
+        af = self.form_attachments('left', 'right')
+        ap = self.percentage_series('top')
+        self.attachForm = af
+        self.attachForm = (self.Controls[-1], 'bottom', self.spacing.bottom)
+        self.attachPosition = ap[2:-2]
+        self.attachControl = (self.Controls[1], 'top', self.spacing.top, self.Controls[0])
+        self.attachControl = (self.Controls[-2], 'bottom', self.spacing.bottom, self.Controls[-1])
+        return len(self.Controls)
+
+class HorizontalThreePane(Form):
+    '''
+    First child is glued to the left, last child is glued to the right, intermediate childredn are stretched
+    '''
+    def layout(self):
+        print self.Controls
+        if len(self.Controls) < 3:
+            raise ValueError("HorizontalThreePane requires at least 3 children")
+        af = self.form_attachments('top', 'bottom')
+        ap = self.percentage_series('left')
+        self.attachForm = af
+        self.attachForm = (self.Controls[-1], 'right', self.spacing.right)
+        self.attachPosition = ap[2:-2]
+        self.attachControl = (self.Controls[1], 'left', self.spacing.left, self.Controls[0])
+        self.attachControl = (self.Controls[-2], 'right', self.spacing.right, self.Controls[-1])
+        return len(self.Controls)
+
+
 __all__ = ['FillForm', 'VerticalForm', 'HorizontalForm', 'VerticalExpandForm', 'HorizontalExpandForm', 'VerticalStretchForm', 'HorizontalStretchForm']
