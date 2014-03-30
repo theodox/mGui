@@ -203,8 +203,8 @@ class MethodAccessor(Accessor):
         return getattr(self.Target, self.FieldName)(*args, **kwargs)
 
     @classmethod
-    def can_access(cls, datum, fieldname):
-        return fieldname and hasattr(datum, fieldname) and callable(getattr(datum, fieldname))
+    def can_access(cls, datum, fieldname):    
+        return fieldname and hasattr(datum, fieldname) and callable(getattr(datum, fieldname))  
 
 
 class AccessorFactory(object):
@@ -237,7 +237,7 @@ class AccessorFactory(object):
         '''
         datum = args[0]
         fieldname = args[-1]
-
+        
         for fclass in self.Tests:
             if fclass.can_access(datum, fieldname):
                 return fclass
@@ -339,19 +339,9 @@ class Binding(object):
     '''
 
     def __init__(self, source, target, *extra, **kwargs):
-        try:
-            if extra:
-                src = (source, target)
-                tgt = (extra[0:2])
-            else:
-                src = source
-                tgt = target
-
-            self.Getter = get_accessor(*src)
-            self.Setter = get_accessor(*tgt)
-
-        except IndexError:
-            raise BindingError('get_accessor requires 2 or 4 arguments')
+        
+        self.Getter = source
+        self.Setter = target
 
         self.Translator = kwargs.get('translator', passthru)
         assert callable(self.Translator), 'Translator must be a single argument callable'
@@ -402,7 +392,69 @@ class Binding(object):
                 raise BindingError ("Bind failure: %s" % str(sys.exc_info()[1]))
             return False
 
+class BindingExpression(object):
+    '''
+    Allows the creation of a binding using the following syntax
+    
+        (object, property) < BindingExpression(translator) < (object, property)
 
+    parens are optional if the 
+    '''
+    def __gt__(self, other):
+        self.Right = self.flatten(other)
+        if self.Left and self.Right:
+            return self._binding()            
+        return self
+    
+    def __lt__(self, other):
+        self.Left = self.flatten(other)
+        if self.Left and self.Right:
+            return self._binding()
+        return self
+        
+    def __init__(self, translator = passthru):
+        self.Left = None
+        self.Right = None
+        self.TwoWay = False
+        self.Translator = translator
+    
+    def __or__(self, other): 
+        self.Right = self.flatten(other)
+        self.TwoWay = True
+        if self.Left and self.Right:
+            return self._binding()
+        return self
+
+    def __ror__(self, other): 
+        self.Left = self.flatten(other)
+        self.TwoWay = True
+        if self.Left and self.Right:
+            return self._binding()
+        return self
+    
+    def flatten(self, other):
+        # pynodes & pyattrs
+        if hasattr(other, '__melobject__') or hasattr(other, '__melcommand__'):
+            return get_accessor(other, None)
+        # obj, attr tuples
+        if hasattr(other, '__iter__'):
+            return get_accessor(*other)
+        # strings
+        if hasattr(other, 'split') and "." in other:
+            return get_accessor(*other.split("."))
+        return get_accessor(other)
+    
+        
+    def _binding(self):
+        if self.TwoWay:
+            return TwoWayBinding( self.Left, self.Right,  translator = self.Translator)
+        return Binding( self.Left, self.Right,  translator = self.Translator)
+
+
+bind = BindingExpression
+'''
+This is a cheap alias to make the typing less onerous
+'''
 
 class TwoWayBinding(Binding):
     '''
