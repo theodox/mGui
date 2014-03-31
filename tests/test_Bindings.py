@@ -11,6 +11,7 @@ from unittest import TestCase
 import maya.cmds as cmds
 import pymel.core as pm
 
+
 class Test_Accessors(TestCase):
 
 
@@ -324,6 +325,8 @@ class TestBindings(TestCase):
             self.Name = name
             self.Val = val
 
+
+
     def setUp(self):
         bindings.BREAK_ON_BIND_FAILURE = False
         bindings.BREAK_ON_ACCESS_FAILURE = True
@@ -335,27 +338,27 @@ class TestBindings(TestCase):
     def test_basic_binding(self):
         ex = self.Example('fred', 'flintstone')
         ex2 = self.Example('barney', 'rubble')
-        tester = bindings.Binding(ex, 'Name', ex2, 'Val')
+        tester = bindings.Binding(bindings.get_accessor(ex, 'Name'), bindings.get_accessor(ex2, 'Val'))
         assert tester
 
     def test_basic_binding_update(self):
         ex = self.Example('fred', 'flintstone')
         ex2 = self.Example('barney', 'rubble')
-        tester = bindings.Binding(ex, 'Name', ex2, 'Val')
+        tester = bindings.Binding(bindings.get_accessor(ex, 'Name'), bindings.get_accessor(ex2, 'Val'))
         tester()
         assert ex2.Val == ex.Name
 
     def test_binding_source_order(self):
         ex = self.Example('fred', 'flintstone')
         ex2 = self.Example('barney', 'rubble')
-        tester = bindings.Binding(ex, 'Name', ex2, 'Val')
+        tester = bindings.Binding(bindings.get_accessor(ex, 'Name'), bindings.get_accessor(ex2, 'Val'))
         assert tester.Getter.Target.Name == 'fred'
         assert tester.Setter.Target.Name == 'barney'
 
     def test_binding_survives_object_deletion(self):
         ex = self.Example('fred', 'flintstone')
         ex2 = self.Example('barney', 'rubble')
-        tester = bindings.Binding(ex, 'Name', ex2, 'Val')
+        tester = bindings.Binding(bindings.get_accessor(ex, 'Name'), bindings.get_accessor(ex2, 'Val'))
         del(ex)
         assert not tester()  # deleted referent = failed binding
         assert ex2.Val == 'rubble'  # so value is unchanged
@@ -363,7 +366,7 @@ class TestBindings(TestCase):
     def test_bindings_except_when_allowed(self):
         ex = self.Example('fred', 'flintstone')
         ex2 = self.Example('barney', 'rubble')
-        tester = bindings.Binding(ex, 'Name', ex2, 'Val')
+        tester = bindings.Binding(bindings.get_accessor(ex, 'Name'), bindings.get_accessor(ex2, 'Val'))
         bindings.BREAK_ON_ACCESS_FAILURE = True
         bindings.BREAK_ON_BIND_FAILURE = True
         del(ex)
@@ -371,20 +374,20 @@ class TestBindings(TestCase):
 
 
     def test_binding_excepts_on_bad_arguments(self):
-        self.assertRaises(bindings.BindingError, lambda: bindings.Binding(None, '', None, ''))
-        self.assertRaises(bindings.BindingError, lambda: bindings.Binding(None, '', None))
+        self.assertRaises(bindings.BindingError, lambda: bindings.Binding(None, None))
+                          
 
     def test_invalidate(self):
         ex = self.Example('fred', 'flintstone')
         ex2 = self.Example('barney', 'rubble')
-        tester = bindings.Binding(ex, 'Name', ex2, 'Val')
+        tester = bindings.Binding(bindings.get_accessor(ex, 'Name'), bindings.get_accessor(ex2, 'Val'))
         tester.invalidate()
         assert not tester
 
     def test_invalid_binding_fails(self):
         ex = self.Example('fred', 'flintstone')
         ex2 = self.Example('barney', 'rubble')
-        tester = bindings.Binding(ex, 'Name', ex2, 'Val')
+        tester = bindings.Binding(bindings.get_accessor(ex, 'Name'), bindings.get_accessor(ex2, 'Val'))
         tester.invalidate()
         assert not tester()
 
@@ -394,14 +397,11 @@ class TestBindable(TestCase):
             self.Name = name
             self.Val = val
 
-    def test_bindable_site(self):
-        ex = self.Example('a', 'b')
-        assert ex.site() is ex
 
     def test_bindable_bind_to(self):
         ex = self.Example('fred', 'flintstone')
         ex2 = self.Example('barney', 'rubble')
-        test = ex + "Name" >> (ex2, 'Val')
+        test = ex & "Name" > bindings.bind() > (ex2, 'Val')
         assert isinstance(test, bindings.Binding)
         assert test
         test()
@@ -410,7 +410,7 @@ class TestBindable(TestCase):
     def test_bindable_bind_from(self):
         ex = self.Example('fred', 'flintstone')
         ex2 = self.Example('barney', 'rubble')
-        test = ex + "Name" << (ex2, 'Val')
+        test = ex & "Name" < bindings.bind() < (ex2, 'Val')
         assert isinstance(test, bindings.Binding)
         assert test
         test()
@@ -418,19 +418,18 @@ class TestBindable(TestCase):
 
     def test_bindable_plus(self):
         ex = self.Example('fred', 'flintstone')
-        tester = ex + 'Val'
-        assert tester.site() == ex
-        assert tester.bind_source == 'Val'
-        assert tester.bind_target == 'Val'
+        tester = ex & 'Val'
+        assert tester.Item == ex
+        assert tester.Attribute == 'Val'
 
     def test_bind_to_cmds_string(self):
         ex = self.Example('cube', 45)
         cmds.file(new=True, f=True)
         cmds.polyCube()
-        tester = ex + 'Val' >> ('pCube1', 'tx')
+        tester = ex & 'Val' > bindings.bind() > ('pCube1', 'tx')
         tester()
         assert cmds.getAttr('pCube1.tx') == 45
-        tester2 = ex + 'Val' >> 'pCube1.ty'
+        tester2 = ex & 'Val' > bindings.bind() > 'pCube1.ty'
         tester2()
         assert cmds.getAttr('pCube1.ty') == 45
 
@@ -439,7 +438,7 @@ class TestBindable(TestCase):
         ex = self.Example('cube', 45)
         cmds.file(new=True, f=True)
         cube, shape = pm.polyCube()
-        tester = ex + 'Val' >> cube.tx
+        tester = ex & 'Val' > bindings.bind() > cube.tx
         tester()
         assert cmds.getAttr('pCube1.tx') == 45
 
@@ -447,7 +446,7 @@ class TestBindable(TestCase):
         ex = self.Example('cube', 45)
         cmds.file(new=True, f=True)
         cube, shape = pm.polyCube()
-        tester = ex + 'Val' >> (cube, 'tx')
+        tester = ex & 'Val' > bindings.bind() > (cube, 'tx')
         tester()
         assert cmds.getAttr('pCube1.tx') == 45
 
@@ -472,17 +471,17 @@ class TestBindableObject(TestCase):
     def test_default_bindings(self):
         ex1 = self.Example('fred', 'flintstone')
         ex2 = self.Example('barney', 'rubble')
-        tester = ex1 >> ex2
+        tester = ex1 > bindings.bind() > ex2
         tester()
         assert ex2.Val == ex1.Name
-        tester = ex1 << ex2
+        tester = ex1 < bindings.bind() < ex2
         tester()
         assert ex1.Val == ex2.Name
 
     def test_override_default_bindings(self):
         ex1 = self.Example('fred', 'flintstone')
         ex2 = self.Example('barney', 'rubble')
-        tester = ex1 + 'Val' >> ex2 + 'Name'
+        tester = ex1 & 'Val' > bindings.bind() > ex2 & 'Name'
         tester()
         assert ex2.Name == ex1.Val
 
@@ -490,7 +489,7 @@ class TestBindableObject(TestCase):
 
         ex1 = self.Example('fred', 'flintstone')
         ex2 = {'pebbles':'bambam'}
-        tester = ex1 >> ex2 + 'pebbles'
+        tester = ex1 > bindings.bind() > ex2 & 'pebbles'
         tester()
         assert ex2['pebbles'] == 'fred'
 
@@ -498,11 +497,11 @@ class Test_BindProxy(TestCase):
 
     def test_bindproxy_site(self):
         b = bindings.BindProxy('persp', 'ty')
-        assert b.site() == 'persp'
+        assert b.Item == 'persp'
 
     def test_bindproxy_dict(self):
         b = bindings.BindProxy({'hello':'world'}, 'hello')
-        assert b.site()['hello'] == 'world'
+        assert b.Item['hello'] == 'world'
 
     def test_bindproxy_site_nesting(self):
         class Example(bindings.BindableObject):
@@ -515,11 +514,8 @@ class Test_BindProxy(TestCase):
 
         ex = Example('fred', 'flintstone')
         test = bindings.BindProxy(ex, 'Val')
-        assert test.site() is ex
+        assert test.Item is ex
 
-    def test_bindproxy_src_is_tgt(self):
-        b = bindings.BindProxy('persp', 'ty')
-        assert b.bind_source == b.bind_target == 'ty'
 
 class TestBindingCollection(TestCase):
 
@@ -547,10 +543,11 @@ class TestBindingCollection(TestCase):
         bambam = self.Example('bambam', None)
         guys = {'fred':None, 'barney':None}
         with bindings.BindingContext() as ctx:
-            fred + 'Val' >> wilma  # default target
-            barney + 'Val' >> bambam + 'Val'
-            fred >> (guys, 'fred')  # default sources
-            barney >> (guys, 'barney')
+            fred & 'Val' > bindings.bind() > wilma  # default target
+            barney & 'Val' > bindings.bind() > bambam & 'Val'
+            fred > bindings.bind() > (guys, 'fred')  # default sources
+            barney > bindings.bind() > (guys, 'barney')
+            
         assert len(ctx.Bindings) == 4
         assert wilma.Val == 'flintstone'
         assert bambam.Val == 'rubble'
@@ -563,10 +560,10 @@ class TestBindingCollection(TestCase):
         bambam = self.Example('bambam', None)
         guys = {'fred':None, 'barney':None}
         with bindings.BindingContext(auto_update=False) as ctx:
-            fred + 'Val' >> wilma  # default target
-            barney + 'Val' >> bambam + 'Val'
-            fred >> (guys, 'fred')  # default sources
-            barney >> (guys, 'barney')
+            fred & 'Val' > bindings.bind() > wilma  # default target
+            barney & 'Val' > bindings.bind() > bambam & 'Val'
+            fred > bindings.bind() > (guys, 'fred')  # default sources
+            barney > bindings.bind() > (guys, 'barney')
         assert len(ctx.Bindings) == 4
         assert wilma.Val == None
         assert bambam.Val == None
@@ -578,11 +575,11 @@ class TestBindingCollection(TestCase):
         wilma = self.Example('wilma', None)
         bambam = self.Example('bambam', None)
         guys = {'fred':None, 'barney':None}
-        with bindings.BindingContext() as ctx:
-            fred + 'Val' >> wilma  # default target
-            barney + 'Val' >> bambam + 'Val'
-            fred >> (guys, 'fred')  # default sources
-            barney >> (guys, 'barney')
+        with bindings.BindingContext(False) as ctx:
+            fred & 'Val' > bindings.bind() > wilma  # default target
+            barney & 'Val' > bindings.bind() > bambam & 'Val'
+            fred > bindings.bind() > (guys, 'fred')  # default sources
+            barney > bindings.bind() > (guys, 'barney')
             del(fred)  # delete referent invalidating 2 bindings
         ctx.update()
         assert len(ctx.Bindings) == 2
@@ -596,12 +593,12 @@ class TestBindingCollection(TestCase):
         bambam = self.Example('bambam', None)
         guys = {'fred':None, 'barney':None}
         with bindings.BindingContext(auto_update=False) as outer:
-            fred + 'Val' >> wilma
+            _ = fred & 'Val' > bindings.bind() > wilma
             with bindings.BindingContext(auto_update=False) as middle:
-                barney + 'Val' >> bambam + 'Val'
+                _ = barney & 'Val' > bindings.bind() > bambam & 'Val'
                 with bindings.BindingContext(auto_update=False) as ctx:
-                    fred >> (guys, 'fred')  # default sources
-                    barney >> (guys, 'barney')
+                    _ = fred > bindings.bind() > (guys, 'fred')  # default sources
+                    _ = barney > bindings.bind() > (guys, 'barney')
 
         outer.update()
         assert wilma.Val == 'flintstone'
@@ -615,12 +612,12 @@ class TestBindingCollection(TestCase):
         bambam = self.Example('bambam', None)
         guys = {'fred':None, 'barney':None}
         with bindings.BindingContext(auto_update=True) as outer:
-            fred + 'Val' >> wilma
+            fred & 'Val' > bindings.bind() > wilma
             with bindings.BindingContext(auto_update=False) as middle:
-                barney + 'Val' >> bambam + 'Val'
+                barney & 'Val' > bindings.bind() > bambam & 'Val'
                 with bindings.BindingContext(auto_update=False) as ctx:
-                    fred >> (guys, 'fred')  # default sources
-                    barney >> (guys, 'barney')
+                    fred > bindings.bind() > (guys, 'fred')  # default sources
+                    barney > bindings.bind() > (guys, 'barney')
 
 
         assert wilma.Val == 'flintstone'
@@ -635,12 +632,12 @@ class TestBindingCollection(TestCase):
         bambam = self.Example('bambam', None)
         guys = {'fred':None, 'barney':None}
         with bindings.BindingContext(auto_update=False) as outer:
-            fred + 'Val' >> wilma
+            fred & 'Val' > bindings.bind() > wilma
             with bindings.BindingContext(auto_update=False) as middle:
-                barney + 'Val' >> bambam + 'Val'
+                barney & 'Val' > bindings.bind() > bambam & 'Val'
                 with bindings.BindingContext(auto_update=False) as ctx:
-                    fred >> (guys, 'fred')  # default sources
-                    barney >> (guys, 'barney')
+                    fred > bindings.bind() > (guys, 'fred')  # default sources
+                    barney > bindings.bind() > (guys, 'barney')
 
         outer.update(False)
         middle.update(False)
@@ -658,16 +655,16 @@ class TestTwoWayBinding(TestCase):
             self.Name = name
             self.Val = val
 
-    def test_ne_assignment(self):
+    def test_two_way_assignment(self):
         fred = self.Example('fred', 'flintstone')
         barney = self.Example('barney', 'rubble')
 
-        test = fred <> barney
+        test = fred.bind.Name | bindings.bind() | barney.bind.Val
         barney.Val = 'new'
         test()
         assert fred.Name == barney.Val and barney.Val == 'new'
 
-        test = fred <> barney
+        test = fred | bindings.bind() | barney
         fred.Name = 'new'
         test()
         assert fred.Name == barney.Val and fred.Name == 'new'

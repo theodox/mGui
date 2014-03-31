@@ -461,8 +461,8 @@ class SwitchTable(Control):
 class SymbolButton(Control):
     '''Wrapper class for cmds.symbolButton'''
     CMD = cmds.symbolButton
-    _ATTRIBS = ['image','command']
-    _CALLBACKS = []
+    _ATTRIBS = ['image']
+    _CALLBACKS = ['command']
 
 
 class SymbolCheckBox(Control):
@@ -470,20 +470,26 @@ class SymbolCheckBox(Control):
     CMD = cmds.symbolCheckBox
     _ATTRIBS = ['innerMargin','offImage','image','disableOffImage','value','disableOnImage','onImage']
     _CALLBACKS = ['changeCommand','offCommand','onCommand']
-
+    _BIND_SRC = 'value'
+    _BIND_TGT  = 'value'
+    
 
 class Text(Control):
     '''Wrapper class for cmds.text'''
     CMD = cmds.text
     _ATTRIBS = ['hyperlink','align','label','wordWrap','recomputeSize','font']
     _CALLBACKS = ['dropRectCallback']
-
+    _BIND_TGT = 'label'
+    _BIND_SRC = 'label'
+    
 
 class TextField(Control):
     '''Wrapper class for cmds.textField'''
     CMD = cmds.textField
     _ATTRIBS = ['insertText','insertionPosition','text','editable','fileName','font']
     _CALLBACKS = ['alwaysInvokeEnterCommandOnReturn','changeCommand','enterCommand','receiveFocusCommand']
+    _BIND_SRC = 'text'
+    _BIND_TGT = 'text'
 
 
 class TextFieldButtonGrp(Labeled):
@@ -491,14 +497,16 @@ class TextFieldButtonGrp(Labeled):
     CMD = cmds.textFieldButtonGrp
     _ATTRIBS = ['insertText','enableButton','rowAttach','columnAttach','columnWidth2','columnWidth3','columnWidth1','columnWidth6','buttonLabel','columnWidth4','columnWidth5','columnAlign6','columnAlign5','columnAlign4','columnAlign3','columnAlign2','insertionPosition','label','text','adjustableColumn','columnAlign','editable','fileName','adjustableColumn2','adjustableColumn3','adjustableColumn4','adjustableColumn5','adjustableColumn6','columnWidth','columnOffset2','columnOffset3','columnOffset4','columnOffset5','columnOffset6','columnAttach6','columnAttach4','columnAttach5','columnAttach2','columnAttach3']
     _CALLBACKS = ['buttonCommand','changeCommand','forceChangeCommand']
-
+    _BIND_SRC = 'text'
+    _BIND_TGT = 'text'
 
 class TextFieldGrp(Labeled):
     '''Wrapper class for cmds.textFieldGrp'''
     CMD = cmds.textFieldGrp
     _ATTRIBS = ['insertText','text','rowAttach','columnAttach','columnWidth2','columnWidth3','columnWidth1','columnWidth6','columnWidth4','columnWidth5','columnAlign6','columnAlign5','columnAlign4','columnAlign3','columnAlign2','insertionPosition','label','adjustableColumn','columnAlign','editable','fileName','adjustableColumn2','adjustableColumn3','adjustableColumn4','adjustableColumn5','adjustableColumn6','columnWidth','columnOffset2','columnOffset3','columnOffset4','columnOffset5','columnOffset6','columnAttach6','columnAttach4','columnAttach5','columnAttach2','columnAttach3']
     _CALLBACKS = ['changeCommand','forceChangeCommand']
-
+    _BIND_SRC = 'text'
+    _BIND_TGT = 'text'
 
 class TextScrollList(Control):
     '''Wrapper class for cmds.textScrollList'''

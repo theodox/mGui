@@ -50,3 +50,42 @@ class CallbackProperty(object):
             obj.Callbacks[self.Key] = MayaEvent(sender = obj)
             obj.register_callback(self.Key, obj.Callbacks[self.Key])
         return obj.Callbacks[self.Key]
+
+
+class LateBoundProperty(object):
+    '''
+    This is a property descriptor that's useful for mixin classes that need to
+    create instance properties but which won't get called in the __init__ of a
+    class they are tacked onto.
+    
+    The property in the Mixin declares a name (which will be added to every
+    instance as with a leading underscore, and optionally a string name allowing
+    the mixin's target class to specify a default value at the class level. For example:
+    
+    class Mixin(object):
+        example = LateBoundProperty('example', '_EX')
+        
+    class Target (Mixin):
+        _EX = 99
+        
+    print Target().example
+    # 99
+    '''
+    def __init__(self, name, class_default = "IGNORE"):
+        self._class_default_string = class_default
+        self._name = "_" + name
+        
+    def __create_backstore(self, instance, owner = None):
+        if not hasattr(instance, self._name):
+            default = None
+            if owner and hasattr(owner, self._class_default_string):
+                default = getattr(owner, self._class_default_string)
+            setattr(instance, self._name, default)
+        
+    def __get__(self, instance, owner):
+        self.__create_backstore(instance, owner)
+        return getattr(instance, self._name)
+        
+    def __set__(self, instance, val):
+        self.__create_backstore(instance)
+        setattr(instance, self._name, val)
