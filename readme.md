@@ -111,4 +111,7 @@ useful information about the widget which raised the callback. These events can 
 so that a single button press can move an object in your scene, highlight a button, and print a message in the help
 line using 3 simple functions rather than one big monster with lots of unrelated moving parts.  
 
+----------------
+
+This project is provided under the MIT License: it's free for any kind of use as long as you retain the copyright notice in *mGui.__init__*.  
      
