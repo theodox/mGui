@@ -3,7 +3,7 @@ events.py
 
 Defines a simple event handler system similar to that used in C#.  Events allow
 multicast delegates and arbitrary message passing. They use weak references so
-they don't keep their handlers alive
+they don't keep their handlers alive if they are otherwise out of scope.
 
 '''
 import weakref
@@ -39,10 +39,33 @@ class Event( object ):
         > x()
 
     Handlers must exhibit the *args, **kwargs signature.  It's the handler's job
-    to decide what to do with them but they will be passed.  Use the Trigger
-    object to add a dummy args/kwargs wrapper to a callable which takes no
-    arguments
+    to decide what to do with them but they will be passed.  
     
+    Events can be given 'metadata' - arguments that are passed in at creation time:
+    
+        x = Event(name = 'test_event')
+        def test (*args, *kwargs):
+            print args, kwargs
+            
+        x()
+        {'name': 'test_event', 'event': <Event object at 0x00000000026892E8>}
+        
+    Metadata added when the Event is first created will be included in every
+    firing of the event. Arguments and keywords can also be associated with a
+    particular firing:
+    
+        x = Event(name = 'test_event')
+        def test (*args, *kwargs):
+            print "args:" , args
+            print "kwargs:", kwargs
+            
+        x('hello')
+        args: hello
+        kwargs: {'name': 'test_event', 'event': <Event object at 0x00000000026892E8>}
+    
+        x('world')
+        args: world
+        kwargs: {'name': 'test_event', 'event': <Event object at 0x00000000026892E8>}
     
     '''
 
@@ -71,6 +94,9 @@ class Event( object ):
         return self
     
     def metadata(self, kwargs):
+        '''
+        returns the me
+        '''
         md = {}
         md.update(self.Data)
         md.update(kwargs)
@@ -106,7 +132,7 @@ class Event( object ):
 
 class MayaEvent(Event):
     '''
-    Subclass of event that uses Maya.utils.executeDeferred
+    Subclass of event that uses Maya.utils.executeDeferred.
     '''
     def _fire( self, *args, **kwargs ):
         '''
