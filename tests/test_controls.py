@@ -3,20 +3,135 @@ Created on Mar 3, 2014
 
 @author: Stephen Theodore
 '''
+
 from unittest import TestCase
-import maya.cmds
-
 LAST_ARGS = {}
-
 def control_mock(*args, **kwargs):
     LAST_ARGS['args'] = args
     LAST_ARGS['kwargs']=  kwargs
+    
+import maya.standalone
+maya.standalone.initialize()
 
-maya.cmds.control = control_mock
-maya.cmds.layout = control_mock
-maya.cmds.window = control_mock
+
+import maya.cmds as cmds
+cmds.control = control_mock
+#===============================================================================
+# cmds.layout = control_mock
+# cmds.window = control_mock
+# cmds.menu = control_mock
+# cmds.menuItem = control_mock
+# 
+# import mGui.styles as styles
+# class MockStyled(object):
+#    CMD = cmds.control
+# 
+# styles.Styled = MockStyled
+#===============================================================================
+
+
+CONTROL_CMDS = ['attrColorSliderGrp',
+        'attrControlGrp',
+        'attrFieldGrp',
+        'attrFieldSliderGrp',
+        'attrNavigationControlGrp',
+        'button',
+        'canvas',
+        'channelBox',
+        'checkBox',
+        'checkBoxGrp',
+        'cmdScrollFieldExecuter',
+        'cmdScrollFieldReporter',
+        'cmdShell',
+        'colorIndexSliderGrp',
+        'colorSliderButtonGrp',
+        'colorSliderGrp',
+        'commandLine',
+        'componentBox',
+        'control',
+        'floatField',
+        'floatFieldGrp',
+        'floatScrollBar',
+        'floatSlider',
+        'floatSlider2',
+        'floatSliderButtonGrp',
+        'floatSliderGrp',
+        'gradientControl',
+        'gradientControlNoAttr',
+        'helpLine',
+        'hudButton',
+        'hudSlider',
+        'hudSliderButton',
+        'iconTextButton',
+        'iconTextCheckBox',
+        'iconTextRadioButton',
+        'iconTextRadioCollection',
+        'iconTextScrollList',
+        'iconTextStaticLabel',
+        'image',
+        'intField',
+        'intFieldGrp',
+        'intScrollBar',
+        'intSlider',
+        'intSliderGrp',
+        'layerButton',
+        'messageLine',
+        'nameField',
+        'nodeTreeLister',
+        'palettePort',
+        'picture',
+        'progressBar',
+        'radioButton',
+        'radioButtonGrp',
+        'radioCollection',
+        'rangeControl',
+        'scriptTable',
+        'scrollField',
+        'separator',
+        'shelfButton',
+        'soundControl',
+        'swatchDisplayPort',
+        'switchTable',
+        'symbolButton',
+        'symbolCheckBox',
+        'text',
+        'textField',
+        'textFieldButtonGrp',
+        'textFieldGrp',
+        'textScrollList',
+        'timeControl',
+        'timePort',
+        'toolButton',
+        'toolCollection',
+        'treeLister',
+        'treeView']    
+
+
+LAYOUT_CMDS =[
+        'columnLayout',
+        'dockControl',
+        'flowLayout',
+        'formLayout',
+        'frameLayout',
+        'gridLayout',
+        'layout',
+        'menuBarLayout',
+        'paneLayout',
+        'rowColumnLayout',
+        'rowLayout',
+        'scrollLayout',
+        'shelfLayout',
+        'shelfTabLayout',
+        'tabLayout',
+        'toolBar']
+
+
 
 import mGui.core as core
+import maya.mel as mel
+import inspect
+import mGui.properties as properties
+import mGui.gui as gui
 
 class test_CtlProperty(TestCase):
     '''
@@ -24,13 +139,13 @@ class test_CtlProperty(TestCase):
     '''
 
     class Example(object):
-        CMD = core.cmds.control
+        CMD = cmds.control
         
         def __init__(self, *args, **kwargs):
             self.Widget = 'path|to|widget'
         
-        fred = core.CtlProperty("fred", CMD)
-        barney = core.CtlProperty("barney", CMD)
+        fred = properties.CtlProperty("fred", CMD)
+        barney = properties.CtlProperty("barney", CMD)
         
     def setUp(self):
         LAST_ARGS['args'] = (None,)
@@ -76,4 +191,34 @@ class test_CtlProperty(TestCase):
     def test_access_via_dict_fails(self):
         t = self.Example()
         assert not 'fred' in t.__dict__
+        
+        
+        
+class TestControlsExist(TestCase):
+              
+    def test_has_all_controls(self):
+        gui_items = [i[0] for i in inspect.getmembers(gui)]
+
+        for item in CONTROL_CMDS:
+            capped = item[0].upper() + item[1:]
+            assert capped in gui_items, ("control %s is not defined in mGui.gui" % capped)
+            
+    def test_has_all_layouts(self):
+        gui_items = [i[0] for i in inspect.getmembers(gui)]
+
+        for item in LAYOUT_CMDS:
+            capped = item[0].upper() + item[1:]
+            assert capped in gui_items, ("control %s is not defined in mGui.gui" % capped)
+            
+    def test_has_window(self):
+        gui_items = [i[0] for i in inspect.getmembers(gui)]
+        assert 'Window' in gui_items
+        
+    def test_has_Menu(self):
+        gui_items = [i[0] for i in inspect.getmembers(gui)]
+        assert 'Menu' in gui_items
+
+    def test_has_MenuItem(self):
+        gui_items = [i[0] for i in inspect.getmembers(gui)]
+        assert 'MenuItem' in gui_items
         
