@@ -27,14 +27,17 @@ wrapper classes. They use the same property-wrapping stategy but Layouts also wo
 context managers, allowing them to call SetParent() when needed and also to
 maintain links to child control wrappers:
 
-   with mGui.layouts.ColumnLayout('main'):
+   with mGui.core.layouts.ColumnLayout('main'):
        for n in range (5):
-           with mGui.Layout.RowLayout('row_%i' % n, nc = 2):
-               mGui.controls.Text('t_%i', label = 'label)
-               mGui.controls.CheckBox('b_%i')
-        mGui.controls.Button('btn', label = 'big button')
+           with mGui.core.Layout.RowLayout('row_%i' % n, nc = 2):
+               mGui.core.controls.Text('t_%i', label = 'label)
+               mGui.core.controls.CheckBox('b_%i')
+        mGui.core.controls.Button('btn', label = 'big button')
 
 would create a columnLayout with 4 rows with a text and a checkbox, followed by a button.
+
+@note:  in actual practice, its easier to import mGui.gui which contains all of
+the contents of core.layouts and core.controls
 
 @Note: One minor drawback to using Metaclasses is that Maya's reload mechanism
 does not preserve the types created by a metaclass when you call reload(module).
