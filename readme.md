@@ -33,18 +33,21 @@ The goal is to provide the most consistent and least wordy way of creating simpl
 
 you can write this:
 	     
+	import mGui.gui
+	import mGui.observable as obs
+	from mGui.bindings import bind, BindingContext
+	
 	bound = obs.ViewCollection(pm.PyNode("pCube1"), pm.PyNode("pPlane2"))	
 	
-	w = core.Window('window', title = 'fred')
-	
-	with BindingContext() as bc:
-	    with VerticalForm('main') as main:
-	        Text(None, label = "The following items don't have vertex colors")
-	        test >> VerticalListForm('lister' ).Collection
-	        with HorizontalStretchForm('buttons'):
-	            Button('refresh', l='Refresh')
-	            Button('close', l='Close')
-	cmds.showWindow(w)                
+	with gui.Window('window', title = 'fred') as example_window:
+		with BindingContext() as bind_ctx:
+		    with gui.VerticalForm('main') as main:
+		        Text(None, label = "The following items don't have vertex colors")
+		        VerticalListForm('lister' ).Collection < bind() < bound  
+		        with HorizontalStretchForm('buttons'):
+		            Button('refresh', l='Refresh')
+		            Button('close', l='Close')
+	example_window.show()
 	            
 And make adjustments like this:
 
@@ -54,13 +57,58 @@ And make adjustments like this:
 
 # Key parts
 
-## Wrappers and Properties
+## mGui.gui: object oriented gui classes
 
-mGui.core defines two key classes: Control and Layout. These are the abstract bases for all of the widgets in the Maya GUI library.  
-These classes are assembled using a special metaclass and property descriptors defined in mGui.properties. Together, these allow 
-for property-style access to the GUI widgets, both for layout and value purposes.
+The main tool in the library is a complete wrapper set for for all of the widgets in the 
+Maya GUI library in the module **mGui.gui**.  These wrapper classes are assembled using a 
+special metaclass which allows you to get and set their properties with traditional dot 
+notation, rather than Maya's cumbersome command-based syntax.  Layouts, windows and menus are 
+treated as context managers,  allowing you to write neatly nested layouts and keep your 
+logical structure separate from the visual details.  The layouts also 'know' the names of their
+children, so that you can access controls directly through the hierarchy of your layout: 
+in the example above, you can acces the 'close' button as
+
+    example_window.main.buttons.refresh
+    
+without doing any manual management of variables.
+
+
+## Styles
+
+To make it easier to manage the visual look of your layouts -- and more importantly, to keep the
+visuals separated cleanly from the logical structure of the code -- **mgui.Styles** creates
+style dictionaries which work very much like CSS styles in web design.  Styles can be targeted at 
+individual controls or entire classes of controls; they can be inherited and overridden for maximal
+flexibility.
 
 
 ## Bindings
 
-A lot of repetitive GUI coding is simply about shuffling little bits of data around - set the name of a button to match the selected item, or change the color of a field based on what is selected and so on.  In order to simplify this we provide  _bindings_ - classes for getting information from one place and putting it somewhere else. The 
+A lot of repetitive GUI coding is simply about shuffling little bits of data around - setting the name
+of a button to match that of the selected item, changing the color of a field based on the state of 
+a checkbox, and so on.  
+
+In order to simplify this process, **mGui.bindings** defines  _Bindings_ - classes which can get information
+ from one place and putting it somewhere else in a structured way. Bindings can be created declaratively,
+ rather than requiring you to manually manage the relationships. Thus
+ 
+     Text('example').bind.label < bind() < 'pCube1.tx'
+     
+ will set the label of a text widget to the X-transform of pCube1, while
+ 
+     CheckBox('vis').bind.value > bind() > 'pCube1.visibility' 
+     
+ will tie the visibility of the cube to the state of the checkbox.
+ 
+## Events
+
+Maya GUI widgets can fire callbacks, but they have several important limitations. In particular, vanilla 
+Maya callbacks don't retain any knowledge of the widget which sent them, which obliges you to write complex 
+code to track callbacks to their sources and understand their context.
+
+**mGui.Events** introduces event delegates - classes which catch maya gui callbacks when they fire and add
+useful information about the widget which raised the callback. These events can be forwarded to multiple handlers,
+so that a single button press can move an object in your scene, highlight a button, and print a message in the help
+line using 3 simple functions rather than one big monster with lots of unrelated moving parts.  
+
+     
