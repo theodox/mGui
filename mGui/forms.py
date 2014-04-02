@@ -28,6 +28,8 @@ import maya.cmds as cmds
 import itertools
 
 
+
+
 class Form(FormLayout):
     '''
     A wrapper for FormLayout with convenience methods for attaching controls.
@@ -179,6 +181,23 @@ class Form(FormLayout):
                 ac('right', *right)
         elif right[1]:
                 af('right', *right)
+
+
+class LayoutDialogForm(Form):
+    '''
+    Shim that will create a formLayout wrapper from an existing formLayout.
+    Used with the maya LayoutDialog command, which creates a form for you,
+    so you can still use mGui property access.
+    '''
+    def __init__(self, key):
+        self.CMD = self.fake_create
+        super(LayoutDialogForm, self).__init__(key)
+        self.CMD = cmds.formLayout
+        
+        
+    @staticmethod
+    def fake_create(*args, **kwargs):
+        return cmds.setParent(q=True)
 
 class FillForm (Form):
     '''
