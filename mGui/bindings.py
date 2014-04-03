@@ -604,6 +604,7 @@ class Bindable (object):
        
     '''
     
+    _BINDINGS = []
     #===========================================================================
     # internal classes
     #===========================================================================
@@ -636,6 +637,7 @@ class Bindable (object):
     #===========================================================================
     
     bind = ProxyFactoryProperty()
+    
     
     def __and__(self, name):
         '''
@@ -683,6 +685,7 @@ class BindableObject(Bindable):
 
     bind_source = LateBoundProperty("bind_source", "_BIND_SRC")
     bind_target = LateBoundProperty("bind_target", "_BIND_TGT")
+    bindings = LateBoundProperty("bindings", "_BINDINGS")
     
     def get_bindings(self):
         '''
