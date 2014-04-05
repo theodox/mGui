@@ -1,39 +1,59 @@
 
+'''
+ModuleManager.py
 
+An example showing data bound collection UI.  The module files on disk are
+collected and managed by the ModuleManager class, which is purely functional and
+has no UI.  
+
+The UI contains a list which is bound to the ModuleManager's collection of
+mofTuple objects; the list displays the available modules as widgets (created
+using the the ModuleTemplate clas).  
+
+The widgets are directly bound to the modTuple variables; this means that
+closing the dialog checks the state of the list and updates the files on disk as
+needed. You'll notice there is no checking the state of the UI widgets: the
+values inside the ModuleManager are updated by the bindings using the update_status method.
+
+Some other points of note:
+
+Tags
+----
+The widgets use the Tag property to make sure that each widget knows what
+object to work on without extra lambdas or partials 
+
+LayoutDialogForm
+---------------
+The root of the UI is a LayoutDialogForm;  a convenience class which takes the existing
+formLayout created by Maya's layoutDialog command and wraps it with an mGui Layout so that
+it can be edited like other mGui widgets.
+
+BindingContext
+--------------
+The BindingContext in the UI catches all of the bindings created while it's active and updates
+them automatically when it closes; this makes sure that all the UI elements get set properly
+at creation time.
+
+'''
 import mGui.gui as gui
 import mGui.lists as lists
 import mGui.observable as observable
 import mGui.forms as forms
 import mGui.styles 
 from mGui.bindings import bind, BindingContext
-import traceback
-
-'''
-ModuleManager.py
-
-Defines ModuleManager class for enabling/disable Maya modules, and ModuleManagerDialog - a GUI for same.
-
-Copyright  (c) 2014 Steve Theodore. All rights reserved.
-
-Redistribution and use in source and binary forms, with or without modification, are permitted provided that the following conditions are met:
-
-1. Redistributions of source code must retain the above copyright notice, this list of conditions and the following disclaimer.
-
-2. Redistributions in binary form must reproduce the above copyright notice, this list of conditions and the following disclaimer in the documentation and/or other materials provided with the distribution.
-
-THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
-'''
-
 import itertools
 import maya.cmds as cmds
 import os
 import maya.mel
-from collections import namedtuple
+import webbrowser as wb
 
 # Mod manager classes
 #==============================================================================================
 
 class modTuple(object):
+    '''
+    Represents a module file on disk
+    '''
     def __init__(self, enabled, name, version, path, file):
         self.enabled = enabled
         self.name = name
@@ -41,11 +61,12 @@ class modTuple(object):
         self.path = path
         self.file = file
 
+
 class ModuleManager (object):
     '''
     Manages the list of .mod files on the local maya's MAYA_MODULE_PATH.
     
-    Note this class is purely functional - UI is handled in the ModuleManagerDialog via binding
+    Note this class is purely functional - UI is handled in the ModuleManagerDialog via binding.
     '''
     def __init__(self):
         self.Modules = {}
@@ -86,11 +107,10 @@ class ModuleManager (object):
         enable, ignore, line = line.partition(" ")
         name, ignore, line = line.partition(" ")
         if 'PLATFORM:' in name.upper():
-            name, ignore, line  = line.partition(" ")
+            name, ignore, line = line.partition(" ")
         version, ignore, path = line.strip().partition(" ")
         return enable, name, version, path
-    
-    
+        
     def enable(self, modtuple):
         self._rewrite_mod(modtuple, '+')
  
@@ -109,29 +129,30 @@ class ModuleManager (object):
             filehandle.write('\n'.join(all_lines))
             
 
-
+#GUI classes
 #======================================
-
-
-
-        
 class ModuleTemplate(lists.ItemTemplate):
+    '''
+    Create a complex display widger for each modTuple
+    '''
     def widget(self, item):
         with BindingContext() as bc:
-            with forms.HorizontalExpandForm('root', parent = self.Parent, height = 60) as root:
-                with forms.Form('cb', width = 60):
-                     gui.CheckBox('enabled', label = '', tag = item, value = item.enabled).bind.value > bind() > (item, 'enabled')
-                with forms.FillForm('path', width = 300):
+            with forms.HorizontalExpandForm('root', parent=self.Parent, height=60) as root:
+                with forms.Form('cb', width=60):
+                     gui.CheckBox('enabled', label='', tag=item, value=item.enabled).bind.value > bind() > (item, 'enabled')
+                with forms.FillForm('path', width=300):
                     with gui.ColumnLayout('x'):
                         gui.Text('displayName', font='boldLabelFont').bind.label < bind() < (item, 'name')
-                        gui.Text('path', font = 'smallObliqueLabelFont').bind.label < bind() < (item, 'path')
-                with gui.GridLayout('btns', width = 140, numberOfColumns = 2):
-                    edit =  gui.Button('edit', label = 'Edit', tag = item)
-                    show = gui.Button('show',  label = 'Show', tag = item)
+                        gui.Text('path', font='smallObliqueLabelFont').bind.label < bind() < (item, 'path')
+                with gui.GridLayout('btns', width=140, numberOfColumns=2):
+                    edit = gui.Button('edit', label='Edit', tag=item)
+                    show = gui.Button('show', label='Show', tag=item)
                     
         root.cb.enabled.changeCommand += self.update_status
         root.btns.show.command += self.show_item
-        return lists.Templated(item, root, edit = edit.command, show = show.command)
+        root.btns.edit.command += self.edit
+        
+        return lists.Templated(item, root, edit=edit.command, show=show.command)
     
     @classmethod
     def update_status(cls, *args, **kwargs):
@@ -139,8 +160,11 @@ class ModuleTemplate(lists.ItemTemplate):
         
     @classmethod
     def show_item(cls, *args, **kwargs):
-        os.system('start "%s"' % os.path.dirname( kwargs['sender'].Tag.file) )
-    
+        wb.open('"%s"' % os.path.dirname(kwargs['sender'].Tag.file))
+
+    @classmethod
+    def edit(cls, *args, **kwargs):
+        os.startfile('"%s"' % kwargs['sender'].Tag.file)    
     
 class ModuleManagerDialog(object):
     '''
@@ -154,35 +178,35 @@ class ModuleManagerDialog(object):
     def _layout(self):
         with forms.LayoutDialogForm('base') as base:
             with BindingContext() as bc:
-                with forms.VerticalThreePane('root', width = 512) as main:
-                    with forms.VerticalForm('header' ):
+                with forms.VerticalThreePane('root', width=512) as main:
+                    with forms.VerticalForm('header'):
                         gui.Text('x', 'Installed modules')
                      
                     with forms.FillForm('middle'):
-                        mod_list = lists.VerticalList('xxx', itemTemplate = ModuleTemplate)
+                        mod_list = lists.VerticalList('xxx', itemTemplate=ModuleTemplate)
                         mod_list.Collection < bind() < (self.ModMgr.Modules, 'values')
-                        
-                        
+                        # binds the 'values' method of the ModuleManager's Modules{} dictionary
+                                                
                     with forms.HorizontalStretchForm('footer'):
                         gui.Button('Cancel', label='cancel').command += self._cancel
-                        gui.Separator(None, style = 'none')
+                        gui.Separator(None, style='none')
                         gui.Button('Save', label='save').command += self._save
         base.fill(main, 5)   
         mod_list.update_bindings()     
         
     def _cancel(self, *args, **kwargs):
-        cmds.layoutDialog(dismiss = "dismiss")
+        cmds.layoutDialog(dismiss="dismiss")
  
     def _save(self, *arg, **kwargs):
-        for info, v in self.ModMgr.Modules.items():
+        for v in self.ModMgr.Modules.values():
             if v.enabled: self.ModMgr.enable(v)
             if not v.enabled: self.ModMgr.disable(v)            
-        cmds.layoutDialog(dismiss = "OK")
+        cmds.layoutDialog(dismiss="OK")
  
     def show(self):
         self.ModMgr.refresh()
-        cmds.layoutDialog(ui = self._layout, t='Module editor')
+        cmds.layoutDialog(ui=self._layout, t='Module editor')
 
-
-m = ModuleManagerDialog()        
-m.show()
+#example:
+#   m = ModuleManagerDialog()        
+#   m.show()
