@@ -54,12 +54,12 @@ class modTuple(object):
     '''
     Represents a module file on disk
     '''
-    def __init__(self, enabled, name, version, path, filename):
+    def __init__(self, enabled, name, version, path, file):
         self.enabled = enabled
         self.name = name
         self.version = version
         self.path = path
-        self.file = filename
+        self.file = file
 
 
 class ModuleManager (object):
@@ -104,11 +104,11 @@ class ModuleManager (object):
         parses a line from a mod file describing a given mod
         '''
         
-        enable, _, line = line.partition(" ")
-        name, _, line = line.partition(" ")
+        enable, ignore, line = line.partition(" ")
+        name, ignore, line = line.partition(" ")
         if 'PLATFORM:' in name.upper():
-            name, _, line = line.partition(" ")
-        version, _, path = line.strip().partition(" ")
+            name, ignore, line = line.partition(" ")
+        version, ignore, path = line.strip().partition(" ")
         return enable, name, version, path
         
     def enable(self, modtuple):
@@ -138,9 +138,8 @@ class ModuleTemplate(lists.ItemTemplate):
     def widget(self, item):
         with BindingContext() as bc:
             with forms.HorizontalExpandForm('root', parent=self.Parent, height=60) as root:
-                with forms.VerticalExpandForm('cb', width=60) as cbf:
-                    gui.CheckBox('enabled', label='', tag=item, value=item.enabled).bind.value > bind() > (item, 'enabled')
-                    cbf.dock(cbf.enabled, left=20, top=10, bottom=40, right=5)
+                with forms.Form('cb', width=60):
+                     gui.CheckBox('enabled', label='', tag=item, value=item.enabled).bind.value > bind() > (item, 'enabled')
                 with forms.FillForm('path', width=300):
                     with gui.ColumnLayout('x'):
                         gui.Text('displayName', font='boldLabelFont').bind.label < bind() < (item, 'name')
