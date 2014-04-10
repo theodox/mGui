@@ -1,7 +1,7 @@
 '''
 forms.py
 
-Extensions to formLayout for easier management
+A variety of specialized subclasses of FormLayout which are good shortcuts for common layout problems.
 @author: Stephen Theodore
 
 
@@ -16,9 +16,11 @@ between 50 and 100%
 
 The same 1000 buttons with no individual form layouts  = .53 seconds
 
-For this reason prefer row or column or flowlayouts for repetitive stuff and use forms for the main architecture
+For this reason prefer row or column or flowlayouts for repetitive stuff and use
+forms for the main architecture
 
-pretty consistenly groups of 100-odd sets of 3 controls (300 total) came in under .25s
+However, for less complex UI groups of 100-odd sets of 3 controls (300 total)
+came in under .25s, so it's not a big deal in common cases
 
 '''
 from mGui.core.layouts import FormLayout
