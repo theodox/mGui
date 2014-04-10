@@ -1,7 +1,19 @@
 '''
-Created on Mar 15, 2014
+Lists are a bindable containers.
 
-@author: Stephen Theodore
+All list classes include an internal BoundCollection (see obervable.py) The
+BoundCollections will automatically populate the list with widgets as the
+underlying collection changes.
+
+By default, entries will appear as Buttons (the labels will display the string
+representation of the underlying objects). However most often users will create
+custom widgets -- which can be entire miniature layouts of their own with
+layouts and controls-- using custom subclasses of the ItemTemplate class (for an
+example of this in action see 'modMgr.py' in the examples)
+
+There are a variety of List classes to handle vertical, horizontal and more
+complex layout needs. Lists come with inherent scollbars if their contents are
+too large to display.
 '''
 import maya.cmds as cmds
 import mGui.forms as forms
