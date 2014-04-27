@@ -30,31 +30,37 @@ class CtlProperty (object):
 class CallbackProperty(object):
     '''
     Property descriptor for callbacks.  When accessed, returns the appropriate
-    Event object from a Control-derived class's Callback dictionary. This
-    property cannot be 'set' or 'unset' - instead use the += or -= methods on
-    the underlying Event object:
+    Event object from a Control-derived class's Callback dictionary.
 
-    button.click += doSomething
-    button.click -= doSomething
+    By default, this will create a new MayaEvent (so evalDeferred safe) if 
+    you have not created an event manually, so:
 
-    NOT
+    button.command += doSomething
+    button.command-= doSomething
 
-    button.click = dosomething
+    However you can also create events manually and paramaterize them
+
+    button.command = events.MayaEvent(target = 'pCube1', distance = 2.0)
+    
     '''
     def __init__(self, key):
         self.Key = key
 
     def __get__(self, obj, objtype):
         cb = obj.Callbacks.get(self.Key, None)
-        if not cb:
+        # @note: don't use simple truth test here! No-handler event evals to false,
+        # so manually assigned events are overwritten!
+        if cb is None: 
             obj.Callbacks[self.Key] = MayaEvent(sender=obj)
             obj.register_callback(self.Key, obj.Callbacks[self.Key])
         return obj.Callbacks[self.Key]
 
     def __set__(self, obj, value):
         if not isinstance(value, Event):
-            raise ValueError("Use the += syntax to access callbacks rather than setting them directly")
-
+            raise ValueError('Callback properties must be instances of mGui.events.Event')
+        obj.Callbacks[self.Key] = value
+        obj.register_callback(self.Key, obj.Callbacks[self.Key])
+        
 
 class LateBoundProperty(object):
     '''
