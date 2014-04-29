@@ -100,6 +100,17 @@ In order to simplify this process, **mGui.bindings** defines  _Bindings_ - class
      
  will tie the visibility of the cube to the state of the checkbox.
  
+## Forms 
+
+The traditional Maya formLayout command is the most powerful and flexible type of layout. Unfortunately, it's also the most awkward to use. Attaching childrent to a form requires creating long chains of argument which are tough to read and to parse.
+
+**mGui.forms** provides a number of pre-built forms, which automatically attach their own children in predictable ways.  The key types are:
+
+*  **HorizontalForm** and **VerticalForm**.  As the names imply, these lay out their children horizontally or vertically, each child snapped to the previous one. The form expands but the children don't move. 
+*  **HorizontalExpandForm** and **VerticalExpandForm** are similar to regular forms, except that the last child will expand with the form.  They are commonly used to divide an area between a header and content, or between a navigation column and content.
+*  **HorizontalStretchForm** and **VerticalStretchForm** will expand all their children as the overall form grows or shrink. Handy for things like maintaining evenly sized divisions in a window.
+*  **HorizontalThreePane** and **VerticalThreePane**  These form expect exactly three children. The first and last children are glues to the beginning and end of the form, respectively, while the middle child expands with the form. Handy for layouts with headers and footers or with tools surrounding a content pane.
+
 ## Events
 
 Maya GUI widgets can fire callbacks, but they have several important limitations. In particular, vanilla 
@@ -110,6 +121,23 @@ code to track callbacks to their sources and understand their context.
 useful information about the widget which raised the callback. These events can be forwarded to multiple handlers,
 so that a single button press can move an object in your scene, highlight a button, and print a message in the help
 line using 3 simple functions rather than one big monster with lots of unrelated moving parts.  
+
+
+## Installation
+
+The directory **mGui** is a Python package. Simply drop a copy of it into a location that's visible to your python path. You can them inmport modules in the usual way.
+
+## Usage
+
+The module **mGui.gui** contains most of the key components: the windows, buttons, layouts and so on (they are defined in other modules, particulary **mGui.core.controls** and **mGui.core.layouts**, but collected into the *gui** module for easier access in your code.  **mGui.gui** is safe for star imports -- as safe as it can be, anyway --  so a common idiom is
+
+    from mGui.gui import *
+    
+    with Window('example') as w:
+    	with ColumnLayout('cl'):
+    	    Text('msg', 'Hello World!')
+
+The main components are named identically to their Maya.cmds counterparts except for the fact that, being classes rather than commands, they are capitalized. Thus  **cmds.button** becomes **mGui.gui.Button**. **cmds.wimdow** becomes **mGui.gui.Window** and so on.
 
 ----------------
 
