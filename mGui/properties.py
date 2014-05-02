@@ -5,6 +5,7 @@ Defines Descriptor objects for getting and setting GUI properties
 '''
 
 from events import Event, MayaEvent
+import maya.cmds as cmds
 
 class CtlProperty (object):
     '''
@@ -32,7 +33,7 @@ class CallbackProperty(object):
     Property descriptor for callbacks.  When accessed, returns the appropriate
     Event object from a Control-derived class's Callback dictionary.
 
-    By default, this will create a new MayaEvent (so evalDeferred safe) if 
+    By default, this will create a new MayaEvent (so evalDeferred safe) if
     you have not created an event manually, so:
 
     button.command += doSomething
@@ -41,7 +42,7 @@ class CallbackProperty(object):
     However you can also create events manually and paramaterize them
 
     button.command = events.MayaEvent(target = 'pCube1', distance = 2.0)
-    
+
     '''
     def __init__(self, key):
         self.Key = key
@@ -50,7 +51,7 @@ class CallbackProperty(object):
         cb = obj.Callbacks.get(self.Key, None)
         # @note: don't use simple truth test here! No-handler event evals to false,
         # so manually assigned events are overwritten!
-        if cb is None: 
+        if cb is None:
             obj.Callbacks[self.Key] = MayaEvent(sender=obj)
             obj.register_callback(self.Key, obj.Callbacks[self.Key])
         return obj.Callbacks[self.Key]
@@ -60,7 +61,7 @@ class CallbackProperty(object):
             raise ValueError('Callback properties must be instances of mGui.events.Event')
         obj.Callbacks[self.Key] = value
         obj.register_callback(self.Key, obj.Callbacks[self.Key])
-        
+
 
 class LateBoundProperty(object):
     '''
