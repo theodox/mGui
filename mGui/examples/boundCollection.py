@@ -3,6 +3,7 @@ import mGui.gui as gui
 import mGui.observable as observable
 import mGui.lists as lists
 import mGui.forms as forms
+from mGui.bindings import bind
 
 '''
 This sample shows a basic example of using a bound collection
@@ -68,11 +69,11 @@ class BoundCollectionWindow(object):
                     gui.TextField('filtertext', width=480)
                     gui.Separator(None, horizontal=False, style='none', width=4)
                     with gui.FlowLayout('display', width=32) as hmm:
-                        gui.Text('shown') + "label" << self.Collection + "ViewCount"
+                        gui.Text('shown').bind.label < bind() < self.Collection.bind.ViewCount
                         gui.Text(None, '/')
-                        gui.Text('total') + "label" << self.Collection + "Count"
+                        gui.Text('total').bind.label < bind() < self.Collection.bind.Count
 
-                self.Collection >> lists.VerticalList('itemList', itemTemplate=ExampleTemplate).Collection
+                self.Collection > bind() > lists.VerticalList('itemList', itemTemplate=ExampleTemplate).Collection
 
         self.Window.main.itemList.NewWidget += self.hook_widget_events
         flt.filtertext.enterCommand += self.update_filter
@@ -92,7 +93,7 @@ class BoundCollectionWindow(object):
         cmds.delete(kwargs['sender'].Tag)
 
     def hook_widget_events(self, *args, **kwargs):
-        kwargs['item'].Events['hook_widget_events'] += self.do_delete
+        kwargs['item'].Events['request_delete'] += self.do_delete
 
     def show(self):
         self.Window.show()
