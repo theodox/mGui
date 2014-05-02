@@ -2,7 +2,8 @@ import maya.cmds as cmds
 from mGui.bindings import BindableObject, BindingContext
 from mGui.styles import Styled
 from mGui.properties import CtlProperty, CallbackProperty
-
+from mGui.events import MayaEvent
+from mGui.scriptJobs import ScriptJobCallbackProperty
 '''
 # MGui.Core
 A system for defininng proxies that make it easier to work with maya GUI controls.
@@ -54,7 +55,6 @@ class ControlMeta(type):
 
     def __new__(cls, name, parents, kwargs):
 
-
         CMD = kwargs.get('CMD', None)
         _READ_ONLY = kwargs.get('_READ_ONLY', [])
         _ATTRIBS = kwargs.get('_ATTRIBS', [])
@@ -90,7 +90,6 @@ class Control(Styled, BindableObject):
     _CALLBACKS = ['dragCallback', 'dropCallback', 'visibleChangeCommand']
     _READ_ONLY = ['isObscured', 'popupMenuArray', 'numberOfPopupMenus']
     __metaclass__ = ControlMeta
-
 
     def __init__(self, key, *args, **kwargs):
         # arbitrary tag data. Use with care to avoid memory leaks
@@ -144,8 +143,16 @@ class Control(Styled, BindableObject):
 class Nested(Control):
     '''
     Base class for all the nested context-manager classes which automatically parent themselves
+
+    Every NestedObject creates an ScriptJobCallbackProperty attached to a uiDeleted scriptJob,
+    so it's possible to use standard event mechanisms to react to, eg, a window closing. The
+    scriptJob will be started with default arguments the first time you attempt to add a handler
+    to it.
+
     '''
     ACTIVE_LAYOUT = None
+
+    Deleted = ScriptJobCallbackProperty('Deleted', 'uiDeleted')
 
     def __init__(self, key, *args, **kwargs):
         self.Controls = []
@@ -156,7 +163,10 @@ class Nested(Control):
         Nested.ACTIVE_LAYOUT = self
         return self
 
-    def __exit__(self, typ, value, traceback):
+    def __exit__(self, typ, value, tb):
+        if typ:
+            import traceback
+            print traceback.format_exception(typ, value, tb)
         self.layout()
         Nested.ACTIVE_LAYOUT = self.__cache_layout
         self.__cache_layout = None
@@ -219,16 +229,22 @@ class Window(Nested):
     Window inherits from styles.Styled, so it supports styling.
 
     '''
+    ACTIVE_WINDOWS = []
+
     CMD = cmds.window
     _ATTRIBS = ["backgroundColor", "defineTemplate", "docTag", "exists", "height", "iconify", "iconName", "leftEdge", "menuBarVisible", "menuIndex", "mainMenuBar", "minimizeButton", "maximizeButton", "resizeToFitChildren", "sizeable", "title", "titleBar", "titleBarMenu", "topEdge", "toolbox", "topLeftCorner", "useTemplate", "visible", "width", "widthHeight"]
     _CALLBACKS = ["minimizeCommand", "restoreCommand"]
-    _READ_ONLY = [ "numberOfMenus", "menuArray", "menuBar", "retain"]
+    _READ_ONLY = ["numberOfMenus", "menuArray", "menuBar", "retain"]
+
+    def __init__(self, key, *args, **kwargs):
+        super(Window, self).__init__(key, *args, **kwargs)
 
     def show(self):
         cmds.showWindow(self.Widget)
 
     def hide(self):
         self.visible = False
+
 
 class BindingWindow(Window):
 
@@ -243,7 +259,6 @@ class BindingWindow(Window):
     def __exit__(self, typ, value, traceback):
         super(BindingWindow, self). __exit__(typ, value, traceback)
         self.bindingContext.__exit__(None, None, None)
-
 
     def update_bindings(self):
         self.bindingContext.update(True)

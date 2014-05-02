@@ -83,9 +83,7 @@ class FormList(object):
 
         an = []
         for item in self.Controls:
-            an.append((item, 'left'))
             an.append((item, 'right'))
-            an.append((item, 'top'))
             an.append((item, 'bottom'))
         self.attachNone = an
         self.layout()
@@ -100,15 +98,16 @@ class VerticalList(forms.VerticalForm, FormList):
     '''
 
     def __init__(self, key, *args, **kwargs):
-
+        self.Key = key
         with LayoutContext(self):
-            self.ScrollLayout = layouts.ScrollLayout(key="_scroll", *args)
+            self.ScrollLayout = layouts.ScrollLayout("_scroll")
+            self.Widget = self.ScrollLayout.Widget + "|temp"
             self.ScrollLayout.__enter__()
-
             self.__init_bound_collection__(kwargs)
             super(VerticalList, self).__init__(key, *args, **kwargs)
             self.__enter__()
             self.__exit__(None, None, None)
+
 
             self.ScrollLayout.__exit__(None, None, None)
 
@@ -122,16 +121,29 @@ class HorizontalList(forms.HorizontalForm, FormList):
     '''
     def __init__(self, key, *args, **kwargs):
 
+        self.Key = key
         with LayoutContext(self):
-            self.ScrollLayout = layouts.ScrollLayout(key="_scroll", *args)
+            self.ScrollLayout = layouts.ScrollLayout("_scroll")
+            self.Widget = self.ScrollLayout.Widget + "|temp"
             self.ScrollLayout.__enter__()
-
             self.__init_bound_collection__(kwargs)
             super(HorizontalList, self).__init__(key, *args, **kwargs)
             self.__enter__()
             self.__exit__(None, None, None)
 
-            self.ScrollLayout.__exit__(None, None, None)
+
+class ColumnList(layouts.ColumnLayout, FormList):
+
+    def __init__(self, key, *args, **kwargs):
+        self.Key = key
+        with LayoutContext(self):
+            self.ScrollLayout = layouts.ScrollLayout("_scroll")
+            self.Widget = self.ScrollLayout.Widget + "|temp"
+            self.ScrollLayout.__enter__()
+            self.__init_bound_collection__(kwargs)
+            super(ColumnList, self).__init__(key, *args, **kwargs)
+            self.__enter__()
+            self.__exit__(None, None, None)
 
 
 class WrapList(layouts.FlowLayout, FormList):
