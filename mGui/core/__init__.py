@@ -238,6 +238,12 @@ class Window(Nested):
 
     def __init__(self, key, *args, **kwargs):
         super(Window, self).__init__(key, *args, **kwargs)
+        self.ACTIVE_WINDOWS.append(self)
+        self.Deleted += self.forget
+
+    @classmethod
+    def forget(cls, *args, **kwargs):
+        cls.ACTIVE_WINDOWS.remove(kwargs['sender'])
 
     def show(self):
         cmds.showWindow(self.Widget)
