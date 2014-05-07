@@ -4,8 +4,8 @@ mGui.properties
 Defines Descriptor objects for getting and setting GUI properties
 '''
 
-from events import Event, MayaEvent
-import maya.cmds as cmds
+from mGui.events import Event, MayaEvent
+
 
 class CtlProperty (object):
     '''

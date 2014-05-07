@@ -69,24 +69,38 @@ class FormList(object):
         self.Collection.WidgetCreated += self.widget_created
         self.NewWidget = events.MayaEvent(type='widget created')
 
-
-
     def redraw(self, *args, **kwargs):
         '''
         redraw the GUI for this item when the collection changes
         '''
-        _collection = self.Collection.Contents
-        delenda = [i for i in self.Controls if i not in _collection]
-        for item in delenda:
-            cmds.deleteUI(item)
-        self.Controls = [i for i in self.Collection]
+        try:
+            cmds.waitCursor(st=1)
+            _collection = self.Collection.Contents
+            delenda = [i for i in self.Controls if i not in _collection]
+            for item in delenda:
+                item.visible = False
+            self.Controls = [i for i in self.Collection]
 
-        an = []
-        for item in self.Controls:
-            an.append((item, 'right'))
-            an.append((item, 'bottom'))
-        self.attachNone = an
-        self.layout()
+            an = []
+            for item in self.Controls:
+                item.visible = True
+                an.append((item, 'right'))
+                an.append((item, 'bottom'))
+            self.attachNone = an
+            fudge = 16
+
+            if kwargs.get('horizontal', False):
+                if len(self.controls):
+                    fudge = (self.Controls[0].width or 1) * (len(self.Controls) + 1)
+                self.width = fudge
+            else:
+                if len(self.Controls):
+                    fudge = self.Controls[0].height * (len(self.Controls) + 1)
+                self.height = fudge
+
+            self.layout()
+        finally:
+            cmds.waitCursor(st=0)
 
     def widget_created(self, *args, **kwargs):
         self.NewWidget(item=args[0])
@@ -107,8 +121,6 @@ class VerticalList(forms.VerticalForm, FormList):
             super(VerticalList, self).__init__(key, *args, **kwargs)
             self.__enter__()
             self.__exit__(None, None, None)
-
-
             self.ScrollLayout.__exit__(None, None, None)
 
         # # the enter/exits make sure that you can place a listForm as a single control without it
@@ -130,6 +142,10 @@ class HorizontalList(forms.HorizontalForm, FormList):
             super(HorizontalList, self).__init__(key, *args, **kwargs)
             self.__enter__()
             self.__exit__(None, None, None)
+
+    def redraw(self, *args, **kwargs):
+        kwargs.update({'horizontal': True})
+        super(HorizontalList, self).redraw(*args, **kwargs)
 
 
 class ColumnList(layouts.ColumnLayout, FormList):
@@ -184,7 +200,8 @@ class ItemTemplate(object):
         '''
         returns the topmost mGui item of a templated list item, along with any events defined in the widgetx`
         '''
-        r = controls.Button(0, label=str(item), parent=self.Parent)
+        cmds.setParent(self.Parent.Widget)
+        r = controls.Button(0, label=str(item[0]))
         return Templated(item, r)
 
     def __call__(self, item):

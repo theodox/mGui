@@ -2,8 +2,10 @@
 Observable.py
 @author: stevetheodore
 '''
-from mGui.events import Event
+from mGui.events import Event, MayaEvent
 from mGui.bindings import BindableObject
+import maya.utils as utils
+
 
 
 class ObservableCollection(BindableObject):
@@ -32,9 +34,9 @@ class ObservableCollection(BindableObject):
 
     def __init__(self, *items):
         self._Internal_Collection = [i for i in items]
-        self.CollectionChanged = Event(collection=self)
-        self.ItemAdded = Event(collection=self)
-        self.ItemRemoved = Event(collection=self)
+        self.CollectionChanged = MayaEvent(collection=self)
+        self.ItemAdded = MayaEvent(collection=self)
+        self.ItemRemoved = MayaEvent(collection=self)
 
     @property
     def Contents(self):
@@ -134,7 +136,7 @@ class ViewCollection(ObservableCollection):
 
     def __init__(self, *items):
         super(ViewCollection, self).__init__(*items)
-        self.ViewChanged = Event(collection=self)
+        self.ViewChanged = MayaEvent(collection=self)
 
         self.Filter = lambda p: p
         self._last_count = len(self._Internal_Collection)
@@ -185,8 +187,8 @@ class BoundCollection(BindableObject):
         self._Internal_Collection = ()
         self._Public_Collecton = {}
         self.Conversion = conversion
-        self.CollectionChanged = Event()
-        self.WidgetCreated = Event()
+        self.CollectionChanged = MayaEvent()  # these are MayaEvents so they are thread safe... we hope
+        self.WidgetCreated = MayaEvent()
 
     def set_collection(self, new_contents):
         current = set(self._Internal_Collection)
@@ -196,10 +198,14 @@ class BoundCollection(BindableObject):
         deletions = current.difference(incoming)
         for d in deletions:
             del (self._Public_Collecton[d])
-        for a in additions:
-            templated = self.Conversion(a)
-            self._Public_Collecton[a] = templated.Widget
-            self.WidgetCreated(templated)
+
+        def safe_create_gui():
+            for a in additions:
+                templated = self.Conversion(a)
+                self._Public_Collecton[a] = templated.Widget
+                self.WidgetCreated(templated)
+        utils.executeInMainThreadWithResult(safe_create_gui)
+
 
         self._Internal_Collection = new_contents
         if len(additions) + len(deletions):
