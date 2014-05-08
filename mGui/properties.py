@@ -5,7 +5,7 @@ Defines Descriptor objects for getting and setting GUI properties
 '''
 
 from mGui.events import Event, MayaEvent
-
+import copy
 
 class CtlProperty (object):
     '''
@@ -87,10 +87,11 @@ class LateBoundProperty(object):
         self._name = "_" + name
 
     def __create_backstore(self, instance, owner=None):
+        print instance, owner
         if not hasattr(instance, self._name):
             default = None
             if owner and hasattr(owner, self._class_default_string):
-                default = getattr(owner, self._class_default_string)
+                default = copy.copy(getattr(owner, self._class_default_string))
             setattr(instance, self._name, default)
 
     def __get__(self, instance, owner):
