@@ -8,7 +8,7 @@ from collections import Mapping
 import weakref
 import sys
 from mGui.properties import LateBoundProperty
-
+import maya.utils as utils
 
 # these are primarily intended for debugging.
 # Generally you want to break on access failure, since the Binding
@@ -203,8 +203,8 @@ class MethodAccessor(Accessor):
         return getattr(self.Target, self.FieldName)(*args, **kwargs)
 
     @classmethod
-    def can_access(cls, datum, fieldname):    
-        return fieldname and hasattr(datum, fieldname) and callable(getattr(datum, fieldname))  
+    def can_access(cls, datum, fieldname):
+        return fieldname and hasattr(datum, fieldname) and callable(getattr(datum, fieldname))
 
 
 class AccessorFactory(object):
@@ -237,7 +237,7 @@ class AccessorFactory(object):
         '''
         datum = args[0]
         fieldname = args[-1]
-        
+
         for fclass in self.Tests:
             if fclass.can_access(datum, fieldname):
                 return fclass
@@ -262,11 +262,11 @@ def get_accessor(datum, fieldname=None, factory_class=None):
     if isinstance(datum, BindProxy):
         site = datum.Item
         fieldname = datum.Attribute
-        
+
     target_class = factory.accessor_class(site, fieldname)
     if target_class:
         return target_class(site, fieldname)
-    
+
     raise BindingError ('%s is not a bindable attribute of %s' % (fieldname, site))
 
 
@@ -315,7 +315,6 @@ class BindingContext(object):
         if recurse:
             for item in self.Children:
                 item.update(recurse)
-
         return len(self.Bindings)
 
 
@@ -325,7 +324,7 @@ class BindingContext(object):
         '''
         Add a binding to the currently active BindingContext
         '''
-        if cls.ACTIVE:
+        if cls.ACTIVE is not None:
             cls.ACTIVE.Bindings.append(binding)
 
 
@@ -345,11 +344,9 @@ class Binding(object):
 
         if not source: raise BindingError("invalid source binding")
         if not target: raise BindingError("invalid target binding")
-                    
+
         self.Getter = source
         self.Setter = target
-        
-
 
         self.Translator = kwargs.get('translator', passthru)
         assert callable(self.Translator), 'Translator must be a single argument callable'
@@ -388,18 +385,21 @@ class Binding(object):
         transient failures you'd want to make sure its __call__ would always
         return a True value
         '''
-        if self.__nonzero__() == False: return False
-        
-        try:
-            val = self.Getter.pull()
-            self.Setter.push(self.Translator(val))
-            return True
-        
-        except (ReferenceError, BindingError, RuntimeError):
-            if BREAK_ON_BIND_FAILURE:
-                raise BindingError ("Bind failure: %s" % str(sys.exc_info()[1]))
-            return False
+        def safe_binding():
+            if self.__nonzero__() == False: return False
 
+            try:
+                val = self.Getter.pull()
+                self.Setter.push(self.Translator(val))
+                return True
+
+            except (ReferenceError, BindingError, RuntimeError):
+                if BREAK_ON_BIND_FAILURE:
+                    raise BindingError ("Bind failure: %s" % str(sys.exc_info()[1]))
+                return False
+        return(safe_binding())
+        # this causes a hang
+        # return utils.executeInMainThreadWithResult(safe_binding)
 
 class TwoWayBinding(Binding):
     '''
@@ -442,129 +442,127 @@ class TwoWayBinding(Binding):
                 raise BindingError ("Bind failure: %s" % str(sys.exc_info()[1]))
             return False
 
-
-
 class BindingExpression(object):
     '''
     Allows the creation of a binding using the following syntax
-        
+
          object-and-property < BindingExpression(translator) < object-and-property
-       
+
     or
          object-and-property  > BindingExpression(translator) > object-and-property
 
-    or 
-    
+    or
+
          object-and-property | BindingExpression(translator) | object-and-property
 
     The first two are equivalent except for the direction of the binding, the
     third produces as TwoWayBinding. 'Translator' is a single argument callable
     that will be used by the binding to convert the results. If not supplied, the
     binding will pass the values unchanged.
-   
-    The object-and-property items to either side of the BindingExpression can 
+
+    The object-and-property items to either side of the BindingExpression can
     be any one of:
-       
+
     - a BindableObject with a bind_source or bind_target set, as appropriate:
-    
+
         has_default_source > bind() > has_default_target  # where both ends are BindableObjects
-            
+
     - a Bindable accessed using the object.bind.property
-    
+
        object.bind.property > bind() > other.bind.otherProperty
-       
+
     - a Pynode Attribue (eg 'pCube1.tx' where pCube1 is a pynode)
-    
+
        pCube1.tx > bind() > Button1.bind.label
-       # this could be two PyNodes too, but in that case its 
+       # this could be two PyNodes too, but in that case its
        # better to use driven keys or expressions which are
        # more performant
-              
+
     - a Maya object/attribute string, ie ('pCube1.tx')
 
        'pCube1.tx' > bind() > Button1.bind.label
         # again, this could work for two object/attr strings
         # but it won't be as fast as normal maya methods
-    
-    The most general form is just tuples of (object, propertyname) : 
-  
+
+    The most general form is just tuples of (object, propertyname) :
+
          (object, 'property') < BindingExpression(translator) < (object, 'property')
 
     In that case the parens are there to make sure that the object, property pairs are tupled
     before being bound; you could do
-    
+
         src = object, 'property'
         tgt = object, 'otherPropery'
         src > BindingExpression() > tgt
 
-    for the same result.s    
+    for the same result.s
     '''
     def __gt__(self, other):
         self.Right = self._flatten(other, target=True)
         if self.Left and self.Right:
-            return self._binding()            
+            return self._binding()
         return self
-    
+
     def __lt__(self, other):
         self.Left = self._flatten(other, target=False)
         if self.Left and self.Right:
             return self._binding()
         return self
-        
-    def __init__(self, translator = passthru):
+
+    def __init__(self, translator=passthru):
         self.Left = None
         self.Right = None
         self.TwoWay = False
         self.Translator = translator
-    
-    def __or__(self, other): 
-        self.Right = self._flatten(other, target = False)
+
+    def __or__(self, other):
+        self.Right = self._flatten(other, target=False)
         self.TwoWay = True
         if self.Left and self.Right:
             return self._binding()
         return self
 
-    def __ror__(self, other): 
-        self.Left = self._flatten(other, target = False)
+    def __ror__(self, other):
+        self.Left = self._flatten(other, target=False)
         self.TwoWay = True
         if self.Left and self.Right:
             return self._binding()
         return self
-    
+
     def _flatten(self, other, target):
         '''
         parse the binding expression and return an appropriate accessor
         '''
 
-        #BindProxy        
+        # BindProxy
         if isinstance(other, BindProxy):
             return get_accessor(other)
-        
+
         # default bindings
         if hasattr(other, 'bind_source'):
             if target and other.bind_target:
                 return get_accessor(other, other.bind_target)
             elif other.bind_source:
                 return get_accessor(other, other.bind_source)
-            
+
         # pynodes & pyattrs
         if hasattr(other, '__melobject__') or hasattr(other, '__melcommand__'):
             return get_accessor(other, None)
-        
+
         # obj, attr tuples
         if hasattr(other, '__iter__'):
             return get_accessor(*other)
-        
+
         # strings
         if hasattr(other, 'split') and "." in other:
             return get_accessor(*other.split("."))
         return get_accessor(other)
-    
-        
+
+
     def _binding(self):
         if self.TwoWay:
-            return TwoWayBinding( self.Left, self.Right,  translator = self.Translator)
-        return Binding( self.Left, self.Right,  translator = self.Translator)
+            return TwoWayBinding(self.Left, self.Right, translator=self.Translator)
+        return Binding(self.Left, self.Right, translator=self.Translator)
 
 
 bind = BindingExpression
@@ -578,32 +576,32 @@ class Bindable (object):
     '''
     A Mixin class that adds a binding syntax to an object.
 
-    Bindable adds a quasi-property, 'bind', which return a BindProxy 
+    Bindable adds a quasi-property, 'bind', which return a BindProxy
     object which is a valid target for a binding. A typical use would look like:
-    
+
     class Flintstone(Bindable):
         def __init__(self, name, val):
             self.Name = name
             self.Value  = val
-            
+
     fred = Flintstone("Fred", "Husband")
     wilma = Flinstone("Wilma", "Wife")
-    
+
     new_binding = fred.bind.Value > bind() > wilma.bind.Name
     new_binding() # call the binding manually
     wilma.Name
     # Husband
-    
+
     You can also use the '&' symbol as an alternate way of specifying a bindable property:
-               
-       object & 'property' 
-           
-    is the same as 
-        
+
+       object & 'property'
+
+    is the same as
+
        object.bind.property
-       
+
     '''
-    
+
     _BINDINGS = []
     #===========================================================================
     # internal classes
@@ -615,18 +613,18 @@ class Bindable (object):
         '''
         def __init__(self, owner):
             self.Owner = owner
-            
+
         def __getattr__(self, name):
             if name != 'Owner':
                 if hasattr(self.Owner, name):
-                    return BindProxy(self.Owner, name )
+                    return BindProxy(self.Owner, name)
             raise BindingError ("Object %s does not have a bindable attribute named %s" % (self.Owner, name))
-        
+
     class ProxyFactoryProperty(object):
         '''
         Descriptor which adds the .bind. syntax to Bindables
         '''
-        
+
         def __get__(self, instance, owner):
             if not hasattr(instance, "_proxy_factory"):
                 setattr(instance, "_proxy_factory", Bindable.ProxyFactory(instance))
@@ -635,23 +633,23 @@ class Bindable (object):
     #===========================================================================
     # end internal classes
     #===========================================================================
-    
+
     bind = ProxyFactoryProperty()
-    
-    
+
+
     def __and__(self, name):
         '''
         Allows using the & symbol as a shorthand for the bind syntax:
-        
-           object & 'property' 
-           
-        is the same as 
-        
+
+           object & 'property'
+
+        is the same as
+
            object.bind.property
         '''
         return BindProxy (self, name)
 
-    
+
 
 class BindableObject(Bindable):
     '''
@@ -673,10 +671,10 @@ class BindableObject(Bindable):
         Fred = DefaultBind('Fred Flinstone')
         OtherGuy = DefaultBind('Barney Rubble')
         Fred > bind() > OtherGuy
-        
-        # which is equal to 
+
+        # which is equal to
         # Fred.bind.Name > bind() > OtherGuy.bind.Name
-        
+
     '''
 
     _BIND_SRC = None
@@ -686,7 +684,7 @@ class BindableObject(Bindable):
     bind_source = LateBoundProperty("bind_source", "_BIND_SRC")
     bind_target = LateBoundProperty("bind_target", "_BIND_TGT")
     bindings = LateBoundProperty("bindings", "_BINDINGS")
-    
+
     def get_bindings(self):
         '''
         Returns all of the bindings attached to this object
@@ -703,7 +701,7 @@ class BindableObject(Bindable):
             item.invalidate()
         self.bindings[:] = []
 
-    
+
 class BindProxy(Bindable):
     '''
     Creates an bindable Object + Attribute pair
