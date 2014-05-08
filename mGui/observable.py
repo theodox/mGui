@@ -7,7 +7,6 @@ from mGui.bindings import BindableObject
 import maya.utils as utils
 
 
-
 class ObservableCollection(BindableObject):
     '''
     Encapsulates a collection suitable for data binding. The contents are
@@ -196,18 +195,19 @@ class BoundCollection(BindableObject):
         reordered = sum([x == y for x, y in zip(new_contents, self._Internal_Collection)])
         additions = incoming.difference(current)
         deletions = current.difference(incoming)
-        for d in deletions:
-            del (self._Public_Collecton[d])
 
         def safe_create_gui():
+            for d in deletions:
+                del(self._Public_Collecton[d])
             for a in additions:
                 templated = self.Conversion(a)
                 self._Public_Collecton[a] = templated.Widget
                 self.WidgetCreated(templated)
+
         utils.executeInMainThreadWithResult(safe_create_gui)
 
-
         self._Internal_Collection = new_contents
+
         if len(additions) + len(deletions):
             self.CollectionChanged(collection=self.Contents)
         else:
