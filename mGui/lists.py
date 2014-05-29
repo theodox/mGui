@@ -198,10 +198,10 @@ class ItemTemplate(object):
 
     def widget(self, item):
         '''
-        returns the topmost mGui item of a templated list item, along with any events defined in the widgetx`
+        returns the topmost mGui item of a templated list item, along with any events defined in the widget
         '''
         cmds.setParent(self.Parent.Widget)
-        r = controls.Button(0, label=str(item[0]))
+        r = controls.Button(0, label=str(item))
         return Templated(item, r)
 
     def __call__(self, item):
