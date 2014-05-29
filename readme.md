@@ -32,23 +32,31 @@ The goal is to provide the most consistent and least wordy way of creating simpl
 	cmds.showWindow(window)
 
 you can write this:
+
 	     
-	import mGui.gui
+	import pymel.core as pm
+	from mGui.gui import *
 	import mGui.observable as obs
+	import mGui.lists as lists
 	from mGui.bindings import bind, BindingContext
 	
-	bound = obs.ViewCollection(pm.PyNode("pCube1"), pm.PyNode("pPlane2"))	
+	bound = obs.ViewCollection(pm.PyNode("pCube1"), pm.PyNode("pPlane2"))   
 	
 	with gui.Window('window', title = 'fred') as example_window:
-		with BindingContext() as bind_ctx:
-		    with gui.VerticalForm('main') as main:
-		        Text(None, label = "The following items don't have vertex colors")
-		        VerticalListForm('lister' ).Collection < bind() < bound  
-		        with HorizontalStretchForm('buttons'):
-		            Button('refresh', l='Refresh')
-		            Button('close', l='Close')
+	    with BindingContext() as bind_ctx:
+	        with VerticalForm('main') as main:
+	            Text(None, label = "The following items don't have vertex colors")
+	            lists.VerticalList('lister' ).Collection < bind() < bound  
+	            with HorizontalStretchForm('buttons'):
+	                Button('refresh', l='Refresh')
+	                Button('close', l='Close')
+	
+	# show the window
 	example_window.show()
-	            
+	
+	# add two items to the list...
+	bound.add("top", "persp")
+
 And make adjustments like this:
 
     main.buttons.refresh.backgroundColor = (.7, .7, .5)
