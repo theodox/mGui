@@ -100,9 +100,9 @@ class MenuItemProxy(MenuProxy):
         new_item.command += cp
 
 
-_main_menu = maya.mel.eval("string $f = $gMainWindow")
 
 
 def load_menu(menu_string):
+    _main_menu = maya.mel.eval("string $f = $gMainWindow")
     menu_root = yaml.load(menu_string)
     return menu_root.instantiate(_main_menu)
