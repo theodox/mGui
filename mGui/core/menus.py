@@ -1,55 +1,65 @@
-'''
+"""
 mGui.menus
 
 Wrapper classes for Menus and MenuItems
-'''
+"""
 
 from mGui.core import Nested, Control, cmds
 
 
 class Menu(Nested):
     CMD = cmds.menu
-    _ATTRIBS = ['allowOptionBoxes', 'deleteAllItems', 'defineTemplate', 'docTag', 'enable', 'enableBackground', 'exists', 'familyImage', 'helpMenu', 'label', 'mnemonic', 'parent', 'useTemplate', 'visible']
+    _ATTRIBS = ['allowOptionBoxes', 'deleteAllItems', 'defineTemplate', 'docTag', 'enable', 'enableBackground',
+                'exists', 'familyImage', 'helpMenu', 'label', 'mnemonic', 'parent', 'useTemplate', 'visible']
     _CALLBACKS = ['postMenuCommand', 'postMenuCommandOnce']
     _READ_ONLY = ['itemArray', 'numberOfItems']
 
 
 class MenuItem(Control):
     CMD = cmds.menuItem
-    _ATTRIBS = ["altModifier", "annotation", "allowOptionBoxes", "boldFont", "checkBox", "collection", "commandModifier", "ctrlModifier", "divider", "data", "defineTemplate", "docTag", "echoCommand", "enableCommandRepeat", "enable", "exists", "familyImage", "image", "insertAfter", "imageOverlayLabel", "italicized", "keyEquivalent", "label", "mnemonic", "optionBox", "optionBoxIcon", "optionModifier", "parent", "radioButton", "radialPosition", "shiftModifier", "subMenu", "sourceType", "tearOff", "useTemplate", "version"]
+    _ATTRIBS = ["altModifier", "annotation", "allowOptionBoxes", "boldFont", "checkBox", "collection",
+                "commandModifier", "ctrlModifier", "divider", "data", "defineTemplate", "docTag", "echoCommand",
+                "enableCommandRepeat", "enable", "exists", "familyImage", "image", "insertAfter", "imageOverlayLabel",
+                "italicized", "keyEquivalent", "label", "mnemonic", "optionBox", "optionBoxIcon", "optionModifier",
+                "parent", "radioButton", "radialPosition", "shiftModifier", "subMenu", "sourceType", "tearOff",
+                "useTemplate", "version"]
     _READ_ONLY = ['isCheckBox', 'isOptionBox', 'isRadioButton']
     _CALLBACKS = ['command', 'dragDoubleClickCommand', 'dragMenuCommand', 'postMenuCommand', 'postMenuCommandOnce']
 
 
-class OptionMenu (Nested):
+class OptionMenu(Nested):
     CMD = cmds.optionMenu
-    _ATTRIBS = ['alwaysCallChangeCommand', 'annotation', 'backgroundColor', 'docTag', 'enableBackground', 'exists', 'height', 'label', 'manage', 'parent', 'preventOverride', 'select', 'value', 'visible', 'width']
-    _READ_ONLY = ['fullPathName', 'itemListLong', 'itemListShort', 'isObscured', 'numberOfItems', 'numberOfPopupMenus', 'popupMenuArray']
+    _ATTRIBS = ['alwaysCallChangeCommand', 'annotation', 'backgroundColor', 'docTag', 'enableBackground', 'exists',
+                'height', 'label', 'manage', 'parent', 'preventOverride', 'select', 'value', 'visible', 'width']
+    _READ_ONLY = ['fullPathName', 'itemListLong', 'itemListShort', 'isObscured', 'numberOfItems', 'numberOfPopupMenus',
+                  'popupMenuArray']
     _CALLBACKS = ['changeCommand', 'dragCallback', 'dropCallback', 'visibleChangeCommand']
 
 
 class ActiveOptionMenu(OptionMenu):
-    '''
+    """
     A variant of the default OptionMenu which will call the command attached to
     the menuItem.  This allows for dropdown menus  which behave like regular
     menus rather than like pure dropdown selectors
 
-    '''
+    """
+
     def __init__(self, key, *args, **kwargs):
         super(ActiveOptionMenu, self).__init__(key, *args, **kwargs)
         self.changeCommand += self.fire_menu_callback
 
     def fire_menu_callback(self, *args, **kwargs):
-        '''
+        """
         this ensures that the command attached to the selected MenuItem is fired when that menu is selected
-        '''
+        """
         selected = self.Controls[self.select - 1]
         selected.command()
 
 
 class PopupMenu(Nested):
     CMD = cmds.popupMenu
-    _ATTRIBS = ['altModifier', 'allowOptionBoxes', 'button', 'ctrlModifier', 'deleteAllItems', 'defineTemplate', 'exists', 'markingMenu', 'parent', 'shiftModifier', 'useTemplate', 'visible']
+    _ATTRIBS = ['altModifier', 'allowOptionBoxes', 'button', 'ctrlModifier', 'deleteAllItems', 'defineTemplate',
+                'exists', 'markingMenu', 'parent', 'shiftModifier', 'useTemplate', 'visible']
     _CALLBACKS = ['postMenuCommand', 'postMenuCommandOnce']
     _READ_ONLY = ['itemArray', 'numberOfItems']
 
