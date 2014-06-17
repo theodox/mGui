@@ -189,6 +189,21 @@ class Nested(Control):
                 raise RuntimeError('Children of a layout must have unique IDs')
             self.__dict__[control.Key] = control
 
+    def replace(self, key, control):
+        """
+        replace the control at <key> with the supplied control, and redo the layout for this item.
+
+        @note this will only work if the existing item has a key
+        """
+        original = self.__dict__[key]
+        original_idx = self.Controls.index(original)
+        self.Controls.insert(original_idx, control)
+        self.__dict__[key] = control
+        self.Controls.remove(original)
+        cmds.deleteUI(original)
+        self.layout()
+
+
     def remove(self, control):
         self.Controls.remove(control)
         k = [k for k, v in self.__dict__.items() if v == control]
