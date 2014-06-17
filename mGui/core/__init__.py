@@ -2,9 +2,10 @@ import maya.cmds as cmds
 from mGui.bindings import BindableObject, BindingContext
 from mGui.styles import Styled
 from mGui.properties import CtlProperty, CallbackProperty
-from mGui.events import MayaEvent
 from mGui.scriptJobs import ScriptJobCallbackProperty
-'''
+
+
+"""
 # MGui.Core
 A system for defininng proxies that make it easier to work with maya GUI controls.
 
@@ -45,36 +46,36 @@ does not preserve the types created by a metaclass when you call reload(module).
 This manifests as a TypeError in code that calls super() -- in this case,
 typically in __init__ methods.  This problem is ONLY related to reload - if you
 restart Maya rather than using reload() it will disappear.
-'''
+"""
 
 
 class ControlMeta(type):
-    '''
+    """
     Metaclass which creates CtlProperty and CallbackProperty objects for Control classes
-    '''
+    """
 
-    def __new__(cls, name, parents, kwargs):
+    def __new__(mcs, name, parents, kwargs):
 
-        CMD = kwargs.get('CMD', None)
+        maya_cmd = kwargs.get('CMD', None)
         _READ_ONLY = kwargs.get('_READ_ONLY', [])
         _ATTRIBS = kwargs.get('_ATTRIBS', [])
         _CALLBACKS = kwargs.get('_CALLBACKS', [])
 
         if not kwargs.get('CMD'):
-            CMD = parents[0].CMD
+            maya_cmd = parents[0].CMD
 
         for item in _READ_ONLY:
-            kwargs[item] = CtlProperty(item, CMD, writeable=False)
+            kwargs[item] = CtlProperty(item, maya_cmd, writeable=False)
         for item in _ATTRIBS:
-            kwargs[item] = CtlProperty(item, CMD)
+            kwargs[item] = CtlProperty(item, maya_cmd)
         for item in _CALLBACKS:
             kwargs[item] = CallbackProperty(item)
 
-        return super(ControlMeta, cls).__new__(cls, name, parents, kwargs)
+        return super(ControlMeta, mcs).__new__(mcs, name, parents, kwargs)
 
 
 class Control(Styled, BindableObject):
-    '''
+    """
     Base class for all mGui controls.  Provides the necessary frameworks for
     CtlProperty and CallbackProperty access to the underlying widget.
 
@@ -84,9 +85,11 @@ class Control(Styled, BindableObject):
 
     Control inherits from styles.Styled, so it supports styling.
 
-    '''
+    """
     CMD = cmds.control
-    _ATTRIBS = ['annotation', 'backgroundColor', 'defineTemplate', 'docTag', 'enable', 'enableBackground', 'exists', 'fullPathName', 'height', 'manage', 'noBackground', 'numberOfPopupMenus', 'parent', 'popupMenuArray', 'preventOverride', 'useTemplate', 'visible', 'visibleChangeCommand', 'width']
+    _ATTRIBS = ['annotation', 'backgroundColor', 'defineTemplate', 'docTag', 'enable', 'enableBackground', 'exists',
+                'fullPathName', 'height', 'manage', 'noBackground', 'numberOfPopupMenus', 'parent', 'popupMenuArray',
+                'preventOverride', 'useTemplate', 'visible', 'visibleChangeCommand', 'width']
     _CALLBACKS = ['dragCallback', 'dropCallback', 'visibleChangeCommand']
     _READ_ONLY = ['isObscured', 'popupMenuArray', 'numberOfPopupMenus']
     __metaclass__ = ControlMeta
@@ -108,19 +111,20 @@ class Control(Styled, BindableObject):
         self.Widget = self.CMD(*args, **_style)
         self.Key = key or "__" + self.Widget.split("|")[-1]
 
-        '''
+        """
         Widget is the gui element in the scene
-        '''
+        """
         self.Callbacks = {}
-        '''
+        """
         A dictionary of Event objects
-        '''
+        """
         Layout.add_current(self)
 
     def register_callback(self, callbackName, event):
-        '''
-        when a callback property is first accessed this creates an Event for the specified callback and hooks it to the gui widget's callback function
-        '''
+        """
+        when a callback property is first accessed this creates an Event for the specified callback and hooks it to the
+        gui widget's callback function
+        """
         kwargs = {'e': True, callbackName: event}
         self.CMD(self.Widget, **kwargs)
 
@@ -141,7 +145,7 @@ class Control(Styled, BindableObject):
 
 
 class Nested(Control):
-    '''
+    """
     Base class for all the nested context-manager classes which automatically parent themselves
 
     Every NestedObject creates an ScriptJobCallbackProperty attached to a uiDeleted scriptJob,
@@ -149,7 +153,7 @@ class Nested(Control):
     scriptJob will be started with default arguments the first time you attempt to add a handler
     to it.
 
-    '''
+    """
     ACTIVE_LAYOUT = None
 
     Deleted = ScriptJobCallbackProperty('Deleted', 'uiDeleted')
@@ -166,6 +170,7 @@ class Nested(Control):
     def __exit__(self, typ, value, tb):
         if typ:
             import traceback
+
             print traceback.format_exception(typ, value, tb)
         self.layout()
         Nested.ACTIVE_LAYOUT = self.__cache_layout
@@ -173,10 +178,10 @@ class Nested(Control):
         cmds.setParent("..")
 
     def layout(self):
-        '''
+        """
         this is called at the end of a context, it can be used to (for example) perform attachments
         in a formLayout.  Override in derived classes for different behaviors.
-        '''
+        """
         return len(self.Controls)
 
     def add(self, control):
@@ -203,7 +208,6 @@ class Nested(Control):
         cmds.deleteUI(original)
         self.layout()
 
-
     def remove(self, control):
         self.Controls.remove(control)
         k = [k for k, v in self.__dict__.items() if v == control]
@@ -223,19 +227,23 @@ class Nested(Control):
 
 
 # IMPORTANT NOTE
-# this intentionally duplicates redundant property names from Control. That forces the metaclass to re-define the CtlProperties using cmds.layout
-# instead of cmds.control. In Maya 2014, using cmds.control to query a layout fails, evem for flags they have in common
+# this intentionally duplicates redundant property names from Control.
+# That forces the metaclass to re-define the CtlProperties using cmds.layout
+# instead of cmds.control. In Maya 2014, using cmds.control to query a layout fails,
+# even for flags they have in common
 
 class Layout(Nested):
-
     CMD = cmds.layout
-    _ATTRIBS = ['annotation', 'backgroundColor', 'defineTemplate', 'docTag', 'dragCallback', 'dropCallback', 'enable', 'enableBackground', 'exists', 'fullPathName', 'height', 'manage', 'noBackground', 'numberOfPopupMenus', 'parent', 'popupMenuArray', 'preventOverride', 'useTemplate', 'visible', 'visibleChangeCommand', 'width']
+    _ATTRIBS = ['annotation', 'backgroundColor', 'defineTemplate', 'docTag', 'dragCallback', 'dropCallback', 'enable',
+                'enableBackground', 'exists', 'fullPathName', 'height', 'manage', 'noBackground', 'numberOfPopupMenus',
+                'parent', 'popupMenuArray', 'preventOverride', 'useTemplate', 'visible', 'visibleChangeCommand',
+                'width']
     _CALLBACKS = ['dragCallback', 'dropCallback', 'visibleChangeCommand']
     _READ_ONLY = ['isObscured', 'popupMenuArray', 'numberOfPopupMenus', 'childArray', 'numberOfChildren']
 
 
 class Window(Nested):
-    '''
+    """
 
     Window inherits from bindings.BindableObject, so it supports binding
     operators.  All controls will have _bind_src and _bind_tgt fields, and
@@ -243,11 +251,14 @@ class Window(Nested):
 
     Window inherits from styles.Styled, so it supports styling.
 
-    '''
+    """
     ACTIVE_WINDOWS = []
 
     CMD = cmds.window
-    _ATTRIBS = ["backgroundColor", "defineTemplate", "docTag", "exists", "height", "iconify", "iconName", "leftEdge", "menuBarVisible", "menuIndex", "mainMenuBar", "minimizeButton", "maximizeButton", "resizeToFitChildren", "sizeable", "title", "titleBar", "titleBarMenu", "topEdge", "toolbox", "topLeftCorner", "useTemplate", "visible", "width", "widthHeight"]
+    _ATTRIBS = ["backgroundColor", "defineTemplate", "docTag", "exists", "height", "iconify", "iconName", "leftEdge",
+                "menuBarVisible", "menuIndex", "mainMenuBar", "minimizeButton", "maximizeButton", "resizeToFitChildren",
+                "sizeable", "title", "titleBar", "titleBarMenu", "topEdge", "toolbox", "topLeftCorner", "useTemplate",
+                "visible", "width", "widthHeight"]
     _CALLBACKS = ["minimizeCommand", "restoreCommand"]
     _READ_ONLY = ["numberOfMenus", "menuArray", "menuBar", "retain"]
 
@@ -268,7 +279,9 @@ class Window(Nested):
 
 
 class BindingWindow(Window):
-
+    """
+    A Window with a built in BindingContext
+    """
     def __init__(self, key, *args, **kwargs):
         super(BindingWindow, self).__init__(key, *args, **kwargs)
         self.bindingContext = BindingContext()
@@ -278,7 +291,7 @@ class BindingWindow(Window):
         return super(BindingWindow, self).__enter__()
 
     def __exit__(self, typ, value, traceback):
-        super(BindingWindow, self). __exit__(typ, value, traceback)
+        super(BindingWindow, self).__exit__(typ, value, traceback)
         self.bindingContext.__exit__(None, None, None)
 
     def update_bindings(self):
