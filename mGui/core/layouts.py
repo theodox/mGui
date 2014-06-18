@@ -53,7 +53,7 @@ class GridLayout(Layout):
                 'numberOfRowsColumns', 'autoGrow', 'position', 'allowEmptyCells', 'cellHeight']
     _CALLBACKS = []
 
-gi
+
 class MenuBarLayout(Layout):
     """Wrapper class for cmds.menuBarLayout"""
     CMD = cmds.menuBarLayout
