@@ -1,7 +1,7 @@
 import sys
-
 import maya.cmds as cmds
 from mGui.core import Control
+import maya.mel as mel
 
 
 class UserCancelledProgress(RuntimeError):
@@ -128,7 +128,6 @@ class MainProgressBar(ProgressBar):
         self.start(interruptable=interruptable)
         try:
             for item in generator:
-                time.sleep(.1)
                 if self.isCancelled:
                     if handler:
                         handler()
