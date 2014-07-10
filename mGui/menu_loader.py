@@ -6,13 +6,31 @@ Allows loading of menus defined in YAML text files
 @note: Depends on the availability of the yaml module (http://pyyaml.org/)
 """
 
+import copy
+import inspect
+import imp
+
+import maya.mel
+
 import mGui.gui as gui
 import yaml
-import copy
-import importlib
-import maya.mel
-import inspect
 
+
+def get_module(modulepath, parent=None):
+    pieces = modulepath.partition(".")
+    packagename = pieces[0]
+    modulepath = pieces[-1] if pieces[-1] != packagename else None
+
+    filename, path, description = imp.find_module(packagename, parent)
+    try:
+        loaded_mod = imp.load_module(packagename, filename, path, description)
+    finally:
+        if filename: filename.close()
+    print "loaded", loaded_mod
+    if modulepath:
+        return get_module(modulepath, loaded_mod.__path__)
+    else:
+        return loaded_mod
 
 # empty command for unbound item
 def nullop(*args, **kwargs):
@@ -90,16 +108,13 @@ class MenuItemProxy(MenuProxy):
         imports.reverse()
         mod = None
         for seg in imports:
-            mod = importlib.import_module(seg)
-
+            mod = get_module(seg)
 
         command = dict(inspect.getmembers(mod))[cmd]
 
         new_item = gui.MenuItem(self.key, **opts)
         cp = CallbackProxy(command, new_item)
         new_item.command += cp
-
-
 
 
 def load_menu(menu_string):
