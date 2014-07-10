@@ -23,7 +23,7 @@ def get_module(modulepath):
 
     Since anybody loading the module could already force loading of arbitrary code, security is not much of an issue.
     '''
-    exec "import {}".format(modulepath)
+    exec "import %s" % modulepath
     return sys.modules[modulepath]
 
 # empty command for unbound item
