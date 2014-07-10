@@ -8,29 +8,23 @@ Allows loading of menus defined in YAML text files
 
 import copy
 import inspect
-import imp
-
+import sys
 import maya.mel
 
 import mGui.gui as gui
 import yaml
 
 
-def get_module(modulepath, parent=None):
-    pieces = modulepath.partition(".")
-    packagename = pieces[0]
-    modulepath = pieces[-1] if pieces[-1] != packagename else None
+def get_module(modulepath):
+    '''
 
-    filename, path, description = imp.find_module(packagename, parent)
-    try:
-        loaded_mod = imp.load_module(packagename, filename, path, description)
-    finally:
-        if filename: filename.close()
-    print "loaded", loaded_mod
-    if modulepath:
-        return get_module(modulepath, loaded_mod.__path__)
-    else:
-        return loaded_mod
+    quick and dirty module import. The hackiness is to make sure that 2.6 and 2.7 python's work identically: importlib
+    is a cleaner alternative but not available in 2.6<
+
+    Since anybody loading the module could already force loading of arbitrary code, security is not much of an issue.
+    '''
+    exec "import {}".format(modulepath)
+    return sys.modules[modulepath]
 
 # empty command for unbound item
 def nullop(*args, **kwargs):
