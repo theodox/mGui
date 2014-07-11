@@ -15,16 +15,6 @@ import mGui.gui as gui
 import yaml
 
 
-def get_module(modulepath):
-    '''
-
-    quick and dirty module import. The hackiness is to make sure that 2.6 and 2.7 python's work identically: importlib
-    is a cleaner alternative but not available in 2.6<
-
-    Since anybody loading the module could already force loading of arbitrary code, security is not much of an issue.
-    '''
-    exec "import %s" % modulepath
-    return sys.modules[modulepath]
 
 # empty command for unbound item
 def nullop(*args, **kwargs):
@@ -102,7 +92,8 @@ class MenuItemProxy(MenuProxy):
         imports.reverse()
         mod = None
         for seg in imports:
-            mod = get_module(seg)
+            print "Importing...", seg
+            mod = import_module(seg, mod)
 
         command = dict(inspect.getmembers(mod))[cmd]
 
@@ -115,3 +106,52 @@ def load_menu(menu_string):
     _main_menu = maya.mel.eval("string $f = $gMainWindow")
     menu_root = yaml.load(menu_string)
     return menu_root.instantiate(_main_menu)
+
+
+
+"""
+Below is a cut-and-paste of the 2.7 importlib module, included so that mGui can work in 2.6 and 2.7.  Luckily it is
+pure python so it 'just works' when cut-and-pasted, and it should cover forseeable Mayas unless/until they
+switch to 3.0
+
+If you know who to credit for this, let me know. I assume the original is (c) the Python Software foundation
+and licensed under the PSF License (https://wiki.python.org/moin/PythonSoftwareFoundationLicenseFaq).
+"""
+
+def _resolve_name(name, package, level):
+    """Return the absolute name of the module to be imported."""
+    if not hasattr(package, 'rindex'):
+        raise ValueError("'package' not set to a string")
+    dot = len(package)
+    for x in xrange(level, 1, -1):
+        try:
+            dot = package.rindex('.', 0, dot)
+        except ValueError:
+            raise ValueError("attempted relative import beyond top-level "
+                              "package")
+    return "%s.%s" % (package[:dot], name)
+
+
+def import_module(name, package=None):
+    """Import a module.
+
+    The 'package' argument is required when performing a relative import. It
+    specifies the package to use as the anchor point from which to resolve the
+    relative import to an absolute import.
+
+    """
+    if name.startswith('.'):
+        if not package:
+            raise TypeError("relative imports require the 'package' argument")
+        level = 0
+        for character in name:
+            if character != '.':
+                break
+            level += 1
+        name = _resolve_name(name[level:], package, level)
+    __import__(name)
+    return sys.modules[name]
+
+'''
+end python foundation code
+'''
