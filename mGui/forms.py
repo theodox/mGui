@@ -23,13 +23,12 @@ However, for less complex UI groups of 100-odd sets of 3 controls (300 total)
 came in under .25s, so it's not a big deal in common cases
 
 '''
-from mGui.core.layouts import FormLayout
-from mGui.styles import CSS, Bounds
-
-import maya.cmds as cmds
 import itertools
 
+import maya.cmds as cmds
 
+from mGui.core.layouts import FormLayout
+from mGui.styles import Bounds
 
 
 class Form(FormLayout):
@@ -70,7 +69,7 @@ class Form(FormLayout):
         '''
         self._fill(ctrl, 'top', 'left', 'bottom', margin=margin)
 
-    def right (self, ctrl, margin=None):
+    def right(self, ctrl, margin=None):
         '''
         dock 'ctrl' along the right side of the form with the supplied margin
         '''
@@ -101,26 +100,25 @@ class Form(FormLayout):
         '''
         returns a list of (control, side, spacing) values used by attachForm style commands
         '''
-        attachments = ([side, self.margin[side]]  for side in sides)
+        attachments = ([side, self.margin[side]] for side in sides)
         ctls = itertools.product(self.Controls, attachments)
-        return [ [a] + b for a, b in ctls]
+        return [[a] + b for a, b in ctls]
 
-    def form_series (self, side):
+    def form_series(self, side):
         '''
         returns a series of (control, side, space, control) for use in serial placement
         '''
         first, second = itertools.tee(self.Controls)
         second.next()
-        return [ (s, side, self.spacing[side], f) for f, s in itertools.izip(first, second)]
+        return [(s, side, self.spacing[side], f) for f, s in itertools.izip(first, second)]
 
     def percentage_series(self, side):
 
-        side2 = {'left':'right', 'right':'left', 'top':'bottom', 'bottom':'top'}[side]
-
+        side2 = {'left': 'right', 'right': 'left', 'top': 'bottom', 'bottom': 'top'}[side]
 
         widths = [i.width for i in self.Controls]
         total_width = sum(widths)
-        proportions = map (lambda q: q * 100.0 / total_width, widths)
+        proportions = map(lambda q: q * 100.0 / total_width, widths)
         p_l = len(proportions)
         left_edges = [sum(proportions[:r]) for r in range(0, p_l)]
         right_edges = [sum(proportions[:r]) for r in range(1, p_l + 1)]
@@ -131,7 +129,7 @@ class Form(FormLayout):
         return ap
 
     def equal_series(self, side):
-        side2 = {'left':'right', 'right':'left', 'top':'bottom', 'bottom':'top'}[side]
+        side2 = {'left': 'right', 'right': 'left', 'top': 'bottom', 'bottom': 'top'}[side]
 
         widths = [1 for each_item in self.Controls]
         total_width = sum(widths)
@@ -160,8 +158,8 @@ class Form(FormLayout):
         if not hasattr(left, '__iter__'): left = (None, left)
         if not hasattr(right, '__iter__'): right = (None, right)
 
-        ac = lambda edge, other, margin : cmds.formLayout(self.Widget, e=True, ac=(ctrl, edge, margin, other))
-        af = lambda edge, ignore, margin:  cmds.formLayout(self.Widget, e=True, af=(ctrl, edge, margin))
+        ac = lambda edge, other, margin: cmds.formLayout(self.Widget, e=True, ac=(ctrl, edge, margin, other))
+        af = lambda edge, ignore, margin: cmds.formLayout(self.Widget, e=True, af=(ctrl, edge, margin))
 
         if top[0]:
             ac('top', *top)
@@ -169,9 +167,9 @@ class Form(FormLayout):
             af('top', *top)
 
         if left[0]:
-                ac('left', *left)
+            ac('left', *left)
         elif left[1]:
-                af('left', *left)
+            af('left', *left)
 
         if bottom[0]:
             ac('bottom', *bottom)
@@ -179,9 +177,9 @@ class Form(FormLayout):
             af('bottom', *bottom)
 
         if right[0]:
-                ac('right', *right)
+            ac('right', *right)
         elif right[1]:
-                af('right', *right)
+            af('right', *right)
 
 
 class LayoutDialogForm(Form):
@@ -190,6 +188,7 @@ class LayoutDialogForm(Form):
     Used with the maya LayoutDialog command, which creates a form for you,
     so you can still use mGui property access.
     '''
+
     def __init__(self, key):
         self.CMD = self.fake_create
         super(LayoutDialogForm, self).__init__(key)
@@ -200,7 +199,7 @@ class LayoutDialogForm(Form):
         return cmds.setParent(q=True)
 
 
-class FillForm (Form):
+class FillForm(Form):
     '''
     Docks the first child so it fills the entire form with the specified margin
     '''
@@ -216,8 +215,8 @@ class VerticalForm(Form):
     Lays out children vertically. The first child is attached to the top of
     the form, all children are attached to the left and right
     '''
-    def layout(self):
 
+    def layout(self):
         if len(self.Controls):
             af = self.form_attachments('left', 'right')
             af.append((self.Controls[0], 'top', self.spacing.top))
@@ -250,8 +249,8 @@ class VerticalExpandForm(Form):
     the form, and the last to the bottom. The last division will expand with the
     form.
     '''
-    def layout(self):
 
+    def layout(self):
         if len(self.Controls):
             af = self.form_attachments('left', 'right')
             af.append((self.Controls[0], 'top', self.spacing.top))
@@ -292,6 +291,7 @@ class HorizontalStretchForm(Form):
             self.attachPosition = ap
         return len(self.Controls)
 
+
 class VerticalStretchForm(Form):
     '''
     Lays out children vertically, with sizes proportional to their original heights
@@ -310,6 +310,7 @@ class VerticalThreePane(Form):
     '''
     First child is glued to the top, last child is glued to the bottom, intermediate childredn are stretched
     '''
+
     def layout(self):
         if len(self.Controls) < 3:
             raise ValueError("VerticalThreePane requires at least 3 children")
@@ -327,6 +328,7 @@ class HorizontalThreePane(Form):
     '''
     First child is glued to the left, last child is glued to the right, intermediate childredn are stretched
     '''
+
     def layout(self):
         if len(self.Controls) < 3:
             raise ValueError("HorizontalThreePane requires at least 3 children")
@@ -344,6 +346,7 @@ class FooterForm(VerticalForm):
     '''
     A vertical layout with two children. The first expands with the container, the second is glued to the bottom
     '''
+
     def layout(self):
         if len(self.Controls) != 2:
             raise ValueError("FooterForm requires at exactly 2 children")
@@ -359,6 +362,7 @@ class HeaderForm(VerticalForm):
     '''
     A vertical layout with two children. The second expands with the container, the first is glued to the top
     '''
+
     def layout(self):
         if len(self.Controls) != 2:
             raise ValueError("FooterForm requires at exactly 2 children")
@@ -369,4 +373,7 @@ class HeaderForm(VerticalForm):
         self.attachControl = (self.Controls[1], 'top', self.spacing.bottom, self.Controls[0])
         return len(self.Controls)
 
-__all__ = ['FillForm', 'VerticalForm', 'HorizontalForm', 'VerticalExpandForm', 'HorizontalExpandForm', 'VerticalStretchForm', 'HorizontalStretchForm', 'HeaderForm', 'FooterForm']
+
+__all__ = ['FillForm', 'VerticalForm', 'HorizontalForm', 'VerticalExpandForm', 'HorizontalExpandForm',
+           'VerticalStretchForm', 'HorizontalStretchForm', 'HorizontalThreePane', 'VerticalThreePane',
+           'HeaderForm', 'FooterForm']
