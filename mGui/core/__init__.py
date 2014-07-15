@@ -168,14 +168,16 @@ class Nested(Control):
         return self
 
     def __exit__(self, typ, value, tb):
-        if typ:
-            import traceback
 
-            print traceback.format_exception(typ, value, tb)
         self.layout()
         Nested.ACTIVE_LAYOUT = self.__cache_layout
         self.__cache_layout = None
-        cmds.setParent("..")
+        abs_parent , sep, _ = self.Widget.rpartition("|")
+        cmds.setParent(abs_parent)
+        if typ:
+            print "Error in GUI Layout"
+            raise
+
 
     def layout(self):
         """
