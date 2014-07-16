@@ -144,6 +144,22 @@ class Control(Styled, BindableObject):
         yield self
 
 
+    @classmethod
+    def from_existing(cls, key, widget):
+        """
+        Create an instance of <cls> from an existing widgets
+        """
+
+        def fake_init(self, *args, **kwargs):
+            return widget
+        _cmd = cls.CMD
+        try:
+            cls.CMD = fake_init
+            return cls(key)
+        finally:
+            cls.CMD = _cmd
+
+
 class Nested(Control):
     """
     Base class for all the nested context-manager classes which automatically parent themselves
@@ -170,7 +186,6 @@ class Nested(Control):
     def __exit__(self, typ, value, tb):
         if typ:
             import traceback
-
             print traceback.format_exception(typ, value, tb)
         self.layout()
         Nested.ACTIVE_LAYOUT = self.__cache_layout
