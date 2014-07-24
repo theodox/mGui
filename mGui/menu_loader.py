@@ -102,6 +102,35 @@ class MenuItemProxy(MenuProxy):
         new_item.command += cp
 
 
+class OptionMenuItemProxy(MenuProxy):
+    yaml_tag = "!MOptionMenuItem"
+
+    def instantiate(self):
+        opts = copy.copy(self.options)
+        opts['label'] = self.label or self.key.replace('_', ' ')
+
+        opts['optionBox'] = True
+
+        module, _, cmd = self.command.rpartition(".")
+        imports = []
+        segments = module.split(".")
+        while segments:
+            imports.append(".".join(segments))
+            segments.pop()
+
+        imports.reverse()
+        mod = None
+        for seg in imports:
+            print "Importing...", seg
+            mod = import_module(seg, mod)
+
+        command = dict(inspect.getmembers(mod))[cmd]
+
+        new_item = gui.MenuItem(self.key, **opts)
+        cp = CallbackProxy(command, new_item)
+        new_item.command += cp
+
+
 def load_menu(menu_string):
     _main_menu = maya.mel.eval("string $f = $gMainWindow")
     menu_root = yaml.load(menu_string)
