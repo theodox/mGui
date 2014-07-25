@@ -143,6 +143,22 @@ class Control(Styled, BindableObject):
     def __iter__(self):
         yield self
 
+    @classmethod
+    def wrap(cls, control_name, key = None):
+
+        def _spoof_create(*args, **kwargs):
+            return control_name
+
+        try:
+            cache_CMD = cls.CMD
+            cls.CMD = _spoof_create
+            key = key or control_name
+            return cls(key, control_name)
+        finally:
+            cls.CMD = cache_CMD
+
+
+
 
 class Nested(Control):
     """
