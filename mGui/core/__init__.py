@@ -48,6 +48,10 @@ typically in __init__ methods.  This problem is ONLY related to reload - if you
 restart Maya rather than using reload() it will disappear.
 """
 
+# use this for condtional checks if there are version differences
+MAYA_VERSION = cmds.about(version=True).split(' ')[0]
+
+
 
 class ControlMeta(type):
     """
