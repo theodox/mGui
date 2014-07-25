@@ -10,6 +10,7 @@ import copy
 import inspect
 import sys
 import maya.mel
+import maya.cmds
 
 import mGui.gui as gui
 import yaml
@@ -59,9 +60,9 @@ class MenuProxy(yaml.YAMLObject):
         setattr(res, 'key', 'Menu_Proxy')
         setattr(res, 'label', '')
         setattr(res, 'items', [])
+        setattr(res, 'after', None)
         setattr(res, 'options', {})
         return res
-
 
     def instantiate(self, parent=None):
         opts = copy.copy(self.options)
@@ -74,13 +75,55 @@ class MenuProxy(yaml.YAMLObject):
         return result
 
 
+class EditMenuProxy(yaml.YAMLObject):
+    yaml_tag = '!MEditMenu'
+
+    def __new__(cls):
+        res = yaml.YAMLObject.__new__(cls)
+        setattr(res, 'key', 'Menu_Proxy')
+        setattr(res, 'label', '')
+        setattr(res, 'items', [])
+        setattr(res, 'options', {})
+        setattr(res, 'preMenuCommand', None)
+        return res
+
+    def instantiate(self, parent=None):
+        opts = copy.copy(self.options)
+        opts['parent'] = parent
+        opts['label'] = self.label or self.key.replace('_', ' ')
+
+        preMenuCommand = self.preMenuCommand or None
+        if preMenuCommand:
+            exec preMenuCommand
+
+        for item in self.items:
+            item.instantiate(parent=self.key)
+
+
+def get_insert_after_item(parent, match_label):
+    result = None
+
+    main_menu = gui.derive(parent)
+    for item in main_menu.Controls:
+        label_item = maya.cmds.menuItem(item, q=True, l=True)
+        if match_label == label_item:
+            result = item
+            break
+
+    return result
+
+
 class MenuItemProxy(MenuProxy):
     yaml_tag = "!MMenuItem"
 
-
-    def instantiate(self):
+    def instantiate(self, parent=None):
         opts = copy.copy(self.options)
         opts['label'] = self.label or self.key.replace('_', ' ')
+        after = self.after
+        if after:
+            insertAfter = get_insert_after_item(parent, after)
+            if insertAfter:
+                opts['insertAfter'] = insertAfter
 
         module, _, cmd = self.command.rpartition(".")
         imports = []
@@ -92,39 +135,12 @@ class MenuItemProxy(MenuProxy):
         imports.reverse()
         mod = None
         for seg in imports:
-            print "Importing...", seg
             mod = import_module(seg, mod)
 
         command = dict(inspect.getmembers(mod))[cmd]
 
-        new_item = gui.MenuItem(self.key, **opts)
-        cp = CallbackProxy(command, new_item)
-        new_item.command += cp
-
-
-class OptionMenuItemProxy(MenuProxy):
-    yaml_tag = "!MOptionMenuItem"
-
-    def instantiate(self):
-        opts = copy.copy(self.options)
-        opts['label'] = self.label or self.key.replace('_', ' ')
-
-        opts['optionBox'] = True
-
-        module, _, cmd = self.command.rpartition(".")
-        imports = []
-        segments = module.split(".")
-        while segments:
-            imports.append(".".join(segments))
-            segments.pop()
-
-        imports.reverse()
-        mod = None
-        for seg in imports:
-            print "Importing...", seg
-            mod = import_module(seg, mod)
-
-        command = dict(inspect.getmembers(mod))[cmd]
+        if parent:
+            maya.cmds.setParent(parent, menu=True)
 
         new_item = gui.MenuItem(self.key, **opts)
         cp = CallbackProxy(command, new_item)

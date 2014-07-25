@@ -28,8 +28,21 @@ __lookup['floatingWindow'] = Window
 __lookup['commandMenuItem'] = MenuItem
 
 
+def _objectTypeUI(widget):
+    '''
+    objectTypeUI in maya 2011 does not reconize menuItems. This is a fix to that issue.
+    '''
+    if cmds.menuItem(widget, q=True, ex=True):
+        widget_type = 'menuItem'
+    else:
+        widget_type = cmds.objectTypeUI(widget)
+
+    return widget_type
+
+
 def derive(widget):
-    widget_type = cmds.objectTypeUI(widget)
+    widget_type = _objectTypeUI(widget)
+
     result = __lookup[widget_type].wrap(widget)
     kids = []
     if isinstance(result, Window):
@@ -41,6 +54,7 @@ def derive(widget):
         kids = result.itemArray or []
     if isinstance(result, OptionMenu):
         kids = result.itemListLong or []
+
     for k in kids:
         result.Controls.append(derive(k))
 
