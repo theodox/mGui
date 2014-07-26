@@ -37,7 +37,11 @@ class CommandInfo(object):
     def __init__(self, name, **flags ):
         self.Name = name
         self.Flags = flags
-    
+
+    def collect_callbacks(self, attribs):
+        callbacks = [c for c in attribs if 'ommand' in c or 'allback' in c]
+        return callbacks
+
     def template(self):
         code = StringIO()
         code.write('class %s(%s):\n' % (self.Name[0].upper() + self.Name[1:], self.INHERITS))
@@ -45,7 +49,7 @@ class CommandInfo(object):
         code.write('    CMD = cmds.%s\n' % self.Name)
         attribs = [k for k in self.Flags.values() if not k in self.DEFAULTS]
         attribs.sort()
-        callbacks = [c for c in attribs if 'ommand' in c or 'allback' in c] 
+        callbacks = self.collect_callbacks(attribs)
         attribs = list(set(attribs) - set(callbacks))
         quoted = lambda p : "'%s'" % p
         attrib_names = map (quoted, attribs)
@@ -70,7 +74,15 @@ class CommandInfo(object):
 class LayoutInfo(CommandInfo):
     DEFAULTS = core.Layout._ATTRIBS + core.Layout._READ_ONLY
     INHERITS = 'Layout'
-    
+
+class PanelInfo(CommandInfo):
+    DEFAULTS = ["control", "copy", "defineTemplate", "docTag", "exists", "init", "isUnique", "label", "menuBarVisible", "needsInit", "parent",  "replacePanel", "tearOff", "tearOffCopy", "unParent", "useTemplate"]
+    INHERITS = 'Control'
+
+    def collect_callbacks(self, attribs):
+        callbacks = [c for c in attribs if 'rocedure' in c or 'allback' in c or 'ommand' in c]
+        return callbacks
+
 
 def generate_controls(filename):
     with open (filename, 'wt') as filehandle:
@@ -98,5 +110,14 @@ def generate_layouts(filename):
                 filehandle.write("# command '%s' not present in this maya" % each_class)
 
 
-                           
-            
+def generate_panels(filename):
+    with open (filename, 'wt') as filehandle:
+        filehandle.write("'''\nmGui wrapper classes\n\nAuto-generated wrapper classes for use with mGui\n'''\n\n")
+        filehandle.write('import maya.cmds as cmds\n')
+        filehandle.write('from .core import Control\n\n')
+        for each_class in constants.PANEL_COMMANDS:
+            try:
+                filehandle.write(PanelInfo.from_command(each_class).template())
+                filehandle.write('\n\n')
+            except RuntimeError:
+                filehandle.write("# command '%s' not present in this maya" % each_class)
