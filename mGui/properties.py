@@ -20,13 +20,21 @@ class CtlProperty (object):
         self.Command = cmd
 
     def __get__(self, obj, objtype):
-        return self.Command(obj.Widget, **{'q':True, self.Flag:True})
+        try:
+            result = self.Command(obj.Widget, **{'q':True, self.Flag:True})
+        except RuntimeError:
+            raise AttributeError("Cannot access property {0} on {1}".format(self.Flag, obj))
+        if result is None and self.Flag.endswith("rray"):
+            result = []
+        return result
 
     def __set__(self, obj, value):
         if not self.Writeable:
             raise AttributeError('attribute .%s is not writable' % self.Flag)
-        return self.Command(obj.Widget, **{'e':True, self.Flag:value})
-
+        try:
+            self.Command(obj.Widget, **{'e':True, self.Flag:value})
+        except RuntimeError:
+            raise AttributeError("Cannot access property {0} on {1}".format(self.Flag, obj))
 
 class CallbackProperty(object):
     '''
@@ -87,7 +95,6 @@ class LateBoundProperty(object):
         self._name = "_" + name
 
     def __create_backstore(self, instance, owner=None):
-        print instance, owner
         if not hasattr(instance, self._name):
             default = None
             if owner and hasattr(owner, self._class_default_string):

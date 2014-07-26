@@ -48,6 +48,10 @@ typically in __init__ methods.  This problem is ONLY related to reload - if you
 restart Maya rather than using reload() it will disappear.
 """
 
+# use this for condtional checks if there are version differences
+MAYA_VERSION = cmds.about(version=True).split(' ')[0]
+
+
 
 class ControlMeta(type):
     """
@@ -143,6 +147,22 @@ class Control(Styled, BindableObject):
     def __iter__(self):
         yield self
 
+    @classmethod
+    def wrap(cls, control_name, key = None):
+
+        def _spoof_create(*args, **kwargs):
+            return control_name
+
+        try:
+            cache_CMD = cls.CMD
+            cls.CMD = _spoof_create
+            key = key or control_name
+            return cls(key, control_name)
+        finally:
+            cls.CMD = cache_CMD
+
+
+
 
     @classmethod
     def from_existing(cls, key, widget):
@@ -184,13 +204,15 @@ class Nested(Control):
         return self
 
     def __exit__(self, typ, value, tb):
-        if typ:
-            import traceback
-            print traceback.format_exception(typ, value, tb)
         self.layout()
         Nested.ACTIVE_LAYOUT = self.__cache_layout
         self.__cache_layout = None
-        cmds.setParent("..")
+        abs_parent , sep, _ = self.Widget.rpartition("|")
+        cmds.setParent(abs_parent)
+        if typ:
+            print "Error in GUI Layout"
+            raise
+
 
     def layout(self):
         """
