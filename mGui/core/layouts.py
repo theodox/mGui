@@ -124,6 +124,11 @@ class TabLayout(Layout):
     _CALLBACKS = ['changeCommand', 'doubleClickCommand', 'preSelectCommand', 'selectCommand']
 
 
+    def layout(self):
+        kids = [(i.Widget, i.Key) for i in self.Controls]
+        self.tabLabel = kids
+        return super(TabLayout, self).layout()
+
 class ToolBar(Layout):
     """Wrapper class for cmds.toolBar"""
     CMD = cmds.toolBar
