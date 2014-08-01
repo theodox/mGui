@@ -405,7 +405,8 @@ class TwoWayBinding(Binding):
     '''
     A two way binding caches the results of the last pull requests from both the
     getter and the setter, and then pushes the value which changed to the value
-    which did not. If both values have changed, the first defined value wins
+    which did not. If both values have changed or neither has changed, the
+    'getter' value wins.
     '''
     def __init__(self, source, target, *extra, **kwargs):
         super(TwoWayBinding, self).__init__(source, target, *extra, **kwargs)
@@ -422,11 +423,17 @@ class TwoWayBinding(Binding):
             setter_val = self.Setter.pull()
             new_setter = setter_val != self._last_setter_value
 
+
             if new_getter and not new_setter:
                 self.Setter.push(self.Translator(getter_val))
                 self._last_setter_value = getter_val
 
             if new_setter and not new_getter:
+                self.Getter.push(self.Translator(setter_val))
+                self._last_getter_value = setter_val
+
+            if not new_getter and not new_setter:
+                # getter wins if both are undefined
                 self.Getter.push(self.Translator(setter_val))
                 self._last_getter_value = setter_val
 
