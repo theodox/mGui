@@ -1,4 +1,5 @@
 import maya.cmds as cmds
+
 from mGui.bindings import BindableObject, BindingContext
 from mGui.styles import Styled
 from mGui.properties import CtlProperty, CallbackProperty
@@ -50,7 +51,6 @@ restart Maya rather than using reload() it will disappear.
 
 # use this for condtional checks if there are version differences
 MAYA_VERSION = cmds.about(version=True).split(' ')[0]
-
 
 
 class ControlMeta(type):
@@ -151,7 +151,7 @@ class Control(Styled, BindableObject):
         yield self
 
     @classmethod
-    def wrap(cls, control_name, key = None):
+    def wrap(cls, control_name, key=None):
 
         def _spoof_create(*args, **kwargs):
             return control_name
@@ -165,8 +165,6 @@ class Control(Styled, BindableObject):
             cls.CMD = cache_CMD
 
 
-
-
     @classmethod
     def from_existing(cls, key, widget):
         """
@@ -175,6 +173,7 @@ class Control(Styled, BindableObject):
 
         def fake_init(self, *args, **kwargs):
             return widget
+
         _cmd = cls.CMD
         try:
             cls.CMD = fake_init
@@ -212,10 +211,9 @@ class Nested(Control):
         self.layout()
         Nested.ACTIVE_LAYOUT = self.__cache_layout
         self.__cache_layout = None
-        abs_parent , sep, _ = self.Widget.rpartition("|")
+        abs_parent, sep, _ = self.Widget.rpartition("|")
         if abs_parent == '': abs_parent = _
         cmds.setParent(abs_parent)
-
 
 
     def layout(self):
@@ -226,8 +224,25 @@ class Nested(Control):
         return len(self.Controls)
 
     def add(self, control):
+        '''
+        Add the supplied control (an mGui object) to the Controls list in this item.  If the control has a unique key,
+        add the key to this object's __dict__.  This allows dot notation access:
+
+            with gui.ColumnLayout('items') as items:
+                gui.Button('first', label = 'a button')
+                gui.Button('second', label = 'another button')
+
+            print items.first.label
+            # a button
+
+        The Controls field contains all of the *phyiscal* widgets under this object (layouts, controls, etc).
+        Non-physical entities -- such as a RadioButtonCollection -- are available with dot notation but *not*
+        in the Controls field. This allows the layout() functions in various layouts to rely on the presence of
+        controls that can be manipulated.
+        '''
+
         path_difference = control.Widget[len(self.Widget):].count('|') - 1
-        if not path_difference:
+        if not path_difference and hasattr(control, 'visible'):
             self.Controls.append(control)
 
         if control.Key and not control.Key[0] == "_":
@@ -323,6 +338,7 @@ class BindingWindow(Window):
     """
     A Window with a built in BindingContext
     """
+
     def __init__(self, key, *args, **kwargs):
         super(BindingWindow, self).__init__(key, *args, **kwargs)
         self.bindingContext = BindingContext()
