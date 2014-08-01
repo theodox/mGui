@@ -87,7 +87,7 @@ class RowLayout(Layout):
                 'adjustableColumn1', 'adjustableColumn2', 'adjustableColumn3', 'adjustableColumn4', 'adjustableColumn5',
                 'adjustableColumn6', 'columnWidth', 'columnOffset1', 'columnOffset2', 'columnOffset3', 'columnOffset4',
                 'columnOffset5', 'columnOffset6', 'columnAttach6', 'columnAttach4', 'columnAttach5', 'columnAttach2',
-                'columnAttach3', 'columnAttach1']
+                'columnAttach3', 'columnAttach1', 'backgroundColor']
     _CALLBACKS = []
 
 
