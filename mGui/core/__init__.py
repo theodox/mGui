@@ -112,6 +112,9 @@ class Control(Styled, BindableObject):
         if 'css' in _style:
             del _style['css']
 
+        if not args:
+            args = (key,)
+
         self.Widget = self.CMD(*args, **_style)
         self.Key = key or "__" + self.Widget.split("|")[-1]
 
@@ -204,14 +207,15 @@ class Nested(Control):
         return self
 
     def __exit__(self, typ, value, tb):
+        if typ:
+            raise
         self.layout()
         Nested.ACTIVE_LAYOUT = self.__cache_layout
         self.__cache_layout = None
         abs_parent , sep, _ = self.Widget.rpartition("|")
+        if abs_parent == '': abs_parent = _
         cmds.setParent(abs_parent)
-        if typ:
-            print "Error in GUI Layout"
-            raise
+
 
 
     def layout(self):
@@ -259,7 +263,7 @@ class Nested(Control):
 
     @classmethod
     def add_current(cls, control):
-        if cls.ACTIVE_LAYOUT:
+        if Nested.ACTIVE_LAYOUT:
             Nested.ACTIVE_LAYOUT.add(control)
 
 
