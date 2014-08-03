@@ -46,7 +46,7 @@ class ExampleTemplate(lists.ItemTemplate):
         with forms.HorizontalExpandForm('tmp_%i' % id(item), parent=self.Parent, width=250,) as root:
                 gui.IconTextButton('delete', style='iconAndTextHorizontal', image='delete', tag=item)
                 with forms.VerticalForm('names'):
-                    gui.NameField(0, object=item, width=250)
+                    gui.NameField(None, object=item, width=250)
                 with forms.VerticalForm('xform'):
                     gui.AttrFieldGrp('t', label='translate', attribute=item + ".t")
 
