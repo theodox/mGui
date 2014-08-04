@@ -19,6 +19,7 @@ import maya.utils as utils
 BREAK_ON_ACCESS_FAILURE = True  # break when an accessor fails (eg, a deleted object)
 BREAK_ON_BIND_FAILURE = False  # break when a binding fails (instead of silently deleting bad binding)
 
+
 class BindingError(ValueError):
     pass
 
@@ -39,6 +40,7 @@ class Accessor(object):
 
     Truth-testing an accessor returns true if the Accessors <Target> exists.
     '''
+
     def __init__(self, datum, fieldName):
         try:
             self.Target = weakref.proxy(datum)
@@ -101,17 +103,18 @@ class Accessor(object):
             return False
 
 
-
     def __str__(self):
         try:
             return "<%s.%s>" % (self.Target, self.FieldName)
         except ReferenceError:
             return "<invalid accessor>"
 
+
 class DictAccessor(Accessor):
     '''
     Accessor for a dictionary entry
     '''
+
     def __init__(self, datum, fieldName):
         self.Target = datum
         self.FieldName = fieldName
@@ -124,7 +127,7 @@ class DictAccessor(Accessor):
 
     @classmethod
     def can_access(cls, datum, fieldname):
-        return isinstance (datum, Mapping) or (hasattr(datum, '__getitem__') and hasattr(datum, '__setitem__'))
+        return isinstance(datum, Mapping) or (hasattr(datum, '__getitem__') and hasattr(datum, '__setitem__'))
 
 
 class PyNodeAccessor(Accessor):
@@ -140,7 +143,7 @@ class PyNodeAccessor(Accessor):
 
     @classmethod
     def can_access(cls, datum, fieldname):
-        return  hasattr(datum, '__melcmd__') and hasattr(datum, fieldname)
+        return hasattr(datum, '__melcmd__') and hasattr(datum, fieldname)
 
 
 class PyAttributeAccessor(Accessor):
@@ -149,6 +152,7 @@ class PyAttributeAccessor(Accessor):
 
     Note this creates a _strong_ reference to the attribute, so it may leak
     '''
+
     def __init__(self, datum, fieldname):
         pyAttr = datum
         self.Target = pyAttr.node()
@@ -166,12 +170,14 @@ class PyAttributeAccessor(Accessor):
     def can_access(cls, datum, fieldname):
         return 'Attribute' in datum.__class__.__name__
 
+
 class CmdsAccessor(Accessor):
     '''
     Accessor for a maya attribute string
 
     Unlike the other accessors the target is just a string, not a weakref
     '''
+
     def __init__(self, datum, fieldName):
         self.Target = str(datum)
         self.FieldName = str(fieldName)
@@ -192,10 +198,12 @@ class CmdsAccessor(Accessor):
         except TypeError:
             return False
 
+
 class MethodAccessor(Accessor):
     '''
     Accessor for a method
     '''
+
     def _set(self, *args, **kwargs):
         getattr(self.Target, self.FieldName)(*args, **kwargs)
 
@@ -228,7 +236,8 @@ class AccessorFactory(object):
 
     def __init__(self, *accessorClasses):
 
-        self.Tests = [cls for cls in accessorClasses] + [PyAttributeAccessor, PyNodeAccessor, Accessor, MethodAccessor, DictAccessor, CmdsAccessor]
+        self.Tests = [cls for cls in accessorClasses] + [PyAttributeAccessor, PyNodeAccessor, Accessor, MethodAccessor,
+                                                         DictAccessor, CmdsAccessor]
 
     def accessor_class(self, *args):
         '''
@@ -243,7 +252,9 @@ class AccessorFactory(object):
                 return fclass
         return None
 
+
 _DEFAULT_FACTORY = AccessorFactory()
+
 
 def get_accessor(datum, fieldname=None, factory_class=None):
     '''
@@ -267,8 +278,7 @@ def get_accessor(datum, fieldname=None, factory_class=None):
     if target_class:
         return target_class(site, fieldname)
 
-    raise BindingError ('%s is not a bindable attribute of %s' % (fieldname, site))
-
+    raise BindingError('%s is not a bindable attribute of %s' % (fieldname, site))
 
 
 class BindingContext(object):
@@ -317,7 +327,7 @@ class BindingContext(object):
                 item.update(recurse)
         return len(self.Bindings)
 
-
+        self.update()
 
     @classmethod
     def add(cls, binding):
@@ -354,6 +364,10 @@ class Binding(object):
         BindingContext.add(self)
         if hasattr(self.Getter.Target, 'bindings'):
             self.Getter.Target.bindings.append(self)
+            if hasattr(self.Getter.Target, "_BIND_TRIGGER"):
+                cb = getattr(self.Getter.Target, self.Getter.Target._BIND_TRIGGER)
+                cb += self.proxy_update
+
         if hasattr(self.Setter.Target, 'bindings'):
             self.Setter.Target.bindings.append(self)
 
@@ -385,6 +399,7 @@ class Binding(object):
         transient failures you'd want to make sure its __call__ would always
         return a True value
         '''
+
         def safe_binding():
             if self.__nonzero__() == False: return False
 
@@ -395,11 +410,16 @@ class Binding(object):
 
             except (ReferenceError, BindingError, RuntimeError):
                 if BREAK_ON_BIND_FAILURE:
-                    raise BindingError ("Bind failure: %s" % str(sys.exc_info()[1]))
+                    raise BindingError("Bind failure: %s" % str(sys.exc_info()[1]))
                 return False
-        return(safe_binding())
+
+        return (safe_binding())
         # this causes a hang
         # return utils.executeInMainThreadWithResult(safe_binding)
+
+    def proxy_update(self, *args, **kwargs):
+        self.__call__()
+
 
 class TwoWayBinding(Binding):
     '''
@@ -408,8 +428,12 @@ class TwoWayBinding(Binding):
     which did not. If both values have changed or neither has changed, the
     'getter' value wins.
     '''
+
     def __init__(self, source, target, *extra, **kwargs):
         super(TwoWayBinding, self).__init__(source, target, *extra, **kwargs)
+        if hasattr(self.Setter.Target, "_BIND_TRIGGER"):
+            cb = getattr(self.Setter.Target, self.Setter.Target._BIND_TRIGGER)
+            cb += self.proxy_update
         self._last_getter_value = self.Getter.pull()
         self._last_setter_value = self.Setter.pull()
 
@@ -422,7 +446,6 @@ class TwoWayBinding(Binding):
             new_getter = getter_val != self._last_getter_value
             setter_val = self.Setter.pull()
             new_setter = setter_val != self._last_setter_value
-
 
             if new_getter and not new_setter:
                 self.Setter.push(self.Translator(getter_val))
@@ -446,8 +469,9 @@ class TwoWayBinding(Binding):
 
         except (ReferenceError, BindingError, RuntimeError):
             if BREAK_ON_BIND_FAILURE:
-                raise BindingError ("Bind failure: %s" % str(sys.exc_info()[1]))
+                raise BindingError("Bind failure: %s" % str(sys.exc_info()[1]))
             return False
+
 
 class BindingExpression(object):
     '''
@@ -504,6 +528,7 @@ class BindingExpression(object):
 
     for the same result.s
     '''
+
     def __gt__(self, other):
         self.Right = self._flatten(other, target=True)
         if self.Left and self.Right:
@@ -577,9 +602,9 @@ bind = BindingExpression
 This is a cheap alias to make the typing less onerous
 '''
 
-#============================================================================================
+# ============================================================================================
 
-class Bindable (object):
+class Bindable(object):
     '''
     A Mixin class that adds a binding syntax to an object.
 
@@ -618,6 +643,7 @@ class Bindable (object):
         '''
         Used as dummy to allow  object.bind.property creation of bindProxies
         '''
+
         def __init__(self, owner):
             self.Owner = owner
 
@@ -625,7 +651,7 @@ class Bindable (object):
             if name != 'Owner':
                 if hasattr(self.Owner, name):
                     return BindProxy(self.Owner, name)
-            raise BindingError ("Object %s does not have a bindable attribute named %s" % (self.Owner, name))
+            raise BindingError("Object %s does not have a bindable attribute named %s" % (self.Owner, name))
 
     class ProxyFactoryProperty(object):
         '''
@@ -654,8 +680,7 @@ class Bindable (object):
 
            object.bind.property
         '''
-        return BindProxy (self, name)
-
+        return BindProxy(self, name)
 
 
 class BindableObject(Bindable):
