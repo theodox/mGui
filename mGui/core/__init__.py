@@ -110,10 +110,19 @@ class Control(Styled, BindableObject):
 
         _style.update(kwargs)
         if 'css' in _style:
+            css = _style['css']
+            if 'html' in css and 'label' in _style:
+                _style['label'] = css['html'](_style['label'])
             del _style['css']
 
         if not args:
             args = (key,)
+
+        # if the style dict contains an 'html' keyword, treate it as a
+        # callable which modifies the incoming 'label'
+        print _style
+
+
 
         self.Widget = self.CMD(*args, **_style)
         self.Key = key or "__" + self.Widget.split("|")[-1]
