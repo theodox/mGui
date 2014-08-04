@@ -50,6 +50,7 @@ class AttrControlGrp(Labeled):
     CMD = cmds.attrControlGrp
     _ATTRIBS = ['attribute', 'handlesAttribute', 'label', 'hideMapButton']
     _CALLBACKS = ['changeCommand']
+    _BIND_TRIGGER = 'changeCommand'
 
 
 class AttrFieldGrp(Labeled):
@@ -63,6 +64,7 @@ class AttrFieldGrp(Labeled):
                 'columnOffset2', 'columnOffset3', 'columnOffset4', 'columnOffset5', 'columnOffset6', 'columnAttach6',
                 'columnAttach4', 'columnAttach5', 'columnAttach2', 'columnAttach3']
     _CALLBACKS = ['changeCommand']
+    _BIND_TRIGGER = 'changeCommand'
 
 
 class AttrFieldSliderGrp(Labeled):
@@ -77,6 +79,7 @@ class AttrFieldSliderGrp(Labeled):
                 'columnOffset4', 'columnOffset5', 'columnOffset6', 'columnAttach6', 'columnAttach4', 'columnAttach5',
                 'columnAttach2', 'columnAttach3']
     _CALLBACKS = ['changeCommand']
+    _BIND_TRIGGER = 'changeCommand'
 
 
 class AttrNavigationControlGrp(Labeled):
@@ -119,7 +122,9 @@ class CheckBox(Control):
     CMD = cmds.checkBox
     _ATTRIBS = ['recomputeSize', 'align', 'editable', 'value', 'label']
     _CALLBACKS = ['changeCommand', 'offCommand', 'onCommand']
-
+    _BIND_TRIGGER = 'changeCommand'
+    _BIND_SRC = 'value'
+    _BIND_TGT = 'value'
 
 class CheckBoxGrp(Labeled):
     """Wrapper class for cmds.checkBoxGrp"""
@@ -135,6 +140,7 @@ class CheckBoxGrp(Labeled):
     _CALLBACKS = ['changeCommand', 'changeCommand1', 'changeCommand2', 'changeCommand3', 'changeCommand4', 'offCommand',
                   'offCommand1', 'offCommand2', 'offCommand3', 'offCommand4', 'onCommand', 'onCommand1', 'onCommand2',
                   'onCommand3', 'onCommand4']
+    _BIND_TRIGGER = 'changeCommand'
 
 
 class CmdScrollFieldExecuter(Control):
@@ -177,6 +183,9 @@ class ColorIndexSliderGrp(Labeled):
                 'columnOffset4', 'columnOffset5', 'columnOffset6', 'columnAttach6', 'columnAttach4', 'columnAttach5',
                 'columnAttach2', 'columnAttach3']
     _CALLBACKS = ['changeCommand', 'dragCommand']
+    _BIND_TRIGGER = 'changeCommand'
+    _BIND_SRC = 'value'
+    _BIND_TGT = 'value'
 
 
 class ColorSliderButtonGrp(Labeled):
@@ -190,7 +199,9 @@ class ColorSliderButtonGrp(Labeled):
                 'columnOffset5', 'columnOffset6', 'rgbValue', 'symbolButtonDisplay', 'columnAttach4', 'columnAttach5',
                 'columnAttach2', 'columnAttach3']
     _CALLBACKS = ['buttonCommand', 'changeCommand', 'dragCommand', 'symbolButtonCommand']
-
+    _BIND_TRIGGER = 'changeCommand'
+    _BIND_SRC = 'rgbValue'
+    _BIND_TGT = 'rgbValue'
 
 class ColorSliderGrp(Labeled):
     """Wrapper class for cmds.colorSliderGrp"""
@@ -202,7 +213,9 @@ class ColorSliderGrp(Labeled):
                 'columnWidth', 'adjustableColumn6', 'columnOffset2', 'columnOffset3', 'columnOffset4', 'columnOffset5',
                 'columnOffset6', 'rgbValue', 'columnAttach4', 'columnAttach5', 'columnAttach2', 'columnAttach3']
     _CALLBACKS = ['changeCommand', 'dragCommand']
-
+    _BIND_TRIGGER = 'changeCommand'
+    _BIND_SRC = 'rgbValue'
+    _BIND_TGT = 'rgbValue'
 
 class CommandLine(Control):
     """Wrapper class for cmds.commandLine"""
@@ -223,7 +236,9 @@ class FloatField(Control):
     CMD = cmds.floatField
     _ATTRIBS = ['editable', 'precision', 'value', 'maxValue', 'step', 'minValue']
     _CALLBACKS = ['changeCommand', 'dragCommand', 'enterCommand', 'receiveFocusCommand']
-
+    _BIND_TRIGGER = 'changeCommand'
+    _BIND_SRC = 'value'
+    _BIND_TGT = 'value'
 
 class FloatFieldGrp(Labeled):
     """Wrapper class for cmds.floatFieldGrp"""
@@ -236,28 +251,36 @@ class FloatFieldGrp(Labeled):
                 'columnWidth', 'value', 'columnOffset2', 'columnOffset3', 'columnOffset4', 'columnOffset5',
                 'columnOffset6', 'columnAttach6', 'columnAttach4', 'columnAttach5', 'columnAttach2', 'columnAttach3']
     _CALLBACKS = ['changeCommand', 'dragCommand']
-
+    _BIND_TRIGGER = 'changeCommand'
+    _BIND_SRC = 'value'
+    _BIND_TGT = 'value'
 
 class FloatScrollBar(Control):
     """Wrapper class for cmds.floatScrollBar"""
     CMD = cmds.floatScrollBar
     _ATTRIBS = ['largeStep', 'maxValue', 'value', 'minValue', 'step', 'horizontal']
     _CALLBACKS = ['changeCommand', 'dragCommand']
-
+    _BIND_TRIGGER = 'changeCommand'
+    _BIND_SRC = 'value'
+    _BIND_TGT = 'value'
 
 class FloatSlider(Control):
     """Wrapper class for cmds.floatSlider"""
     CMD = cmds.floatSlider
     _ATTRIBS = ['horizontal', 'step', 'maxValue', 'value', 'minValue']
     _CALLBACKS = ['changeCommand', 'dragCommand']
-
+    _BIND_TRIGGER = 'changeCommand'
+    _BIND_SRC = 'value'
+    _BIND_TGT = 'value'
 
 class FloatSlider2(Control):
     """Wrapper class for cmds.floatSlider2"""
     CMD = cmds.floatSlider2
     _ATTRIBS = ['horizontal', 'step', 'maxValue', 'value', 'minValue']
     _CALLBACKS = ['changeCommand', 'dragCommand']
-
+    _BIND_TRIGGER = 'changeCommand'
+    _BIND_SRC = 'value'
+    _BIND_TGT = 'value'
 
 class FloatSliderButtonGrp(Labeled):
     """Wrapper class for cmds.floatSliderButtonGrp"""
@@ -271,7 +294,9 @@ class FloatSliderButtonGrp(Labeled):
                 'columnOffset6', 'columnAttach6', 'symbolButtonDisplay', 'columnAttach4', 'columnAttach5',
                 'columnAttach2', 'columnAttach3']
     _CALLBACKS = ['buttonCommand', 'changeCommand', 'dragCommand', 'symbolButtonCommand']
-
+    _BIND_TRIGGER = 'changeCommand'
+    _BIND_SRC = 'value'
+    _BIND_TGT = 'value'
 
 class FloatSliderGrp(Labeled):
     """Wrapper class for cmds.floatSliderGrp"""
@@ -284,7 +309,9 @@ class FloatSliderGrp(Labeled):
                 'adjustableColumn6', 'columnOffset2', 'fieldStep', 'columnOffset4', 'columnOffset5', 'columnOffset6',
                 'columnAttach6', 'columnAttach4', 'columnAttach5', 'columnAttach2', 'columnAttach3']
     _CALLBACKS = ['changeCommand', 'dragCommand']
-
+    _BIND_TRIGGER = 'changeCommand'
+    _BIND_SRC = 'value'
+    _BIND_TGT = 'value'
 
 class GradientControl(Control):
     """Wrapper class for cmds.gradientControl"""
@@ -301,6 +328,7 @@ class GradientControlNoAttr(Control):
     _ATTRIBS = ['currentKeyColorValue', 'currentKeyChanged', 'rampAsColor', 'optionVar', 'currentKeyCurveValue',
                 'valueAtPoint', 'asString', 'currentKeyInterpValue', 'currentKey']
     _CALLBACKS = ['changeCommand', 'dragCommand']
+    _BIND_TRIGGER = 'changeCommand'
 
 
 class HelpLine(Control):
@@ -325,7 +353,9 @@ class HudSlider(Control):
                 'valueFontSize', 'sliderLength', 'maxValue', 'value', 'minValue', 'padding', 'valueWidth', 'block',
                 'sliderIncrement', 'allowOverlap', 'label', 'type', 'section', 'blockAlignment']
     _CALLBACKS = ['dragCommand', 'pressCommand', 'releaseCommand']
-
+    _BIND_SRC = 'value'
+    _BIND_TGT = 'value'
+    _BIND_TRIGGER = 'releaseCommand'
 
 class HudSliderButton(Control):
     """Wrapper class for cmds.hudSliderButton"""
@@ -336,7 +366,9 @@ class HudSliderButton(Control):
                 'sliderLabelWidth', 'value', 'valueWidth', 'buttonWidth', 'block']
     _CALLBACKS = ['buttonPressCommand', 'buttonReleaseCommand', 'sliderDragCommand', 'sliderPressCommand',
                   'sliderReleaseCommand']
-
+    _BIND_SRC = 'value'
+    _BIND_TGT = 'value'
+    _BIND_TRIGGER = 'sliderReleaseCommand'
 
 class IconTextButton(Control):
     """Wrapper class for cmds.iconTextButton"""
@@ -355,6 +387,9 @@ class IconTextCheckBox(Control):
                 'highlightImage', 'image1', 'selectionHighlightImage', 'label', 'value', 'selectionImage', 'align',
                 'image3', 'marginWidth', 'labelOffset', 'image2', 'disabledImage', 'font', 'image']
     _CALLBACKS = ['changeCommand', 'offCommand', 'onCommand']
+    _BIND_TRIGGER = 'changeCommand'
+    _BIND_SRC = 'value'
+    _BIND_TGT = 'value'
 
 
 class IconTextRadioButton(Control):
@@ -364,6 +399,9 @@ class IconTextRadioButton(Control):
                 'highlightImage', 'image1', 'selectionHighlightImage', 'label', 'collection', 'selectionImage', 'align',
                 'image3', 'marginWidth', 'labelOffset', 'image2', 'disabledImage', 'font', 'image', 'select']
     _CALLBACKS = ['changeCommand', 'offCommand', 'onCommand']
+    _BIND_TRIGGER = 'changeCommand'
+    _BIND_SRC = 'select'
+    _BIND_TGT = 'select'
 
 
 class IconTextRadioCollection(Control):
@@ -371,6 +409,18 @@ class IconTextRadioCollection(Control):
     CMD = cmds.iconTextRadioCollection
     _ATTRIBS = ['collectionItemArray', 'global', 'numberOfCollectionItems', 'select']
     _CALLBACKS = ['disableCommands']
+    _BIND_SRC = 'select'
+    _BIND_TGT = 'select'
+
+    def __enter__(self):
+        return self
+
+    def __exit__(self, exc_type, exc_val, exc_tb):
+        if exc_val:
+            raise
+        for item in self.collectionItemArray:
+            IconTextRadioButton.wrap(item).changeCommand += self.bindings[0].proxy_update
+
 
 
 class IconTextScrollList(Control):
@@ -379,6 +429,9 @@ class IconTextScrollList(Control):
     _ATTRIBS = ['deselectAll', 'allowMultiSelection', 'dragFeedbackVisible', 'editIndexed', 'selectItem', 'itemAt',
                 'visualRectAt', 'numberOfIcons', 'editable', 'numberOfRows', 'removeAll', 'selectIndexedItem', 'append']
     _CALLBACKS = ['changeCommand', 'doubleClickCommand', 'dropRectCallback', 'selectCommand']
+    _BIND_TRIGGER = 'changeCommand'
+    _BIND_SRC = 'selectItem'
+    _BIND_TGT = 'selectItem'
 
 
 class IconTextStaticLabel(Control):
@@ -388,6 +441,8 @@ class IconTextStaticLabel(Control):
                 'image3', 'marginWidth', 'image', 'labelOffset', 'image2', 'image1', 'marginHeight',
                 'overlayLabelColor']
     _CALLBACKS = []
+    _BIND_SRC = 'label'
+    _BIND_TGT = 'label'
 
 
 class Image(Control):
@@ -402,6 +457,9 @@ class IntField(Control):
     CMD = cmds.intField
     _ATTRIBS = ['step', 'editable', 'maxValue', 'value', 'minValue']
     _CALLBACKS = ['changeCommand', 'dragCommand', 'enterCommand', 'receiveFocusCommand']
+    _BIND_TRIGGER = 'changeCommand'
+    _BIND_SRC = 'value'
+    _BIND_TGT = 'value'
 
 
 class IntFieldGrp(Labeled):
@@ -415,6 +473,9 @@ class IntFieldGrp(Labeled):
                 'columnWidth', 'value', 'columnOffset2', 'columnOffset3', 'columnOffset4', 'columnOffset5',
                 'columnOffset6', 'columnAttach6', 'columnAttach4', 'columnAttach5', 'columnAttach2', 'columnAttach3']
     _CALLBACKS = ['changeCommand', 'dragCommand']
+    _BIND_TRIGGER = 'changeCommand'
+    _BIND_SRC = 'value'
+    _BIND_TGT = 'value'
 
 
 class IntScrollBar(Control):
@@ -422,6 +483,9 @@ class IntScrollBar(Control):
     CMD = cmds.intScrollBar
     _ATTRIBS = ['largeStep', 'maxValue', 'value', 'minValue', 'step', 'horizontal']
     _CALLBACKS = ['changeCommand', 'dragCommand']
+    _BIND_TRIGGER = 'changeCommand'
+    _BIND_SRC = 'value'
+    _BIND_TGT = 'value'
 
 
 class IntSlider(Control):
@@ -429,6 +493,9 @@ class IntSlider(Control):
     CMD = cmds.intSlider
     _ATTRIBS = ['horizontal', 'step', 'maxValue', 'value', 'minValue']
     _CALLBACKS = ['changeCommand', 'dragCommand']
+    _BIND_TRIGGER = 'changeCommand'
+    _BIND_SRC = 'value'
+    _BIND_TGT = 'value'
 
 
 class IntSliderGrp(Labeled):
@@ -442,6 +509,7 @@ class IntSliderGrp(Labeled):
                 'columnOffset2', 'fieldStep', 'columnOffset4', 'columnOffset5', 'columnOffset6', 'columnAttach6',
                 'columnAttach4', 'columnAttach5', 'columnAttach2', 'columnAttach3']
     _CALLBACKS = ['changeCommand', 'dragCommand']
+    _BIND_TRIGGER = 'changeCommand'
 
 
 class LayerButton(Control):
@@ -450,6 +518,7 @@ class LayerButton(Control):
     _ATTRIBS = ['labelWidth', 'name', 'layerVisible', 'color', 'label', 'current', 'layerState', 'identification',
                 'transparent', 'select']
     _CALLBACKS = ['command', 'changeCommand', 'doubleClickCommand', 'renameCommand', 'typeCommand', 'visibleCommand']
+    _BIND_TRIGGER = 'changeCommand'
 
 
 class MessageLine(Control):
@@ -464,7 +533,9 @@ class NameField(Control):
     CMD = cmds.nameField
     _ATTRIBS = ['object']
     _CALLBACKS = ['changeCommand', 'nameChangeCommand', 'receiveFocusCommand']
-
+    _BIND_TRIGGER = 'changeCommand'
+    _BIND_SRC = 'object'
+    _BIND_TGT = 'object'
 
 class NodeTreeLister(Control):
     """Wrapper class for cmds.nodeTreeLister"""
@@ -481,6 +552,7 @@ class PalettePort(Control):
     _ATTRIBS = ['colorEditable', 'colorEdited', 'hsvValue', 'setCurCell', 'topDown', 'editable', 'actualTotal',
                 'rgbValue', 'redraw', 'transparent', 'dimensions']
     _CALLBACKS = ['changeCommand']
+    _BIND_TRIGGER = 'changeCommand'
 
 
 class Picture(Control):
@@ -496,7 +568,9 @@ class RadioButton(Control):
     CMD = cmds.radioButton
     _ATTRIBS = ['align', 'editable', 'collection', 'label', 'recomputeSize', 'data', 'select']
     _CALLBACKS = ['changeCommand', 'offCommand', 'onCommand']
-
+    _BIND_TRIGGER = 'changeCommand'
+    _BIND_SRC = 'value'
+    _BIND_TGT = 'value'
 
 class RadioButtonGrp(Labeled):
     """Wrapper class for cmds.radioButtonGrp"""
@@ -512,6 +586,7 @@ class RadioButtonGrp(Labeled):
     _CALLBACKS = ['changeCommand', 'changeCommand1', 'changeCommand2', 'changeCommand3', 'changeCommand4', 'offCommand',
                   'offCommand1', 'offCommand2', 'offCommand3', 'offCommand4', 'onCommand', 'onCommand1', 'onCommand2',
                   'onCommand3', 'onCommand4']
+    _BIND_TRIGGER = 'changeCommand'
 
 
 class RadioCollection(Control):
@@ -521,11 +596,25 @@ class RadioCollection(Control):
     _CALLBACKS = []
 
 
+    def __enter__(self):
+        return self
+
+    def __exit__(self, exc_type, exc_val, exc_tb):
+        if exc_val:
+            raise
+        for item in self.collectionItemArray:
+            RadioButton.wrap(item).changeCommand += self.bindings.proxy_update
+
+
+
+
+
 class RangeControl(Control):
     """Wrapper class for cmds.rangeControl"""
     CMD = cmds.rangeControl
     _ATTRIBS = ['maxRange', 'minRange', 'widthHeight']
     _CALLBACKS = ['changedCommand']
+    _BIND_TRIGGER = 'changedCommand'
 
 
 class ScriptTable(Control):
@@ -542,6 +631,7 @@ class ScrollField(Control):
     _ATTRIBS = ['insertText', 'selection', 'insertionPosition', 'numberOfLines', 'text', 'clear', 'editable', 'command',
                 'wordWrap', 'font']
     _CALLBACKS = ['changeCommand', 'enterCommand', 'keyPressCommand']
+    _BIND_TRIGGER = 'changeCommand'
 
 
 class Separator(Control):
@@ -596,6 +686,7 @@ class SymbolCheckBox(Control):
     _CALLBACKS = ['changeCommand', 'offCommand', 'onCommand']
     _BIND_SRC = 'value'
     _BIND_TGT = 'value'
+    _BIND_TRIGGER = 'changeCommand'
 
 
 class Text(Control):
@@ -614,6 +705,7 @@ class TextField(Control):
     _CALLBACKS = ['alwaysInvokeEnterCommandOnReturn', 'changeCommand', 'enterCommand', 'receiveFocusCommand']
     _BIND_SRC = 'text'
     _BIND_TGT = 'text'
+    _BIND_TRIGGER = 'changeCommand'
 
 
 class TextFieldButtonGrp(Labeled):
@@ -629,6 +721,7 @@ class TextFieldButtonGrp(Labeled):
     _CALLBACKS = ['buttonCommand', 'changeCommand', 'forceChangeCommand']
     _BIND_SRC = 'text'
     _BIND_TGT = 'text'
+    _BIND_TRIGGER = 'changeCommand'
 
 
 class TextFieldGrp(Labeled):
@@ -644,6 +737,7 @@ class TextFieldGrp(Labeled):
     _CALLBACKS = ['changeCommand', 'forceChangeCommand']
     _BIND_SRC = 'text'
     _BIND_TGT = 'text'
+    _BIND_TRIGGER = 'changeCommand'
 
 
 class TextScrollList(Control):
@@ -654,6 +748,9 @@ class TextScrollList(Control):
                 'removeIndexedItem', 'append', 'removeItem', 'numberOfSelectedItems', 'allItems', 'deselectIndexedItem',
                 'numberOfItems']
     _CALLBACKS = ['deleteKeyCommand', 'doubleClickCommand', 'selectCommand']
+    _BIND_TRIGGER = 'selectCommand'
+    _BIND_SRC = 'selectItem'
+    _BIND_TGT = 'selectItem'
 
 
 class TimeControl(Control):
@@ -677,6 +774,7 @@ class ToolButton(Control):
                 'toolImage1', 'toolImage3', 'toolImage2', 'image3', 'image2', 'image1', 'popupIndicatorVisible',
                 'select']
     _CALLBACKS = ['changeCommand', 'doubleClickCommand', 'offCommand', 'onCommand']
+    _BIND_TRIGGER = 'changeCommand'
 
 
 class ToolCollection(Control):
@@ -709,5 +807,6 @@ class TreeView(Control):
     _CALLBACKS = ['contextMenuCommand', 'dragAndDropCommand', 'editLabelCommand', 'expandCollapseCommand',
                   'itemDblClickCommand', 'itemRenamedCommand', 'pressCommand', 'rightPressCommand', 'selectCommand',
                   'selectionChangedCommand']
+    _BIND_TRIGGER = 'selectionChangedCommand'
 
 
