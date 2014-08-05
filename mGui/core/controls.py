@@ -419,7 +419,9 @@ class IconTextRadioCollection(Control):
         if exc_val:
             raise
         for item in self.collectionItemArray:
-            IconTextRadioButton.wrap(item).changeCommand += self.bindings[0].proxy_update
+            proxy =  IconTextRadioButton.wrap(item)
+            for each_binding in self.bindings:
+                proxy.changeCommand += each_binding.proxy_update
 
 
 
@@ -603,7 +605,10 @@ class RadioCollection(Control):
         if exc_val:
             raise
         for item in self.collectionItemArray:
-            RadioButton.wrap(item).changeCommand += self.bindings.proxy_update
+            proxy = RadioButton.wrap(item)
+            for each_binding in self.bindings:
+                proxy.changeCommand += each_binding.proxy_update
+
 
 
 
