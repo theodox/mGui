@@ -312,6 +312,12 @@ class Window(Nested):
 
     Window inherits from styles.Styled, so it supports styling.
 
+    @note:
+    in Maya 2011 (only, AFAIK) a sizeable = False parameter mis-behaves when
+    the window contains a TabLayout which in turn contains a FormLayout. If
+    you have to have to use a TabLayout in 2011, don't use any derivative
+    of forms, or set 'sizeable' to TRUE.  Bug is not present in 2014 +, not sure
+    about 2012 or 2013
     """
     ACTIVE_WINDOWS = []
 
