@@ -2,9 +2,10 @@
 Observable.py
 @author: stevetheodore
 '''
-from mGui.events import Event, MayaEvent
-from mGui.bindings import BindableObject
 import maya.utils as utils
+
+from mGui.events import MayaEvent
+from mGui.bindings import BindableObject
 
 
 class ObservableCollection(BindableObject):
@@ -56,7 +57,7 @@ class ObservableCollection(BindableObject):
         Add items to the collection, with notifications.
         '''
         if len(additions):
-            for each_new  in additions:
+            for each_new in additions:
                 self._Internal_Collection.append(each_new)
                 self.ItemAdded(each_new, len(self._Internal_Collection) - 1)
             self.update_bindings()
@@ -198,7 +199,7 @@ class BoundCollection(BindableObject):
 
         def safe_create_gui():
             for d in deletions:
-                del(self._Public_Collecton[d])
+                del (self._Public_Collecton[d])
             for a in additions:
                 templated = self.Conversion(a)
                 self._Public_Collecton[a] = templated.Widget

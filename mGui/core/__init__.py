@@ -107,9 +107,14 @@ class Control(Styled, BindableObject):
         # this applies any keywords in the current style that are part of the Maya gui flags
         # other flags (like float and margin) are ignored
         _style = dict((k, v) for k, v in self.Style.items() if k in self._ATTRIBS or k in Control._ATTRIBS)
-
         _style.update(kwargs)
+
+        # if the style dict contains an 'html' keyword, treate it as a
+        # callable which modifies the incoming 'label'
         if 'css' in _style:
+            css = _style['css']
+            if 'html' in css and 'label' in _style:
+                _style['label'] = css['html'](_style['label'])
             del _style['css']
 
         if not args:

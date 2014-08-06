@@ -97,7 +97,6 @@ class FormList(object):
                 if len(self.Controls):
                     fudge = self.Controls[0].height * (len(self.Controls) + 1)
                 self.height = fudge
-
             self.layout()
         finally:
             cmds.waitCursor(st=0)
