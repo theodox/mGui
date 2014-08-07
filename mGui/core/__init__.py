@@ -212,7 +212,7 @@ class Nested(Control):
 
     def __exit__(self, typ, value, tb):
         if typ:
-            raise
+            raise NameError('Nested failed due to no typ')
         self.layout()
         Nested.ACTIVE_LAYOUT = self.__cache_layout
         self.__cache_layout = None

@@ -117,34 +117,40 @@ class MenuItemProxy(MenuProxy):
     yaml_tag = "!MMenuItem"
 
     def instantiate(self, parent=None):
-        opts = copy.copy(self.options)
-        opts['label'] = self.label or self.key.replace('_', ' ')
-        after = self.after
-        if after:
-            insertAfter = get_insert_after_item(parent, after)
-            if insertAfter:
-                opts['insertAfter'] = insertAfter
+        try:
+            opts = copy.copy(self.options)
+            opts['label'] = self.label or self.key.replace('_', ' ')
+            after = self.after
+            if after:
+                insertAfter = get_insert_after_item(parent, after)
+                if insertAfter:
+                    opts['insertAfter'] = insertAfter
 
-        module, _, cmd = self.command.rpartition(".")
-        imports = []
-        segments = module.split(".")
-        while segments:
-            imports.append(".".join(segments))
-            segments.pop()
+            module, _, cmd = self.command.rpartition(".")
+            imports = []
+            segments = module.split(".")
+            while segments:
+                imports.append(".".join(segments))
+                segments.pop()
 
-        imports.reverse()
-        mod = None
-        for seg in imports:
-            mod = import_module(seg, mod)
+            imports.reverse()
+            mod = None
+            for seg in imports:
+                mod = import_module(seg, mod)
 
-        command = dict(inspect.getmembers(mod))[cmd]
+            command = dict(inspect.getmembers(mod))[cmd]
 
-        if parent:
-            maya.cmds.setParent(parent, menu=True)
+            if parent:
+                maya.cmds.setParent(parent, menu=True)
 
-        new_item = gui.MenuItem(self.key, **opts)
-        cp = CallbackProxy(command, new_item)
-        new_item.command += cp
+            new_item = gui.MenuItem(self.key, **opts)
+            cp = CallbackProxy(command, new_item)
+            new_item.command += cp
+        except:
+            import traceback
+            print traceback.format_exc()
+            raise NameError('MMenuItem ('+str(self.label) +
+                            ') had issues getting created, check the script editor for details.')
 
 
 def load_menu(menu_string):
