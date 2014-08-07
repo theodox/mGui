@@ -103,8 +103,9 @@ def run():
     '''
     Example:
     import mGui.examples.boundCollection as boundCollection
-    boundCollection.run()
+    win = boundCollection.run()
     '''
+    test = None
     try:
         test = BoundCollectionWindow([])
         test.show()
@@ -112,3 +113,4 @@ def run():
     except:
         import traceback
         print traceback.format_exc()
+    return test
