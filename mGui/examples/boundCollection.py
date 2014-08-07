@@ -59,8 +59,8 @@ class BoundCollectionWindow(object):
         # this is the collection of stuff to manage
         self.Collection = observable.ViewCollection(*collection)
 
-        with gui.BindingWindow('root', title='bound collection example') as self.Window:
-            with gui.VerticalExpandForm('main') as main:
+        with gui.BindingWindow(None, title='bound collection example') as self.window:
+            with forms.VerticalExpandForm('main') as main:
                 gui.Separator(None, style='none', height=12)
                 gui.Text(None, label="Here's stuff in my list")
                 gui.Separator(None, style='none', height=12)
@@ -68,14 +68,14 @@ class BoundCollectionWindow(object):
                 with forms.HorizontalStretchForm('filter') as flt:
                     gui.TextField('filtertext', width=480)
                     gui.Separator(None, horizontal=False, style='none', width=4)
-                    with gui.FlowLayout('display', width=32) as hmm:
+                    with forms.HorizontalExpandForm('display', width=32) as hmm:
                         gui.Text('shown').bind.label < bind() < self.Collection.bind.ViewCount
                         gui.Text(None, '/')
                         gui.Text('total').bind.label < bind() < self.Collection.bind.Count
 
                 self.Collection > bind() > lists.VerticalList('itemList', itemTemplate=ExampleTemplate).Collection
 
-        self.Window.main.itemList.NewWidget += self.hook_widget_events
+        self.window.main.itemList.NewWidget += self.hook_widget_events
         flt.filtertext.enterCommand += self.update_filter
 
     def update_filter(self, *args, **kwargs):
@@ -96,8 +96,19 @@ class BoundCollectionWindow(object):
         kwargs['item'].Events['request_delete'] += self.do_delete
 
     def show(self):
-        self.Window.show()
+        self.window.show()
 
-test = BoundCollectionWindow([])
-test.show()
-test.Collection.add(*cmds.ls(type='transform'))
+
+def run():
+    '''
+    Example:
+    import mGui.examples.boundCollection as boundCollection
+    boundCollection.run()
+    '''
+    try:
+        test = BoundCollectionWindow([])
+        test.show()
+        test.Collection.add(*cmds.ls(type='transform'))
+    except:
+        import traceback
+        print traceback.format_exc()
