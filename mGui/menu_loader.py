@@ -62,6 +62,7 @@ class MenuProxy(yaml.YAMLObject):
         setattr(res, 'items', [])
         setattr(res, 'after', None)
         setattr(res, 'options', {})
+        setattr(res, 'preMenuCommand', None)
         return res
 
     def instantiate(self, parent=None):
@@ -72,6 +73,11 @@ class MenuProxy(yaml.YAMLObject):
         with gui.Menu(self.key, **opts) as result:
             for item in self.items:
                 item.instantiate()
+
+        preMenuCommand = self.preMenuCommand or None
+        if preMenuCommand:
+            exec preMenuCommand
+
         return result
 
 
