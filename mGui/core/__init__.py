@@ -211,14 +211,14 @@ class Nested(Control):
         return self
 
     def __exit__(self, typ, value, tb):
-        if typ:
-            raise NameError('Nested failed due to no typ')
         self.layout()
         Nested.ACTIVE_LAYOUT = self.__cache_layout
         self.__cache_layout = None
         abs_parent, sep, _ = self.Widget.rpartition("|")
         if abs_parent == '': abs_parent = _
         cmds.setParent(abs_parent)
+        if typ:
+            return False
 
 
     def layout(self):
