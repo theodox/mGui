@@ -18,13 +18,14 @@ class window_object(object):
 
     def __init__(self):
         with gui.Window(None, title="Example") as window:
-            with forms.VerticalForm(None) as main:
+            with forms.VerticalForm(None):
                 testItem(self.settings)
                 gui.Button(None, label='print settings').command += self.query_settings
 
         cmds.showWindow(window)
 
     def query_settings(self, *args, **kwargs):
+        cmds.setFocus(kwargs['sender'])
         print 'self.settings =', self.settings
 
 
@@ -32,5 +33,4 @@ class testItem(object):
 
     def __init__(self, settings):
         self.settings = settings
-        gui.TextField('namespace').bind.text | bind(lambda p: p or self.settings['namespace']) | (
-                      self.settings, 'namespace')
+        gui.TextField('namespace').bind.text | bind(lambda p: p or self.settings['namespace']) | (self.settings, 'namespace')
