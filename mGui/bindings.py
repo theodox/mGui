@@ -7,7 +7,7 @@ import maya.cmds as cmds
 from collections import Mapping
 import weakref
 import sys
-from mGui.properties import LateBoundProperty
+from mGui.properties import LateBoundProperty, MGuiAttributeError
 import maya.utils as utils
 
 # these are primarily intended for debugging.
@@ -17,7 +17,7 @@ import maya.utils as utils
 # Use this with caution, since they are effectively globals
 
 BREAK_ON_ACCESS_FAILURE = True  # break when an accessor fails (eg, a deleted object)
-BREAK_ON_BIND_FAILURE = False  # break when a binding fails (instead of silently deleting bad binding)
+BREAK_ON_BIND_FAILURE = True  # break when a binding fails (instead of silently deleting bad binding)
 
 
 class BindingError(ValueError):
@@ -65,6 +65,9 @@ class Accessor(object):
         try:
             self._set(*args, **kwargs)
             return True
+        except MGuiAttributeError:
+            cmds.warning("Slent MGUI fail!")
+            return False
         except:
             if BREAK_ON_ACCESS_FAILURE:
                 raise
@@ -79,6 +82,9 @@ class Accessor(object):
         '''
         try:
             return self._get(*args, **kwargs)
+        except MGuiAttributeError:
+            cmds.warning("Slent MGUI fail!")
+            return 0
         except:
             if BREAK_ON_ACCESS_FAILURE:
                 raise
@@ -108,6 +114,9 @@ class Accessor(object):
             return "<%s.%s>" % (self.Target, self.FieldName)
         except ReferenceError:
             return "<invalid accessor>"
+
+
+
 
 
 class DictAccessor(Accessor):
@@ -336,6 +345,13 @@ class BindingContext(object):
         '''
         if cls.ACTIVE is not None:
             cls.ACTIVE.Bindings.append(binding)
+
+    def invalidate(self):
+        print "INVALIDATING BINDINGS"
+        for b in self.Bindings:
+            b.invalidate()
+        for c in self.Children:
+            c.invalidate()
 
 
 def passthru(arg):

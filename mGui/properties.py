@@ -7,6 +7,9 @@ Defines Descriptor objects for getting and setting GUI properties
 from mGui.events import Event, MayaEvent
 import copy
 
+class MGuiAttributeError(AttributeError):
+    pass
+
 class CtlProperty (object):
     '''
     Property descriptor.  When applied to a Control-derived class, invokes the
@@ -23,18 +26,18 @@ class CtlProperty (object):
         try:
             result = self.Command(obj.Widget, **{'q':True, self.Flag:True})
         except RuntimeError:
-            raise AttributeError("Cannot access property {0} on {1}".format(self.Flag, obj))
+            raise MGuiAttributeError("Cannot access property {0} on {1}".format(self.Flag, obj))
         if result is None and self.Flag.endswith("rray"):
             result = []
         return result
 
     def __set__(self, obj, value):
         if not self.Writeable:
-            raise AttributeError('attribute .%s is not writable' % self.Flag)
+            raise MGuiAttributeError('attribute .%s is not writable' % self.Flag)
         try:
             self.Command(obj.Widget, **{'e':True, self.Flag:value})
         except RuntimeError:
-            raise AttributeError("Cannot access property {0} on {1}".format(self.Flag, obj))
+            raise MGuiAttributeError("Cannot access property {0} on {1}".format(self.Flag, obj))
 
 class CallbackProperty(object):
     '''
