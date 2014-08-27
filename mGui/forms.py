@@ -219,7 +219,7 @@ class VerticalForm(Form):
     def layout(self):
         if len(self.Controls):
             af = self.form_attachments('left', 'right')
-            af.append((self.Controls[0], 'top', self.spacing.top))
+            af.append([self.Controls[0], 'top', self.spacing.top])
             ac = self.form_series('top')
             self.attachForm = af
             self.attachControl = ac
