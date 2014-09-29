@@ -5,6 +5,7 @@ Originally auto generated using helpers.tools
 """
 
 import maya.cmds as cmds
+
 from mGui.core import Control
 
 
@@ -126,6 +127,7 @@ class CheckBox(Control):
     _BIND_SRC = 'value'
     _BIND_TGT = 'value'
 
+
 class CheckBoxGrp(Labeled):
     """Wrapper class for cmds.checkBoxGrp"""
     CMD = cmds.checkBoxGrp
@@ -203,6 +205,7 @@ class ColorSliderButtonGrp(Labeled):
     _BIND_SRC = 'rgbValue'
     _BIND_TGT = 'rgbValue'
 
+
 class ColorSliderGrp(Labeled):
     """Wrapper class for cmds.colorSliderGrp"""
     CMD = cmds.colorSliderGrp
@@ -216,6 +219,7 @@ class ColorSliderGrp(Labeled):
     _BIND_TRIGGER = 'changeCommand'
     _BIND_SRC = 'rgbValue'
     _BIND_TGT = 'rgbValue'
+
 
 class CommandLine(Control):
     """Wrapper class for cmds.commandLine"""
@@ -240,6 +244,7 @@ class FloatField(Control):
     _BIND_SRC = 'value'
     _BIND_TGT = 'value'
 
+
 class FloatFieldGrp(Labeled):
     """Wrapper class for cmds.floatFieldGrp"""
     CMD = cmds.floatFieldGrp
@@ -255,6 +260,7 @@ class FloatFieldGrp(Labeled):
     _BIND_SRC = 'value'
     _BIND_TGT = 'value'
 
+
 class FloatScrollBar(Control):
     """Wrapper class for cmds.floatScrollBar"""
     CMD = cmds.floatScrollBar
@@ -263,6 +269,7 @@ class FloatScrollBar(Control):
     _BIND_TRIGGER = 'changeCommand'
     _BIND_SRC = 'value'
     _BIND_TGT = 'value'
+
 
 class FloatSlider(Control):
     """Wrapper class for cmds.floatSlider"""
@@ -273,6 +280,7 @@ class FloatSlider(Control):
     _BIND_SRC = 'value'
     _BIND_TGT = 'value'
 
+
 class FloatSlider2(Control):
     """Wrapper class for cmds.floatSlider2"""
     CMD = cmds.floatSlider2
@@ -281,6 +289,7 @@ class FloatSlider2(Control):
     _BIND_TRIGGER = 'changeCommand'
     _BIND_SRC = 'value'
     _BIND_TGT = 'value'
+
 
 class FloatSliderButtonGrp(Labeled):
     """Wrapper class for cmds.floatSliderButtonGrp"""
@@ -298,6 +307,7 @@ class FloatSliderButtonGrp(Labeled):
     _BIND_SRC = 'value'
     _BIND_TGT = 'value'
 
+
 class FloatSliderGrp(Labeled):
     """Wrapper class for cmds.floatSliderGrp"""
     CMD = cmds.floatSliderGrp
@@ -312,6 +322,7 @@ class FloatSliderGrp(Labeled):
     _BIND_TRIGGER = 'changeCommand'
     _BIND_SRC = 'value'
     _BIND_TGT = 'value'
+
 
 class GradientControl(Control):
     """Wrapper class for cmds.gradientControl"""
@@ -357,6 +368,7 @@ class HudSlider(Control):
     _BIND_TGT = 'value'
     _BIND_TRIGGER = 'releaseCommand'
 
+
 class HudSliderButton(Control):
     """Wrapper class for cmds.hudSliderButton"""
     CMD = cmds.hudSliderButton
@@ -369,6 +381,7 @@ class HudSliderButton(Control):
     _BIND_SRC = 'value'
     _BIND_TGT = 'value'
     _BIND_TRIGGER = 'sliderReleaseCommand'
+
 
 class IconTextButton(Control):
     """Wrapper class for cmds.iconTextButton"""
@@ -419,10 +432,9 @@ class IconTextRadioCollection(Control):
         if exc_val:
             raise
         for item in self.collectionItemArray:
-            proxy =  IconTextRadioButton.wrap(item)
+            proxy = IconTextRadioButton.wrap(item)
             for each_binding in self.bindings:
                 proxy.changeCommand += each_binding.proxy_update
-
 
 
 class IconTextScrollList(Control):
@@ -539,6 +551,7 @@ class NameField(Control):
     _BIND_SRC = 'object'
     _BIND_TGT = 'object'
 
+
 class NodeTreeLister(Control):
     """Wrapper class for cmds.nodeTreeLister"""
     CMD = cmds.nodeTreeLister
@@ -564,7 +577,6 @@ class Picture(Control):
     _CALLBACKS = []
 
 
-
 class RadioButton(Control):
     """Wrapper class for cmds.radioButton"""
     CMD = cmds.radioButton
@@ -573,6 +585,7 @@ class RadioButton(Control):
     _BIND_TRIGGER = 'changeCommand'
     _BIND_SRC = 'value'
     _BIND_TGT = 'value'
+
 
 class RadioButtonGrp(Labeled):
     """Wrapper class for cmds.radioButtonGrp"""
@@ -608,9 +621,6 @@ class RadioCollection(Control):
             proxy = RadioButton.wrap(item)
             for each_binding in self.bindings:
                 proxy.changeCommand += each_binding.proxy_update
-
-
-
 
 
 class RangeControl(Control):

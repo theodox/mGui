@@ -230,8 +230,6 @@ class Nested(Control):
         cmds.setParent(abs_parent)
 
 
-
-
     def layout(self):
         """
         this is called at the end of a context, it can be used to (for example) perform attachments
