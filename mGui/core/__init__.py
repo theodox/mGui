@@ -203,7 +203,9 @@ class Nested(Control):
 
     def __init__(self, key, *args, **kwargs):
         self.Controls = []
+        self.ignore_exceptions = False
         super(Nested, self).__init__(key, *args, **kwargs)
+
 
     def __enter__(self):
         self.__cache_layout = Nested.ACTIVE_LAYOUT
@@ -211,14 +213,23 @@ class Nested(Control):
         return self
 
     def __exit__(self, typ, value, tb):
+        # by default, allow inner exceptions to propagate up
+        # you can turn this off in production by
+        # setting ignore_exceptionts to true
+        # if this is suppresed you should expect misleading
+        # error messages if child controls error out; parent controls
+        # may get fewer controls than they expect, but the real
+        # problem is in the suppressed exception
+        if typ and not self.ignore_exceptions:
+            return False
         self.layout()
         Nested.ACTIVE_LAYOUT = self.__cache_layout
         self.__cache_layout = None
         abs_parent, sep, _ = self.Widget.rpartition("|")
         if abs_parent == '': abs_parent = _
         cmds.setParent(abs_parent)
-        if typ:
-            return False
+
+
 
 
     def layout(self):
@@ -240,7 +251,7 @@ class Nested(Control):
             print items.first.label
             # a button
 
-        The Controls field contains all of the *phyiscal* widgets under this object (layouts, controls, etc).
+        The Controls field contains all of the *physical* widgets under this object (layouts, controls, etc).
         Non-physical entities -- such as a RadioButtonCollection -- are available with dot notation but *not*
         in the Controls field. This allows the layout() functions in various layouts to rely on the presence of
         controls that can be manipulated.

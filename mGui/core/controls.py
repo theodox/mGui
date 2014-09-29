@@ -613,7 +613,6 @@ class RadioCollection(Control):
 
 
 
-
 class RangeControl(Control):
     """Wrapper class for cmds.rangeControl"""
     CMD = cmds.rangeControl
