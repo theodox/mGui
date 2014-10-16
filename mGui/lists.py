@@ -21,7 +21,7 @@ import mGui.observable as observable
 import mGui.core.controls as controls
 import mGui.core.layouts as layouts
 import mGui.events as events
-
+from mGui.properties import MGuiAttributeError
 
 class LayoutContext(object):
     '''
@@ -98,6 +98,8 @@ class FormList(object):
                     fudge = self.Controls[0].height * (len(self.Controls) + 1)
                 self.height = fudge
             self.layout()
+        except MGuiAttributeError:
+            print 'Silent mGUI exception in lists!'
         finally:
             cmds.waitCursor(st=0)
 
