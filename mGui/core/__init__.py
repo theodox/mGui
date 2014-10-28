@@ -284,6 +284,11 @@ class Nested(Control):
         if k:
             del self.__dict__[k[0]]
 
+    def clear(self):
+        delenda = [i for i in self.Controls]
+        for d in delenda:
+            self.remove(d)
+
     def __iter__(self):
         for item in self.Controls:
             for sub in item:
