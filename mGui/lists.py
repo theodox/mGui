@@ -90,7 +90,7 @@ class FormList(object):
             fudge = 16
 
             if kwargs.get('horizontal', False):
-                if len(self.controls):
+                if len(self.Controls):
                     fudge = (self.Controls[0].width or 1) * (len(self.Controls) + 1)
                 self.width = fudge
             else:
