@@ -181,6 +181,14 @@ class Form(FormLayout):
         elif right[1]:
             af('right', *right)
 
+    def detach(self, *controls):
+        """
+        call AttachNone on all
+        """
+        sides = ('top', 'bottom', 'left', 'right')
+        # note the order : it's backwards from the others!
+        cmds.formLayout(self.Widget, an=[(ctl, side) for side, ctl in itertools.product(sides, controls)])
+
 
 class LayoutDialogForm(Form):
     '''
@@ -372,6 +380,20 @@ class HeaderForm(VerticalForm):
         self.attachForm = (self.Controls[-1], 'bottom', self.spacing.bottom)
         self.attachControl = (self.Controls[1], 'top', self.spacing.bottom, self.Controls[0])
         return len(self.Controls)
+
+
+class NavForm(HorizontalForm):
+    '''
+    A two-pane horizontal form. THe first is fixed to the left size, the second expands with the container
+    '''
+    def layout(self):
+        af = self.form_attachments('top', 'bottom')
+        self.attachForm = af
+        self.attachForm = (self.Controls[0], 'left', self.spacing.left)
+        self.attachForm = (self.Controls[-1], 'right', self.spacing.right)
+        self.attachControl = (self.Controls[1], 'left', self.spacing.left, self.Controls[0])
+        return len(self.Controls)
+
 
 
 __all__ = ['FillForm', 'VerticalForm', 'HorizontalForm', 'VerticalExpandForm', 'HorizontalExpandForm',
