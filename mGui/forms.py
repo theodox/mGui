@@ -386,14 +386,14 @@ class NavForm(HorizontalForm):
     '''
     A two-pane horizontal form. THe first is fixed to the left size, the second expands with the container
     '''
+
     def layout(self):
         af = self.form_attachments('top', 'bottom')
         self.attachForm = af
-        self.attachForm = (self.Controls[0], 'left', self.spacing.left)
-        self.attachForm = (self.Controls[-1], 'right', self.spacing.right)
+        self.attachForm = (self.Controls[0], 'left', self.margin.left)
+        self.attachForm = (self.Controls[-1], 'right', self.margin.right)
         self.attachControl = (self.Controls[1], 'left', self.spacing.left, self.Controls[0])
         return len(self.Controls)
-
 
 
 __all__ = ['FillForm', 'VerticalForm', 'HorizontalForm', 'VerticalExpandForm', 'HorizontalExpandForm',
