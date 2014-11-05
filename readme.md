@@ -133,7 +133,7 @@ line using 3 simple functions rather than one big monster with lots of unrelated
 
 ## Installation
 
-The directory **mGui** is a Python package. Simply drop a copy of it into a location that's visible to your python path. You can them inmport modules in the usual way.
+The directory **mGui** is a Python package. Simply drop a copy of it into a location that's visible to your python path. You can then import modules in the usual way.
 
 ## Usage
 
