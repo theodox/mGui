@@ -1,8 +1,8 @@
-'''
+"""
 Created on May 2, 2014
 
 @author: Steve
-'''
+"""
 
 import maya.cmds as cmds
 import mGui.events as events
@@ -10,7 +10,7 @@ import mGui.properties as properties
 
 
 class ScriptJobEvent(events.Event):
-    '''
+    """
     A derivative of the Event class that is attached to a Maya scriptJob
 
     Typical usage:
@@ -34,7 +34,7 @@ class ScriptJobEvent(events.Event):
         sj.kill()
 
     Run conditions (such as -runOnce or -protected) should be specificied when the scriptJob is started.
-    '''
+    """
 
 
     def __init__(self, scriptJobFlag, parent, **kwargs):
@@ -711,11 +711,11 @@ class HotkeyListChange(ScriptJobC):
 # used by all ScriptJobEvent classes
 
 class ScriptJobCallbackProperty(properties.CallbackProperty):
-    '''
+    """
     A property descriptor that creates a scriptJob and a corresponding ScriptJobEvent
 
     The scriptJob must be able to take an object as it's second argument
-    '''
+    """
 
     def __init__(self, key, scriptFlag):
         self.ScriptFlag = scriptFlag

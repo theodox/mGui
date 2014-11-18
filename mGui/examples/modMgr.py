@@ -1,5 +1,5 @@
 
-'''
+"""
 ModuleManager.py
 
 An example showing data bound collection UI.  The module files on disk are
@@ -34,7 +34,7 @@ The BindingContext in the UI catches all of the bindings created while it's acti
 them automatically when it closes; this makes sure that all the UI elements get set properly
 at creation time.
 
-'''
+"""
 import mGui.gui as gui
 import mGui.lists as lists
 import mGui.observable as observable
@@ -51,9 +51,9 @@ import webbrowser as wb
 #==============================================================================================
 
 class modTuple(object):
-    '''
+    """
     Represents a module file on disk
-    '''
+    """
     def __init__(self, enabled, name, version, path, filename):
         self.enabled = enabled
         self.name = name
@@ -63,20 +63,20 @@ class modTuple(object):
 
 
 class ModuleManager (object):
-    '''
+    """
     Manages the list of .mod files on the local maya's MAYA_MODULE_PATH.
     
     Note this class is purely functional - UI is handled in the ModuleManagerDialog via binding.
-    '''
+    """
     def __init__(self):
         self.Modules = {}
         self.Module_Files = []
         self.refresh()
     
     def refresh(self):
-        '''
+        """
         Update the internal module list to reflect the state of files on disk
-        '''
+        """
         self.Module_Files = []
         self.Modules = {}
         module_paths = maya.mel.eval('getenv MAYA_MODULE_PATH').split(";")
@@ -90,9 +90,9 @@ class ModuleManager (object):
                 self.Modules["%s (%s)" % (eachmod.name, eachmod.version)] = eachmod 
                 
     def parse_mod(self, modfile):
-        '''
+        """
         Yields a modtuple describing the supplied .mod file
-        '''
+        """
         with open (modfile, 'rt') as filehandle:
             for line in filehandle:
                 if line.startswith("+") or line.startswith("-"):
@@ -100,9 +100,9 @@ class ModuleManager (object):
                     yield modTuple(enable == "+", name, version, path, modfile)
                     
     def parse_mod_entry(self, line):
-        '''
+        """
         parses a line from a mod file describing a given mod
-        '''
+        """
         
         enable, _, line = line.partition(" ")
         name, _, line = line.partition(" ")
@@ -132,9 +132,9 @@ class ModuleManager (object):
 #GUI classes
 #======================================
 class ModuleTemplate(lists.ItemTemplate):
-    '''
+    """
     Create a complex display widger for each modTuple
-    '''
+    """
     def widget(self, item):
         with BindingContext() as bc:
             with forms.HorizontalExpandForm('root', parent=self.Parent, height=60) as root:
@@ -166,11 +166,12 @@ class ModuleTemplate(lists.ItemTemplate):
     @classmethod
     def edit(cls, *args, **kwargs):
         os.startfile('"%s"' % kwargs['sender'].Tag.file)    
-    
+
+
 class ModuleManagerDialog(object):
-    '''
+    """
     Module manager dialog, implemented via LayoutDialog
-    '''
+    """
     def __init__(self):
         self.ModMgr = ModuleManager()
         self.ModMgr.refresh()

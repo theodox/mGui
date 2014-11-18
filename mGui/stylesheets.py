@@ -1,6 +1,6 @@
-'''
+"""
 helper functions for creating default CSS sheet
-'''
+"""
 
 from mGui.styles import CSS, Bounds
 from mGui.core.controls import Labeled, IconTextButton, IconTextCheckBox

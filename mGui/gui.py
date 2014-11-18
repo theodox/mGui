@@ -1,9 +1,9 @@
-'''
+"""
 mGui.gui
 
 forwards all of the widget definitions in the system for easy import.  This
 module is probably safe to import * in a known context
-'''
+"""
 
 import copy
 
@@ -29,9 +29,9 @@ __lookup['commandMenuItem'] = MenuItem
 
 
 def _objectTypeUI(widget):
-    '''
+    """
     objectTypeUI in maya 2011 does not reconize menuItems. This is a fix to that issue.
-    '''
+    """
     if cmds.menuItem(widget, q=True, ex=True):
         widget_type = 'menuItem'
     else:

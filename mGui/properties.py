@@ -1,8 +1,8 @@
-'''
+"""
 mGui.properties
 
 Defines Descriptor objects for getting and setting GUI properties
-'''
+"""
 
 from mGui.events import Event, MayaEvent
 import copy
@@ -11,10 +11,10 @@ class MGuiAttributeError(AttributeError):
     pass
 
 class CtlProperty (object):
-    '''
+    """
     Property descriptor.  When applied to a Control-derived class, invokes the
     correct Maya command under the hood to get or set values
-    '''
+    """
 
     def __init__(self, flag, cmd, writeable=True):
         assert callable(cmd), "cmd flag must be a maya command for editing gui objects"
@@ -40,7 +40,7 @@ class CtlProperty (object):
             raise MGuiAttributeError("Cannot access property {0} on {1}".format(self.Flag, obj))
 
 class CallbackProperty(object):
-    '''
+    """
     Property descriptor for callbacks.  When accessed, returns the appropriate
     Event object from a Control-derived class's Callback dictionary.
 
@@ -54,7 +54,7 @@ class CallbackProperty(object):
 
     button.command = events.MayaEvent(target = 'pCube1', distance = 2.0)
 
-    '''
+    """
     def __init__(self, key):
         self.Key = key
 
@@ -75,7 +75,7 @@ class CallbackProperty(object):
 
 
 class LateBoundProperty(object):
-    '''
+    """
     This is a property descriptor that's useful for mixin classes that need to
     create instance properties but which won't get called in the __init__ of a
     class they are tacked onto.
@@ -92,7 +92,7 @@ class LateBoundProperty(object):
 
     print Target().example
     # 99
-    '''
+    """
     def __init__(self, name, class_default="IGNORE"):
         self._class_default_string = class_default
         self._name = "_" + name

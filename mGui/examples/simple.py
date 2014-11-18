@@ -3,7 +3,7 @@ import mGui.stylesheets as stylesheets
 from mGui.bindings import BindProxy, BindingContext, bind, Bindable
 
 class ExampleWindow(Bindable):
-    '''
+    """
     This example simple window with color sliders
     
     This showcases two different methods of passing information between parts of the UI.
@@ -30,7 +30,7 @@ class ExampleWindow(Bindable):
     Note on Maya 2011 this color swacth does not fill the entire right-hand
     panel; on Maya 2014 it does. This appears to be a change in the behavior of
     the underlying widget between versions.
-    '''    
+    """
 
     
     def __init__(self):

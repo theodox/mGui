@@ -165,7 +165,6 @@ def load_menu(menu_string):
     return menu_root.instantiate(_main_menu)
 
 
-
 """
 Below is a cut-and-paste of the 2.7 importlib module, included so that mGui can work in 2.6 and 2.7.  Luckily it is
 pure python so it 'just works' when cut-and-pasted, and it should cover forseeable Mayas unless/until they

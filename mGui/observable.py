@@ -1,7 +1,7 @@
-'''
+"""
 Observable.py
 @author: stevetheodore
-'''
+"""
 import maya.utils as utils
 
 from mGui.events import MayaEvent
@@ -9,7 +9,7 @@ from mGui.bindings import BindableObject
 
 
 class ObservableCollection(BindableObject):
-    '''
+    """
     Encapsulates a collection suitable for data binding. The contents are
     managed internally but visible to other classes as the Contents property
 
@@ -28,7 +28,7 @@ class ObservableCollection(BindableObject):
     display of a list, not list management!
 
     Inherits methods from BindableObject, so you can manually trigger an update with update_bindings
-    '''
+    """
     _BIND_SRC = 'Contents'
     _BIND_TGT = None
 
@@ -40,22 +40,22 @@ class ObservableCollection(BindableObject):
 
     @property
     def Contents(self):
-        '''
+        """
         The contents of the collection.  Bindable.
-        '''
+        """
         return tuple([i for i in self._Internal_Collection])
 
     @property
     def Count(self):
-        '''
+        """
         The number of items in the collection. Bindable.
-        '''
+        """
         return len(self._Internal_Collection)
 
     def add(self, *additions):
-        '''
+        """
         Add items to the collection, with notifications.
-        '''
+        """
         if len(additions):
             for each_new in additions:
                 self._Internal_Collection.append(each_new)
@@ -64,27 +64,27 @@ class ObservableCollection(BindableObject):
             self.CollectionChanged(added=True)
 
     def add_group(self, *args):
-        '''
+        """
         Add everything in <args>, but only fire the CollectionChanged event once
-        '''
+        """
         for item in args:
             self._Internal_Collection.append(item)
         self.update_bindings()
         self.CollectionChanged(added=True)
 
     def insert(self, index, item):
-        '''
+        """
         Add <item> at position <index>
-        '''
+        """
         self._Internal_Collection.insert(index, item)
         self.ItemAdded(item, index)
         self.update_bindings()
         self.CollectionChanged(added=True)
 
     def remove(self, *delenda):
-        '''
+        """
         Removes items from the collection
-        '''
+        """
         _found = False
         for item in delenda:
             found = self._Internal_Collection.index(item)
@@ -98,32 +98,32 @@ class ObservableCollection(BindableObject):
             self.CollectionChanged(removed=True)
 
     def clear(self):
-        '''
+        """
         Clear the collection
-        '''
+        """
         self._Internal_Collection = []
         self.update_bindings()
         self.CollectionChanged(cleared=True)
 
     def sort(self, comp=None, key=None, reverse=False):
-        '''
+        """
         Sort the collection with the supplied comparison, key and reverse
         arguments (see list.sort)
-        '''
+        """
         self._Internal_Collection.sort(comp, key, reverse)
         self.update_bindings()
         self.CollectionChanged(sorted=True)
 
     def __iter__(self):
-        '''
+        """
         iterates over the contents of the collection
-        '''
+        """
         for item in self._Internal_Collection:
             yield item
 
 
 class ViewCollection(ObservableCollection):
-    '''
+    """
     An ObservableCollection with a filter (a predicate function like the ones
     used in a built-in python filter expression).  Changing the filter
     expression updates the 'View', which is the current filtered version of the
@@ -131,7 +131,7 @@ class ViewCollection(ObservableCollection):
 
     The class exposes the same events as ObservableCollection, as well as a
     ViewChanged event which triggers when the filter is chaanged
-    '''
+    """
     _BIND_SRC = 'View'
 
     def __init__(self, *items):
@@ -143,25 +143,25 @@ class ViewCollection(ObservableCollection):
 
     @property
     def View(self):
-        '''
+        """
         Returns a tuple of all the items in this collection which pass the
         current filter. Bindable.
-        '''
+        """
         t = tuple([i for i in self._Internal_Collection if self.Filter(i)])
         self._last_count = len(t)
         return t
 
     @property
     def ViewCount(self):
-        '''
+        """
         The number of items currently passing the filter. Bindable
-        '''
+        """
         return self._last_count
 
     def update_filter(self, filter_fn):
-        '''
+        """
         Change the filter expression. This will trigger a ViewChanged event
-        '''
+        """
         if not filter_fn:
             self.Filter = lambda p: p
         else:
@@ -173,14 +173,14 @@ class ViewCollection(ObservableCollection):
 
 
 class BoundCollection(BindableObject):
-    '''
+    """
     An iterable object which can be bound to a collection. When the source
     collection updates, the BoundCollection will fire appropriate update
     callbacks.
 
     The optional conversion argument is a callable which will be run on every
     item being forwarded from the source collection.
-    '''
+    """
     _BIND_TGT = 'set_collection'
 
     def __init__(self, conversion=lambda x: (x, [])):

@@ -1,8 +1,8 @@
-'''
+"""
 Created on Feb 16, 2014
 
 @author: Stephen Theodore
-'''
+"""
 import maya.cmds as cmds
 from collections import Mapping
 import weakref
@@ -25,7 +25,7 @@ class BindingError(ValueError):
 
 
 class Accessor(object):
-    '''
+    """
     An Accessor abstracts the details of getting or setting an object property,
     so that calling code can get or set values without knowing the precise
     mechanism involved.
@@ -39,7 +39,7 @@ class Accessor(object):
     cannot be weak referenced so these are stored as ordinary objects.
 
     Truth-testing an accessor returns true if the Accessors <Target> exists.
-    '''
+    """
 
     def __init__(self, datum, fieldName):
         try:
@@ -55,13 +55,13 @@ class Accessor(object):
         return getattr(self.Target, self.FieldName)
 
     def push(self, *args, **kwargs):
-        '''
+        """
         Set the value in <args> on <Target.FieldName>. Return true if the set
         was done without excepting.
 
         If BREAK_ON_ACCESS_FAILURE is true, pass any exceptions; otherwise they
         are silenly ignored
-        '''
+        """
         try:
             self._set(*args, **kwargs)
             return True
@@ -75,11 +75,11 @@ class Accessor(object):
                 return False
 
     def pull(self, *args, **kwargs):
-        '''
+        """
         Returns the value from <Target.Fieldname>
 
         If BREAK_ON_ACCESS_FAILURE is true, pass any exceptions; otherwise, return 0
-        '''
+        """
         try:
             return self._get(*args, **kwargs)
         except MGuiAttributeError:
@@ -94,12 +94,12 @@ class Accessor(object):
 
     @classmethod
     def can_access(cls, datum, fieldname):
-        '''
+        """
         Return true if the supplied object / fieldname combination can be accessed from this class
 
         Derived classes should implement this so that the AccessorFactory can
         pick the correct Accessor for a given object
-        '''
+        """
         return fieldname and hasattr(datum, fieldname) and not callable(getattr(datum, fieldname))
 
     def __nonzero__(self):
@@ -120,9 +120,9 @@ class Accessor(object):
 
 
 class DictAccessor(Accessor):
-    '''
+    """
     Accessor for a dictionary entry
-    '''
+    """
 
     def __init__(self, datum, fieldName):
         self.Target = datum
@@ -140,9 +140,9 @@ class DictAccessor(Accessor):
 
 
 class PyNodeAccessor(Accessor):
-    '''
+    """
     Accessor fpr  an attribute on a PyNode
-    '''
+    """
 
     def _set(self, *args, **kwargs):
         getattr(self.Target, self.FieldName).set(args[0])
@@ -156,11 +156,11 @@ class PyNodeAccessor(Accessor):
 
 
 class PyAttributeAccessor(Accessor):
-    '''
+    """
     Accessor for a PyNode attribute
 
     Note this creates a _strong_ reference to the attribute, so it may leak
-    '''
+    """
 
     def __init__(self, datum, fieldname):
         pyAttr = datum
@@ -181,11 +181,11 @@ class PyAttributeAccessor(Accessor):
 
 
 class CmdsAccessor(Accessor):
-    '''
+    """
     Accessor for a maya attribute string
 
     Unlike the other accessors the target is just a string, not a weakref
-    '''
+    """
 
     def __init__(self, datum, fieldName):
         self.Target = str(datum)
@@ -209,9 +209,9 @@ class CmdsAccessor(Accessor):
 
 
 class MethodAccessor(Accessor):
-    '''
+    """
     Accessor for a method
-    '''
+    """
 
     def _set(self, *args, **kwargs):
         getattr(self.Target, self.FieldName)(*args, **kwargs)
@@ -225,7 +225,7 @@ class MethodAccessor(Accessor):
 
 
 class AccessorFactory(object):
-    '''
+    """
     The Accessor factory loops through the default Accessor classes and returns
     an appropriate class for a given combination of object and field names.
 
@@ -241,7 +241,7 @@ class AccessorFactory(object):
     The order in which the tests run is determined by the order in which they
     are added in the constructor. Custom classes will be tested before the
     default classes
-    '''
+    """
 
     def __init__(self, *accessorClasses):
 
@@ -249,10 +249,10 @@ class AccessorFactory(object):
                                                          DictAccessor, CmdsAccessor]
 
     def accessor_class(self, *args):
-        '''
+        """
         Finds an Accessor class which can access the supplied object and field.
         If no appropriate class is found, returns None
-        '''
+        """
         datum = args[0]
         fieldname = args[-1]
 
@@ -266,7 +266,7 @@ _DEFAULT_FACTORY = AccessorFactory()
 
 
 def get_accessor(datum, fieldname=None, factory_class=None):
-    '''
+    """
     Returns an appropriate Accessor object for the supplied datum and datum
     field.
 
@@ -275,7 +275,7 @@ def get_accessor(datum, fieldname=None, factory_class=None):
     be used
 
 
-    '''
+    """
 
     factory = factory_class or _DEFAULT_FACTORY
     site = datum
@@ -291,7 +291,7 @@ def get_accessor(datum, fieldname=None, factory_class=None):
 
 
 class BindingContext(object):
-    '''
+    """
     When bindings are created they will automatically be added to the active
     BindingContext, so that they can easily be managed in groups.
 
@@ -301,7 +301,7 @@ class BindingContext(object):
     By default all bindings in a context will be invoked when the context exits.
     To avoid this create the context with the auto-update flag set to false
 
-    '''
+    """
 
     ACTIVE = None
 
@@ -324,10 +324,10 @@ class BindingContext(object):
             self.update(False)
 
     def update(self, recurse=True):
-        '''
+        """
         update all bindings in this context.  If recurse is True, update all bindings in child contexts
 
-        '''
+        """
         delenda = [i for i in self.Bindings if not i()]
         for item in delenda:
             self.Bindings.remove(item)
@@ -340,9 +340,9 @@ class BindingContext(object):
 
     @classmethod
     def add(cls, binding):
-        '''
+        """
         Add a binding to the currently active BindingContext
-        '''
+        """
         if cls.ACTIVE is not None:
             cls.ACTIVE.Bindings.append(binding)
 
@@ -355,16 +355,16 @@ class BindingContext(object):
 
 
 def passthru(arg):
-    '''
+    """
     default nullop for un-translated bindings
-    '''
+    """
     return arg
 
 
 class Binding(object):
-    '''
+    """
     Encapsulates a data binding (get accessor and  a set accessor)
-    '''
+    """
 
     def __init__(self, source, target, **kwargs):
 
@@ -389,9 +389,9 @@ class Binding(object):
 
 
     def invalidate(self):
-        '''
+        """
         Mark the current binding as invalid. Typically it will be deleted on the next update
-        '''
+        """
         self.Getter = None
         self.Setter = None
 
@@ -402,7 +402,7 @@ class Binding(object):
         return False
 
     def __call__(self):
-        '''
+        """
         The bindings call method gets the value in the Getter and applies it to
         the Setter. If the operation is successful, returns True; otherwise
         returns False.
@@ -414,7 +414,7 @@ class Binding(object):
         them once they fail. If you wanted to create binding which could survive
         transient failures you'd want to make sure its __call__ would always
         return a True value
-        '''
+        """
 
         def safe_binding():
             if self.__nonzero__() == False: return False
@@ -438,12 +438,12 @@ class Binding(object):
 
 
 class TwoWayBinding(Binding):
-    '''
+    """
     A two way binding caches the results of the last pull requests from both the
     getter and the setter, and then pushes the value which changed to the value
     which did not. If both values have changed or neither has changed, the
     'getter' value wins.
-    '''
+    """
 
     def __init__(self, source, target, *extra, **kwargs):
         super(TwoWayBinding, self).__init__(source, target, *extra, **kwargs)
@@ -490,7 +490,7 @@ class TwoWayBinding(Binding):
 
 
 class BindingExpression(object):
-    '''
+    """
     Allows the creation of a binding using the following syntax
 
          object-and-property < BindingExpression(translator) < object-and-property
@@ -543,7 +543,7 @@ class BindingExpression(object):
         src > BindingExpression() > tgt
 
     for the same result.s
-    '''
+    """
 
     def __gt__(self, other):
         self.Right = self._flatten(other, target=True)
@@ -578,9 +578,9 @@ class BindingExpression(object):
         return self
 
     def _flatten(self, other, target):
-        '''
+        """
         parse the binding expression and return an appropriate accessor
-        '''
+        """
 
         # BindProxy
         if isinstance(other, BindProxy):
@@ -621,7 +621,7 @@ This is a cheap alias to make the typing less onerous
 # ============================================================================================
 
 class Bindable(object):
-    '''
+    """
     A Mixin class that adds a binding syntax to an object.
 
     Bindable adds a quasi-property, 'bind', which return a BindProxy
@@ -648,7 +648,7 @@ class Bindable(object):
 
        object.bind.property
 
-    '''
+    """
 
     _BINDINGS = []
     #===========================================================================
@@ -656,9 +656,9 @@ class Bindable(object):
     #===========================================================================
 
     class ProxyFactory(object):
-        '''
+        """
         Used as dummy to allow  object.bind.property creation of bindProxies
-        '''
+        """
 
         def __init__(self, owner):
             self.Owner = owner
@@ -670,9 +670,9 @@ class Bindable(object):
             raise BindingError("Object %s does not have a bindable attribute named %s" % (self.Owner, name))
 
     class ProxyFactoryProperty(object):
-        '''
+        """
         Descriptor which adds the .bind. syntax to Bindables
-        '''
+        """
 
         def __get__(self, instance, owner):
             if not hasattr(instance, "_proxy_factory"):
@@ -687,7 +687,7 @@ class Bindable(object):
 
 
     def __and__(self, name):
-        '''
+        """
         Allows using the & symbol as a shorthand for the bind syntax:
 
            object & 'property'
@@ -695,12 +695,12 @@ class Bindable(object):
         is the same as
 
            object.bind.property
-        '''
+        """
         return BindProxy(self, name)
 
 
 class BindableObject(Bindable):
-    '''
+    """
     BindableObject is an extension of Bindable which defines a default binds
     source and bind target for an object. This is handy for UI objects that
     typically bind only one value at a time.
@@ -723,7 +723,7 @@ class BindableObject(Bindable):
         # which is equal to
         # Fred.bind.Name > bind() > OtherGuy.bind.Name
 
-    '''
+    """
 
     _BIND_SRC = None
     _BIND_TGT = None
@@ -734,9 +734,9 @@ class BindableObject(Bindable):
     bindings = LateBoundProperty("bindings", "_BINDINGS")
 
     def get_bindings(self):
-        '''
+        """
         Returns all of the bindings attached to this object
-        '''
+        """
         return [i for i in self.bindings]
 
     def update_bindings(self):
@@ -751,13 +751,13 @@ class BindableObject(Bindable):
 
 
 class BindProxy(Bindable):
-    '''
+    """
     Creates an bindable Object + Attribute pair
 
     Note that bindProxies do NOT maintain an internal bindings list - you'll
     need to capture the bindings created by them in a BindingContext or manually
 
-    '''
+    """
 
     def __init__(self, item, attrib):
         self.Item = item

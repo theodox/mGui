@@ -1,8 +1,8 @@
-'''
+"""
 mGui wrapper classes
 
 Auto-generated wrapper classes for use with mGui
-'''
+"""
 
 import maya.cmds as cmds
 
@@ -10,7 +10,7 @@ from .core import Control
 
 
 class ComponentEditor(Control):
-    '''Wrapper class for cmds.componentEditor'''
+    """Wrapper class for cmds.componentEditor"""
     CMD = cmds.componentEditor
     _ATTRIBS = ['newTab', 'hidePathName', 'query', 'lockMainConnection', 'setOperationLabel', 'lockInput', 'filter',
                 'stateString', 'selected', 'hideZeroColumns', 'operationType', 'highlightConnection',
@@ -21,7 +21,7 @@ class ComponentEditor(Control):
 
 
 class HardwareRenderPanel(Control):
-    '''Wrapper class for cmds.hardwareRenderPanel'''
+    """Wrapper class for cmds.hardwareRenderPanel"""
     CMD = cmds.hardwareRenderPanel
     _ATTRIBS = ["camera", "copy", "defineTemplate", "docTag", "exists", "glRenderEditor", "init", "isUnique", "label",
                 "menuBarVisible", "needsInit", "parent", "replacePanel", "tearOff", "tearOffCopy", "unParent",
@@ -31,7 +31,7 @@ class HardwareRenderPanel(Control):
 
 
 class HyperGraph(Control):
-    '''Wrapper class for cmds.hyperGraph'''
+    """Wrapper class for cmds.hyperGraph"""
     CMD = cmds.hyperGraph
     _ATTRIBS = ["addBookmark", "addDependGraph", "addDependNode", "animateTransition", "attributeEditor",
                 "bookmarkName", "clear", "collapseContainer", "connectionDrawStyle", "control", "defineTemplate",
@@ -54,7 +54,7 @@ class HyperGraph(Control):
 
 
 class HyperPanel(Control):
-    '''Wrapper class for cmds.hyperPanel'''
+    """Wrapper class for cmds.hyperPanel"""
     CMD = cmds.hyperPanel
     _ATTRIBS = ["control", "copy", "defineTemplate", "docTag", "exists", "hyperEditor", "init", "isUnique", "label",
                 "menuBarVisible", "needsInit", "parent", "replacePanel", "tearOff", "tearOffCopy", "unParent",
@@ -63,7 +63,7 @@ class HyperPanel(Control):
 
 
 class HyperShade(Control):
-    '''Wrapper class for cmds.hyperShade'''
+    """Wrapper class for cmds.hyperShade"""
 
     CMD = cmds.hyperShade
     _ATTRIBS = ["assign", "clearWorkArea", "collapse", "createNode", "dependGraphArea", "downStream", "duplicate",
@@ -76,7 +76,7 @@ class HyperShade(Control):
 
 
 class ModelEditor(Control):
-    '''Wrapper class for cmds.modelEditor'''
+    """Wrapper class for cmds.modelEditor"""
     CMD = cmds.modelEditor
     _ATTRIBS = ['rendererOverrideListUI', 'filteredObjectList', 'objectFilterUI', 'cameraSetup', 'query',
                 'textureEnvironmentMap', 'addObjects', 'rendererListUI', 'displayTextures', 'colorResolution',
@@ -107,7 +107,7 @@ class ModelEditor(Control):
 
 
 class ModelPanel(Control):
-    '''Wrapper class for cmds.modelPanel'''
+    """Wrapper class for cmds.modelPanel"""
     CMD = cmds.modelPanel
     _ATTRIBS = ["barLayout", "camera", "control", "copy", "defineTemplate", "docTag", "exists", "init", "isUnique",
                 "label", "menuBarVisible", "modelEditor", "needsInit", "parent", "replacePanel", "tearOff",
@@ -116,7 +116,7 @@ class ModelPanel(Control):
 
 
 class NodeOutliner(Control):
-    '''Wrapper class for cmds.nodeOutliner'''
+    """Wrapper class for cmds.nodeOutliner"""
     CMD = cmds.nodeOutliner
     _ATTRIBS = ['isObscured', 'attrAlphaOrder', 'showNonKeyable', 'fullPathName', 'preventOverride', 'height',
                 'visible', 'enable', 'lastClickedNode', 'query', 'menuMultiOption', 'numberOfPopupMenus',
@@ -129,7 +129,7 @@ class NodeOutliner(Control):
 
 
 class OutlinerEditor(Control):
-    '''Wrapper class for cmds.outlinerEditor'''
+    """Wrapper class for cmds.outlinerEditor"""
     CMD = cmds.outlinerEditor
     _ATTRIBS = ['attrAlphaOrder', 'allowMultiSelection', 'containersIgnoreFilters', 'showAttributes', 'showSetMembers',
                 'doNotSelectNewObjects', 'setsIgnoreFilters', 'highlightSecondary', 'alwaysToggleSelect',
@@ -149,21 +149,21 @@ class OutlinerEditor(Control):
 
 
 class OutlinerPanel(Control):
-    '''Wrapper class for cmds.outlinerPanel'''
+    """Wrapper class for cmds.outlinerPanel"""
     CMD = cmds.outlinerPanel
     _ATTRIBS = ['edit', 'outlinerEditor', 'createString', 'editString', 'query']
     _CALLBACKS = ['popupMenuProcedure']
 
 
 class Panel(Control):
-    '''Wrapper class for cmds.panel'''
+    """Wrapper class for cmds.panel"""
     CMD = cmds.panel
     _ATTRIBS = ['edit', 'query', 'createString', 'editString']
     _CALLBACKS = ['popupMenuProcedure']
 
 
 class PanelConfiguration(Control):
-    '''Wrapper class for cmds.panelConfiguration'''
+    """Wrapper class for cmds.panelConfiguration"""
     CMD = cmds.panelConfiguration
     _ATTRIBS = ['replaceTypeString', 'createStrings', 'addPanel', 'edit', 'replaceCreateString', 'defaultImage',
                 'replaceFixedState', 'removeLastPanel', 'replaceLabel', 'removeAllPanels', 'labelStrings',
@@ -173,21 +173,21 @@ class PanelConfiguration(Control):
 
 
 class PanelHistory(Control):
-    '''Wrapper class for cmds.panelHistory'''
+    """Wrapper class for cmds.panelHistory"""
     CMD = cmds.panelHistory
     _ATTRIBS = ['historyDepth', 'edit', 'clear', 'back', 'forward', 'suspend', 'isEmpty', 'wrap', 'query', 'targetPane']
     _CALLBACKS = []
 
 
 class ScriptedPanel(Control):
-    '''Wrapper class for cmds.scriptedPanel'''
+    """Wrapper class for cmds.scriptedPanel"""
     CMD = cmds.scriptedPanel
     _ATTRIBS = ['edit', 'query', 'createString', 'type', 'editString']
     _CALLBACKS = ['popupMenuProcedure']
 
 
 class SpreadSheetEditor(Control):
-    '''Wrapper class for cmds.spreadSheetEditor'''
+    """Wrapper class for cmds.spreadSheetEditor"""
     CMD = cmds.spreadSheetEditor
     _ATTRIBS = ['attrRegExp', 'allAttr', 'query', 'unlockMainConnection', 'fixedAttrList', 'highlightConnection',
                 'forceMainConnection', 'showShapes', 'lockMainConnection', 'updateMainConnection', 'precision',
@@ -197,7 +197,7 @@ class SpreadSheetEditor(Control):
 
 
 class Visor(Control):
-    '''Wrapper class for cmds.visor'''
+    """Wrapper class for cmds.visor"""
     CMD = cmds.visor
     _ATTRIBS = ["addFolder", "addNodes", "allowPanningInX", "allowPanningInY", "allowZooming", "command",
                 "deleteFolder", "editFolder", "folderList", "menu", "name", "nodeType", "openDirectories", "openFolder",
@@ -209,12 +209,10 @@ class Visor(Control):
 
 
 class WebBrowser(Control):
-    '''Wrapper class for cmds.webBrowser'''
+    """Wrapper class for cmds.webBrowser"""
     CMD = cmds.webBrowser
     _ATTRIBS = ['isObscured', 'preventOverride', 'manage', 'back', 'height', 'visible', 'query', 'wrap', 'home', 'find',
                 'numberOfPopupMenus', 'enableBackground', 'searchForward', 'noBackground', 'width', 'backgroundColor',
                 'forward', 'urlChangedCb', 'enable', 'openURL', 'matchWholeWord', 'stop', 'fullPathName', 'annotation',
                 'edit', 'popupMenuArray', 'matchCase', 'reload']
     _CALLBACKS = ['command', 'dragCallback', 'dropCallback', 'visibleChangeCommand']
-
-

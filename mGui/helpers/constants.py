@@ -1,7 +1,7 @@
-'''
+"""
 This is a list of common attributes which are always present in all controls.  They are inherited from the Control
 base class so we suppress them in template generation
-'''
+"""
 CONTROL_ATTRIBS = [
     'en', 'enable',
     'm', 'manage',
