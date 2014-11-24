@@ -1,4 +1,4 @@
-'''
+"""
 forms.py
 
 A variety of specialized subclasses of FormLayout which are good shortcuts for common layout problems.
@@ -22,7 +22,7 @@ forms for the main architecture
 However, for less complex UI groups of 100-odd sets of 3 controls (300 total)
 came in under .25s, so it's not a big deal in common cases
 
-'''
+"""
 import itertools
 
 import maya.cmds as cmds
@@ -32,13 +32,13 @@ from mGui.styles import Bounds
 
 
 class Form(FormLayout):
-    '''
+    """
     A wrapper for FormLayout with convenience methods for attaching controls.
     Use this when you need precise control over form behavior.
 
     Formbase is entirely manual - it does no automatic layout behavior.
 
-    '''
+    """
 
     def __init__(self, key, *args, **kwargs):
         super(Form, self).__init__(key, *args, **kwargs)
@@ -47,9 +47,9 @@ class Form(FormLayout):
 
 
     def _fill(self, ctrl, *sides, **kwargs):
-        '''
+        """
         convenience wrapper for tedious formLayout editing
-        '''
+        """
         margin = kwargs.get('margin', None)
         ct = [ctrl for _ in sides]
         mr = [margin for _ in sides]
@@ -58,56 +58,56 @@ class Form(FormLayout):
         self.attachForm = zip(ct, sides, mr)
 
     def top(self, ctrl, margin=None):
-        '''
+        """
         Docks 'ctrl' against the top of the form, with the supplied margin on top, left and right
-        '''
+        """
         self._fill(ctrl, 'top', 'left', 'right', margin=margin)
 
     def left(self, ctrl, margin=None):
-        '''
+        """
         dock 'ctrl' along the left side of the form with the supplied margin
-        '''
+        """
         self._fill(ctrl, 'top', 'left', 'bottom', margin=margin)
 
     def right(self, ctrl, margin=None):
-        '''
+        """
         dock 'ctrl' along the right side of the form with the supplied margin
-        '''
+        """
         self._fill(ctrl, 'top', 'bottom', 'right', margin=margin)
 
 
     def bottom(self, ctrl, margin=None):
-        '''
+        """
         dock 'ctrl' along the bottom of the form with the supplied margin
-        '''
+        """
         self._fill(ctrl, 'bottom', 'left', 'right', margin=margin)
 
     def fill(self, ctrl, margin=None):
-        '''
+        """
         docks 'ctrl' into the form filling it completely with suppled margin on all sides
-        '''
+        """
         sides = ['top', 'bottom', 'left', 'right']
         self._fill(ctrl, *sides, margin=margin)
 
     def snap(self, ctrl1, ctrl2, edge, space=None):
-        '''
+        """
         docs 'ctrl1' to 'ctrl2' along the supplied edge (top, left, etc) with the supplied margin
-        '''
+        """
         if space is None: space = self.spacing[edge]
         self.attachControl = (ctrl1, edge, space, ctrl2)
 
     def form_attachments(self, *sides):
-        '''
+        """
         returns a list of (control, side, spacing) values used by attachForm style commands
-        '''
+        """
         attachments = ([side, self.margin[side]] for side in sides)
         ctls = itertools.product(self.Controls, attachments)
         return [[a] + b for a, b in ctls]
 
     def form_series(self, side):
-        '''
+        """
         returns a series of (control, side, space, control) for use in serial placement
-        '''
+        """
         first, second = itertools.tee(self.Controls)
         second.next()
         return [(s, side, self.spacing[side], f) for f, s in itertools.izip(first, second)]
@@ -144,14 +144,14 @@ class Form(FormLayout):
         return ap
 
     def dock(self, ctrl, top=None, left=None, right=None, bottom=None):
-        '''
+        """
         docks ctrl into the form.
 
         for each of the optional flags (top, bottom, left, & right), the arguments are interpreted as follows:
         None (default):  Ignore this edge
         Number (eg 10):  dock to form with this margin along this edge
         (ctrl2, number): dock to other control 'ctrl2' along this edge, with supplied margin
-        '''
+        """
 
         if not hasattr(top, '__iter__'): top = (None, top)
         if not hasattr(bottom, '__iter__'): bottom = (None, bottom)
@@ -191,11 +191,11 @@ class Form(FormLayout):
 
 
 class LayoutDialogForm(Form):
-    '''
+    """
     Shim that will create a formLayout wrapper from an existing formLayout.
     Used with the maya LayoutDialog command, which creates a form for you,
     so you can still use mGui property access.
-    '''
+    """
 
     def __init__(self, key):
         self.CMD = self.fake_create
@@ -208,9 +208,9 @@ class LayoutDialogForm(Form):
 
 
 class FillForm(Form):
-    '''
+    """
     Docks the first child so it fills the entire form with the specified margin
-    '''
+    """
 
     def layout(self):
         for item in self.Controls:
@@ -219,10 +219,10 @@ class FillForm(Form):
 
 
 class VerticalForm(Form):
-    '''
+    """
     Lays out children vertically. The first child is attached to the top of
     the form, all children are attached to the left and right
-    '''
+    """
 
     def layout(self):
         if len(self.Controls):
@@ -236,10 +236,10 @@ class VerticalForm(Form):
 
 
 class HorizontalForm(Form):
-    '''
+    """
     Lays out children horizontally. The first child is attacked to the left of
     the form, all children are attached to the top and bottom
-    '''
+    """
 
     def layout(self):
         if len(self.Controls):
@@ -252,11 +252,11 @@ class HorizontalForm(Form):
 
 
 class VerticalExpandForm(Form):
-    '''
+    """
     Lays out children vertically. The first child is attached to the top of
     the form, and the last to the bottom. The last division will expand with the
     form.
-    '''
+    """
 
     def layout(self):
         if len(self.Controls):
@@ -270,11 +270,11 @@ class VerticalExpandForm(Form):
 
 
 class HorizontalExpandForm(Form):
-    '''
+    """
     Lays out children horizontally. The first child is attacked to the left of
     the form, and the last to the right. The last division will expand with the
     form.
-    '''
+    """
 
     def layout(self):
         if len(self.Controls):
@@ -287,9 +287,9 @@ class HorizontalExpandForm(Form):
 
 
 class HorizontalStretchForm(Form):
-    '''
+    """
     Lays out children horizontally. All children will scale proportionally as the form changes size
-    '''
+    """
 
     def layout(self):
         if len(self.Controls):
@@ -301,9 +301,9 @@ class HorizontalStretchForm(Form):
 
 
 class VerticalStretchForm(Form):
-    '''
+    """
     Lays out children vertically, with sizes proportional to their original heights
-    '''
+    """
 
     def layout(self):
         if len(self.Controls):
@@ -315,9 +315,9 @@ class VerticalStretchForm(Form):
 
 
 class VerticalThreePane(Form):
-    '''
+    """
     First child is glued to the top, last child is glued to the bottom, intermediate childredn are stretched
-    '''
+    """
 
     def layout(self):
         if len(self.Controls) < 3:
@@ -333,9 +333,9 @@ class VerticalThreePane(Form):
 
 
 class HorizontalThreePane(Form):
-    '''
+    """
     First child is glued to the left, last child is glued to the right, intermediate childredn are stretched
-    '''
+    """
 
     def layout(self):
         if len(self.Controls) < 3:
@@ -351,9 +351,9 @@ class HorizontalThreePane(Form):
 
 
 class FooterForm(VerticalForm):
-    '''
+    """
     A vertical layout with two children. The first expands with the container, the second is glued to the bottom
-    '''
+    """
 
     def layout(self):
         if len(self.Controls) != 2:
@@ -367,9 +367,9 @@ class FooterForm(VerticalForm):
 
 
 class HeaderForm(VerticalForm):
-    '''
+    """
     A vertical layout with two children. The second expands with the container, the first is glued to the top
-    '''
+    """
 
     def layout(self):
         if len(self.Controls) != 2:
@@ -383,9 +383,9 @@ class HeaderForm(VerticalForm):
 
 
 class NavForm(HorizontalForm):
-    '''
+    """
     A two-pane horizontal form. THe first is fixed to the left size, the second expands with the container
-    '''
+    """
 
     def layout(self):
         af = self.form_attachments('top', 'bottom')

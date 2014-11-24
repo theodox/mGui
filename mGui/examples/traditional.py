@@ -1,10 +1,10 @@
 import mGui.gui as gui
 import maya.cmds as cmds
-'''
+"""
 This example shows a cleaned up version of traditional Maya GUI using context managers and addressing but no other new features
 
 Note: buttons are non-functional; this just shows layout style
-'''
+"""
 
 
 window = gui.Window('main window', title="Ugly version")

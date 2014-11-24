@@ -1,8 +1,8 @@
-'''
+"""
 mGui.helpers.tools
 
 This module provides services that can be useful of r
-'''
+"""
 
 
 import maya.mel as mel
@@ -27,9 +27,9 @@ for item in mel.eval('help -list "*"'):
                       
 
 class CommandInfo(object):
-    '''
+    """
     This class uses the mel help strings for commands to generate class wrapper classes
-    '''
+    """
     DEFAULTS = core.Control._ATTRIBS + core.Control._READ_ONLY
     INHERITS = 'Control'
     

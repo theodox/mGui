@@ -5,7 +5,7 @@ import mGui.lists as lists
 import mGui.forms as forms
 from mGui.bindings import bind
 
-'''
+"""
 This sample shows a basic example of using a bound collection
 
 Key points:
@@ -38,7 +38,7 @@ Key points:
     affect the original collection (such as deletion) rather than stuff which
     only affects a single item in the collection.
 
-'''
+"""
 
 
 class ExampleTemplate(lists.ItemTemplate):
@@ -100,11 +100,11 @@ class BoundCollectionWindow(object):
 
 
 def run():
-    '''
+    """
     Example:
     import mGui.examples.boundCollection as boundCollection
     win = boundCollection.run()
-    '''
+    """
     test = None
     try:
         test = BoundCollectionWindow([])

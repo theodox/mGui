@@ -238,7 +238,7 @@ class Nested(Control):
         return len(self.Controls)
 
     def add(self, control):
-        '''
+        """
         Add the supplied control (an mGui object) to the Controls list in this item.  If the control has a unique key,
         add the key to this object's __dict__.  This allows dot notation access:
 
@@ -253,7 +253,7 @@ class Nested(Control):
         Non-physical entities -- such as a RadioButtonCollection -- are available with dot notation but *not*
         in the Controls field. This allows the layout() functions in various layouts to rely on the presence of
         controls that can be manipulated.
-        '''
+        """
 
         path_difference = control.Widget[len(self.Widget):].count('|') - 1
         if not path_difference and hasattr(control, 'visible'):

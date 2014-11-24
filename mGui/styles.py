@@ -1,11 +1,11 @@
-'''
+"""
 Defines the CSS class, a cascading style sheet like class for GUI layout.
 
 Also defines the Bounds class, which reprsents margins
-'''
+"""
 
 class Bounds(object):
-    '''
+    """
     A bounding area (in pixels).  Can be constructed 3 ways:
     
         Bounds (10) : 10 pixel margin on all sides
@@ -19,7 +19,7 @@ class Bounds(object):
         # 10
         B['top']
         # 20
-    '''
+    """
     def __init__(self, *args):
         if len(args) == 1:
             vals = list(args) * 4
@@ -47,7 +47,7 @@ class Bounds(object):
 
 class CSS (dict):
         
-    '''
+    """
     A css is a dictionary of style values keyed to a particular target.
     
     If <target> is a class, the style applies to any instance of that class
@@ -116,7 +116,7 @@ class CSS (dict):
             test4 = StyledMockButton('custom', style = CSS('custom', width = 11, height=91)) 
                                                 # explicitly passed style wins over the styles in outer.
                                 
-    '''
+    """
     
     ACTIVE = None
     
@@ -143,9 +143,9 @@ class CSS (dict):
         CSS.ACTIVE = self._cache_css
 
     def applies(self, *args):
-        '''
+        """
         return True if this style matches the arguments.  Arguments are EITHER a control OR a class, key pair
-        '''
+        """
         if len(args) == 1:
             ctrl = args[0]
             return  (self.Target == ctrl.Key) or isinstance(ctrl, self.Target) 
@@ -159,9 +159,9 @@ class CSS (dict):
     
     
     def begin(self):
-        '''
+        """
         Set this style to be active; the same as entering it via a context manager
-        '''
+        """
         self.__enter__()
         
     
@@ -172,9 +172,9 @@ class CSS (dict):
         '''
     
     def find(self, *args):
-        '''
+        """
         find the style in this nested style which matches the supplied arg.  See applies for arguments.
-        '''
+        """
         for item in self.Children:
             recurse = item.find(*args)
             if recurse: return recurse
@@ -187,9 +187,9 @@ class CSS (dict):
         return cls.ACTIVE
     
 class Styled(object):
-    '''
+    """
     Mixin class which makes an object try to hook the appropriate style from CSS.curretn
-    '''
+    """
     def __new__(self, *args, **kwargs):
         obj = object.__new__(self)
         self.Style = kwargs.get('css', {})

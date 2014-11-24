@@ -1,11 +1,11 @@
-'''
+"""
 Warning: If you give this layout less than one child there will be an error.
 Example:
 import mGui.examples.simpleBinding as simpleBinding
 reload(simpleBinding)
 example = simpleBinding.window_object()
 example.settings
-'''
+"""
 
 import maya.cmds as cmds
 import mGui.gui as gui

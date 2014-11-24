@@ -1,18 +1,18 @@
-'''
+"""
 events.py
 
 Defines a simple event handler system similar to that used in C#.  Events allow
 multicast delegates and arbitrary message passing. They use weak references so
 they don't keep their handlers alive if they are otherwise out of scope.
 
-'''
+"""
 import weakref
 import maya.utils
 from functools import  partial
 
 
 class Event(object):
-    '''
+    """
     Simple event handler, similar to the standard c# event pattern. The object
     raising an event calls this event object as a callable; the object will in
     turn fire any of the callables it stores in its Handlers list, passing the
@@ -68,7 +68,7 @@ class Event(object):
         args: world
         kwargs: {'name': 'test_event', 'event': <Event object at 0x00000000026892E8>}
 
-    '''
+    """
 
     def __init__(self, **data):
         self._Handlers = set()
@@ -77,36 +77,36 @@ class Event(object):
         self.Data['event'] = self
 
     def _addHandler(self, handler):
-        '''
+        """
         Add a handler callable. Raises a ValueError if the argument is not callable
-        '''
+        """
         wr = WeakMethod(handler)
 
         self._Handlers.add(wr)
         return self
 
     def _removeHandler(self, handler):
-        '''
+        """
         Remove a handler. Ignores handlers that are not present.
-        '''
+        """
         wr = WeakMethod(handler)
         delenda = [h for h in self._Handlers if h == wr]
         self._Handlers = self._Handlers.difference(set(delenda))
         return self
 
     def metadata(self, kwargs):
-        '''
+        """
         returns the me
-        '''
+        """
         md = {}
         md.update(self.Data)
         md.update(kwargs)
         return md
 
     def _fire(self, *args, **kwargs):
-        '''
+        """
         Call all handlers.  Any decayed references will be purged.
-        '''
+        """
 
         delenda = []
         for handler in self._Handlers:
@@ -117,9 +117,9 @@ class Event(object):
         self._Handlers = self._Handlers.difference(set(delenda))
 
     def _handlerCount (self):
-        '''
+        """
         Returns the count of the _Handlers field
-        '''
+        """
         return len([i for i in self._Handlers])
 
     # hook up the instance methods to the base methods
@@ -132,13 +132,13 @@ class Event(object):
 
 
 class MayaEvent(Event):
-    '''
+    """
     Subclass of event that uses Maya.utils.executeDeferred.
-    '''
+    """
     def _fire(self, *args, **kwargs):
-        '''
+        """
         Call all handlers.  Any decayed references will be purged.
-        '''
+        """
 
         delenda = []
         for handler in self._Handlers:
@@ -152,11 +152,11 @@ class MayaEvent(Event):
 
 
 class DeadReferenceError(TypeError):
-    '''
+    """
     Raised when a WeakMethodBound or WeakMethodFree tries to fire a method that
     has been garbage collected. Used by Events to know when to drop dead
     references
-    '''
+    """
     pass
 
 # # create weak references to both bound and unbound methods
@@ -164,11 +164,11 @@ class DeadReferenceError(TypeError):
 
 
 class WeakMethodBound:
-    '''
+    """
     Encapsulates a weak reference to a bound method on an object.  Has a
     hashable ID so that Events can identify multiple references to the same
     method and not duplicate them
-    '''
+    """
     def __init__(self, f):
 
         self.f = f.im_func
@@ -192,9 +192,9 @@ class WeakMethodBound:
 
 
 class WeakMethodFree:
-    '''
+    """
     Encapsulates a weak reference to an unbound method
-    '''
+    """
     def __init__(self, f):
         self.f = weakref.ref(f)
         self.ID = id(f)
@@ -214,10 +214,10 @@ class WeakMethodFree:
 
 
 def WeakMethod(f) :
-    '''
+    """
     Returns a WeakMethodFree or a WeakMethodBound for the supplied function, as
     appropriate
-    '''
+    """
     try :
         f.im_func
     except AttributeError :

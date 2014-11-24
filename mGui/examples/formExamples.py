@@ -41,11 +41,11 @@ commands2 = [{'label': 'Create Sphere',
 
 
 def example_FillForm():
-    '''
+    """
     Example:
     import mGui.examples.formExamples as formExamples
     formExamples.example_HorizontalThreePane()
-    '''
+    """
     with gui.Window(None, title="Example") as window:
         with forms.FillForm(None, width=320) as main:
             for item in commands2:
@@ -55,12 +55,12 @@ def example_FillForm():
 
 
 def example_FooterForm():
-    '''
+    """
     Warning: If you give this layout less than one child there will be an error.
     Example:
     import mGui.examples.formExamples as formExamples
     formExamples.example_HorizontalThreePane()
-    '''
+    """
     with gui.Window(None, title="Example") as window:
         with forms.FooterForm(None, width=320) as main:
             i = 0
@@ -74,12 +74,12 @@ def example_FooterForm():
 
 
 def example_HeaderForm():
-    '''
+    """
     Warning: If you give this layout less than one child there will be an error.
     Example:
     import mGui.examples.formExamples as formExamples
     formExamples.example_HorizontalThreePane()
-    '''
+    """
     with gui.Window(None, title="Example") as window:
         with forms.HeaderForm(None, width=320) as main:
             i = 0
@@ -93,11 +93,11 @@ def example_HeaderForm():
 
 
 def example_HorizontalExpandForm():
-    '''
+    """
     Example:
     import mGui.examples.formExamples as formExamples
     formExamples.example_HorizontalExpandForm()
-    '''
+    """
     with gui.Window(None, title="Example") as window:
         with forms.HorizontalExpandForm(None, width=320) as main:
             for item in commands2:
@@ -107,11 +107,11 @@ def example_HorizontalExpandForm():
 
 
 def example_HorizontalForm():
-    '''
+    """
     Example:
     import mGui.examples.formExamples as formExamples
     formExamples.example_HorizontalForm()
-    '''
+    """
     with gui.Window(None, title="Example") as window:
         with forms.HorizontalForm(None, width=320) as main:
             for item in commands2:
@@ -121,11 +121,11 @@ def example_HorizontalForm():
 
 
 def example_HorizontalStretchForm():
-    '''
+    """
     Example:
     import mGui.examples.formExamples as formExamples
     formExamples.example_HorizontalStretchForm()
-    '''
+    """
     with gui.Window(None, title="Example", height=400) as window:
         with forms.HorizontalStretchForm(None, width=320) as main:
             for item in commands2:
@@ -135,12 +135,12 @@ def example_HorizontalStretchForm():
 
 
 def example_HorizontalThreePane():
-    '''
+    """
     Warning: If you give this layout less than three children there will be an error.
     Example:
     import mGui.examples.formExamples as formExamples
     formExamples.example_HorizontalThreePane()
-    '''
+    """
     with gui.Window(None, title="Example") as window:
         with forms.HorizontalThreePane(None, width=320) as main:
             i = 0
@@ -154,11 +154,11 @@ def example_HorizontalThreePane():
 
 
 def example_VerticalExpandForm():
-    '''
+    """
     Example:
     import mGui.examples.formExamples as formExamples
     formExamples.example_VerticalExpandForm()
-    '''
+    """
     with gui.Window(None, title="Example") as window:
         with forms.VerticalExpandForm(None, width=320) as main:
             for item in commands2:
@@ -168,11 +168,11 @@ def example_VerticalExpandForm():
 
 
 def example_VerticalForm():
-    '''
+    """
     Example:
     import mGui.examples.formExamples as formExamples
     formExamples.example_VerticalForm()
-    '''
+    """
     with gui.Window(None, title="Example", resizeToFitChildren=True) as window:
         with forms.VerticalForm(None, width=320) as main:
             for item in commands2:
@@ -181,11 +181,11 @@ def example_VerticalForm():
 
 
 def example_VerticalStretchForm():
-    '''
+    """
     Example:
     import mGui.examples.formExamples as formExamples
     formExamples.example_VerticalStretchForm()
-    '''
+    """
     with gui.Window(None, title="Example", height=400) as window:
         with forms.VerticalStretchForm(None, width=320) as main:
             for item in commands2:
@@ -195,12 +195,12 @@ def example_VerticalStretchForm():
 
 
 def example_VerticalThreePane():
-    '''
+    """
     Warning: If you give this layout less than three children there will be an error.
     Example:
     import mGui.examples.formExamples as formExamples
     formExamples.example_HorizontalThreePane()
-    '''
+    """
     with gui.Window(None, title="Example") as window:
         with forms.VerticalThreePane(None, width=320) as main:
             i = 0

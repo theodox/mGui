@@ -1,4 +1,4 @@
-'''
+"""
 mGui.helpers.tools
 
 Utility code for generating a complete copy of all the commands and layouts in the maya gui toolkit.
@@ -10,7 +10,7 @@ you're trying to make significant changes to the library.
 
 
 (c) 2014 Steve Theodore - see mGui/__init__.py for MIT license details
-'''
+"""
 
 
 import maya.mel as mel
@@ -35,9 +35,9 @@ for item in mel.eval('help -list "*"'):
                       
 
 class CommandInfo(object):
-    '''
+    """
     This class uses the mel help strings for commands to generate class wrapper classes
-    '''
+    """
     DEFAULTS = constants.CONTROL_ATTRIBS
     INHERITS = 'Control'
     
@@ -47,7 +47,7 @@ class CommandInfo(object):
         self.Flags = flags
     
     def template(self, includeShortNames = False):
-        '''
+        """
         produces a string containing a complete class definition for a class derived from mGui.core.Control, such as:
         
             class AttrColorSliderGrp(Control):
@@ -57,7 +57,7 @@ class CommandInfo(object):
                  _CALLBACKS = []
 
         @note the _ATTRIBS class field is usually over the pep-8 width limit. Sorry.
-        '''
+        """
         
         code = StringIO()
         code.write('class %s(%s):\n' % (self.Name[0].upper() + self.Name[1:], self.INHERITS))
@@ -80,9 +80,9 @@ class CommandInfo(object):
         
     @classmethod    
     def from_command(cls, commandname):
-        '''
+        """
         generate a CommandInfo object from a maya command name string OR a maya cmd from the cmds module
-        '''
+        """
         if hasattr(commandname, "__name__"): commandname = commandname.__name__
         helptext  = mel.eval("help %s;" % commandname)
         if not helptext: raise RuntimeError, 'no command "%s" found' % commandname
@@ -95,17 +95,17 @@ class CommandInfo(object):
 
 
 class LayoutInfo(CommandInfo):
-    '''
+    """
     Produces classes for layouts, including all the Layout specific attributes
-    '''
+    """
     DEFAULTS = constants.CONTROL_ATTRIBS + constants.LAYOUT_ATTRIBS
     INHERITS = 'Layout'
     
 
 def generate_controls(filename, includeShortNames=False):
-    '''
+    """
     Write a text file with class definitions for all of the control classes in Maya.
-    '''
+    """
     with open (filename, 'wt') as filehandle:
         filehandle.write("'''\nmGui wrapper classes\n\nAuto-generated wrapper classes for use with mGui\n'''\n\n")
         filehandle.write('import maya.cmds as cmds\n')
@@ -121,9 +121,9 @@ def generate_controls(filename, includeShortNames=False):
                 filehandle.write("# command '%s' not present in this version of maya" % each_class)
 
 def generate_layouts(filename, includeShortNames=False):
-    '''
+    """
     Write a text file with class definitions for all of the layout classes in Maya.
-    '''
+    """
     with open (filename, 'wt') as filehandle:
         filehandle.write("'''\nmGui wrapper classes\n\nAuto-generated wrapper classes for use with mGui\n'''\n\n")
         filehandle.write('import maya.cmds as cmds\n')
