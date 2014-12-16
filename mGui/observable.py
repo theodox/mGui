@@ -4,9 +4,8 @@ Observable.py
 """
 import maya.utils as utils
 
-from mGui.events import MayaEvent
+from mGui.events import MayaEvent, Event
 from mGui.bindings import BindableObject
-
 
 class ObservableCollection(BindableObject):
     """
@@ -121,6 +120,13 @@ class ObservableCollection(BindableObject):
         for item in self._Internal_Collection:
             yield item
 
+class ImmediateObservableCollection(ObservableCollection):
+
+    def __init__(self, *items):
+        self._Internal_Collection = [i for i in items]
+        self.CollectionChanged = Event(collection=self)
+        self.ItemAdded = Event(collection=self)
+        self.ItemRemoved = Event(collection=self)
 
 class ViewCollection(ObservableCollection):
     """
@@ -229,7 +235,13 @@ class BoundCollection(BindableObject):
     def Count(self):
         return len(self._Internal_Collection)
 
-
+class ImmediateBoundCollection(BoundCollection):
+     def __init__(self, conversion=lambda x: (x, [])):
+        self._Internal_Collection = ()
+        self._Public_Collecton = {}
+        self.Conversion = conversion
+        self.CollectionChanged = Event()  # these are MayaEvents so they are thread safe... we hope
+        self.WidgetCreated = Event()
 
 
 

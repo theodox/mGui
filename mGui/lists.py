@@ -64,10 +64,15 @@ class FormList(object):
             self.Template = kwargs['itemTemplate'](self)
             del kwargs['itemTemplate']
 
-        self.Collection = observable.BoundCollection(self.Template)
+        if 'synchronous' in kwargs:
+            self.Collection = observable.ImmediateBoundCollection(self.Template)
+            self.NewWidget = events.Event(type='widget created')
+        else:
+            self.Collection = observable.BoundCollection(self.Template)
+            self.NewWidget = events.MayaEvent(type='widget created')
+
         self.Collection.CollectionChanged += self.redraw  # automatically forward collection changes
         self.Collection.WidgetCreated += self.widget_created
-        self.NewWidget = events.MayaEvent(type='widget created')
 
     def redraw(self, *args, **kwargs):
         """
@@ -119,6 +124,8 @@ class VerticalList(forms.VerticalForm, FormList):
             self.Widget = self.ScrollLayout.Widget + "|temp"
             self.ScrollLayout.__enter__()
             self.__init_bound_collection__(kwargs)
+            if 'synchronous' in kwargs:
+                kwargs.pop('synchronous')
             super(VerticalList, self).__init__(key, *args, **kwargs)
             self.__enter__()
             self.__exit__(None, None, None)
