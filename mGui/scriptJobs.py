@@ -33,18 +33,18 @@ class ScriptJobEvent(events.Event):
 
         sj.kill()
 
-    Run conditions (such as -runOnce or -protected) should be specificied when the scriptJob is started.
+    Run conditions (such as -runOnce, -parent,  or -protected) should be specificied when the scriptJob is started.
     """
 
 
-    def __init__(self, scriptJobFlag, parent, **kwargs):
+    def __init__(self, scriptJobFlag, eventType, **kwargs):
         self.ScriptFlag = scriptJobFlag
-        self.Parent = parent
+        self.EventType = eventType
         super(ScriptJobEvent, self).__init__(**kwargs)
         self.Data['scriptJob'] = -1
 
     def start(self, **sjFlags):
-        kwargs = {self.ScriptFlag: (self.Parent, self)}
+        kwargs = {self.ScriptFlag: (self.EventType, self)}
         kwargs.update(sjFlags)
         self.Data['scriptJob'] = cmds.scriptJob(**kwargs)
 
@@ -463,7 +463,12 @@ class ScriptJobC(ScriptJobEvent):
         if type is False:
             changetype = "cf"
 
+
+
         super(ScriptJobC, self).__init__(changetype, self.CONDITION, **kwargs)
+
+    def get_state(self):
+        return cmds.condition(self.EventType, q=True, st=True)
 
 
 class PlayingBack(ScriptJobC):
@@ -706,6 +711,15 @@ class HotkeyListChange(ScriptJobC):
     CONDITION = "hotkeyListChange"
 
 
+class CustomCondition(ScriptJobC):
+    """
+    Create a ScriptJobC for a named condition other than the predefined ones in Maya.  See the documentation
+    for cmds.condition for how to create a named condition.
+    """
+
+    def __init__(self, conditionName, type):
+        super(CustomCondition, self).__init__(conditionName, type)
+
 # ======================================================================================================================
 # Property Descriptor
 # used by all ScriptJobEvent classes
@@ -737,4 +751,5 @@ class ScriptJobCallbackProperty(properties.CallbackProperty):
         obj.Callbacks[self.Key] = sjEvent
         if not sjEvent.running:
             sjEvent.start()
+
 
