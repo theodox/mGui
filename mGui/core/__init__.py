@@ -295,11 +295,17 @@ class Nested(Control):
                 yield sub
         yield self
 
+    # note: both of these explicitly use Nested instead of cls
+    # so that there is only one global layout stack...
+
     @classmethod
     def add_current(cls, control):
         if Nested.ACTIVE_LAYOUT:
             Nested.ACTIVE_LAYOUT.add(control)
 
+    @classmethod
+    def current(cls):
+        return Nested.ACTIVE_LAYOUT
 
 # IMPORTANT NOTE
 # this intentionally duplicates redundant property names from Control.
@@ -345,18 +351,24 @@ class Window(Nested):
 
     def __init__(self, key, *args, **kwargs):
         super(Window, self).__init__(key, *args, **kwargs)
-        self.ACTIVE_WINDOWS.append(self)
+        Window.ACTIVE_WINDOWS.append(self)
         self.Deleted += self.forget
 
     @classmethod
     def forget(cls, *args, **kwargs):
-        cls.ACTIVE_WINDOWS.remove(kwargs['sender'])
+        Window.ACTIVE_WINDOWS.remove(kwargs['sender'])
 
     def show(self):
         cmds.showWindow(self.Widget)
 
     def hide(self):
         self.visible = False
+
+    @classmethod
+    def current(cls):
+        if Window.ACTIVE_WINDOWS:
+            return Window.ACTIVE_WINDOWS[-1]
+        return None
 
 
 class BindingWindow(Window):
