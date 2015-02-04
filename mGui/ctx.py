@@ -4,10 +4,9 @@ This module is for scriptCtx based tools
 import maya.cmds as cmds
 import maya.mel
 
-import mGui.runtimeCommands as rtc
 from mGui.scriptJobs import SelectionChanged
+from mGui.events import Event
 
-from mGui.events import  Event
 
 class ToolEvent(Event):
     REGISTRY = {}
@@ -17,61 +16,166 @@ class ToolEvent(Event):
         cls.REGISTRY[name] = cls(*args, **kwargs)
         return cls.REGISTRY[name]
 
+    @classmethod
+    def fire(cls, name):
+        res = cls.REGISTRY.get(name)
+        if res:
+            res()
+        else:
+            cmds.warning("no event for %s" % name)
+
+    @classmethod
+    def delete_tool(cls, tool):
+        for v in cls.REGISTRY.values():
+            v -= tool.start
+            v -= tool.finish
+            v -= tool.exit
+            if hasattr(tool, 'values'):
+                v -= tool.values
+            if hasattr(tool, 'properties'):
+                v -= tool.properties
 
 
-
-# ----------------------------------------------
-# helper classes for use in assembling contexts
-
-class StructuredOptionProperty(object):
+class ComponentSelectionTracker(object):
     """
-    propety accessor
-    """
-
-    def __init__(self, key, flag, default):
-        self.key = "_prop_" + key
-        self.flag = flag
-        self.default = default
-
-    def __get__(self, instance, owner):
-        if not hasattr(instance, self.key):
-            self.__set__(instance, self.default)
-        return getattr(instance, self.key)
-
-    def __set__(self, instance, value):
-        setattr(instance, self.key, value)
-
-
-class StructuredOptionsMeta(type):
-    """
-    metaclass for cleaner creation of option flags
+    A variant of ScriptContextOptions which tracks component selections in user selected order -- the stupid mel
+    callback system makes this extremely awkward to do in the tool scripts themselves, so it's easier to just use this.
     """
 
-    def __new__(cls, name, bases, kwargs):
-        class_props = {'_PROPERTIES': []}
+    def __init__(self):
+        self.selected = []
+        self.visited = set()
+        self.watcher = SelectionChanged()
+        self.watcher += self.track_selection
 
-        for k, v in kwargs.items():
-            if isinstance(v, tuple):
-                new_prop = StructuredOptionProperty(k, v[0], v[1])
-                class_props[k] = new_prop
-                class_props['_PROPERTIES'].append(new_prop)
-            else:
-                class_props[k] = v
-        return type.__new__(cls, name, bases, class_props)
+    def track_selection(self, *ags, **kwargs):
+        sel = set(cmds.ls(sl=True, fl=True))
+        for comp in sel:
+            if not comp in self.visited:
+                self.selected.append(comp)
+                self.visited.add(comp)
+
+        deletions = sel.difference(self.visited)
+        for d in deletions:
+            self.selected.remove(d)
+            self.visited.remove(d)
+
+    def start(self, *args, **kwargs):
+        self.watcher.start()
+
+    def finish(self):
+        self.track_selection()
+
+    def exit(self, *args, **kwargs):
+        self.watcher.kill()
+        self.selected = []
+        self.visited = set()
+
+    def component_selection(self):
+        return [i for i in self.selected]
 
 
-class StructuredOptionSet(object):
+class Tool(object):
     """
-    base class for structured options
+    Represents a scriptContext tool
     """
-    __metaclass__ = StructuredOptionsMeta
+    REGISTRY = {}  # don't override this in derived -- always use the Tool version
+    START = 'start'
+    FINISH = 'finish'
+    EXIT = 'exit'
+    PROPERTIES = 'properties'
+    VALUES = 'values'
 
-    def value(self):
-        results = {}
-        for v in self._PROPERTIES:
-            results[v.flag] = v.__get__(self, None)
-        return results
+    EVENT_PREFIX = 'tool'  # give each derived tool a unique name
 
+    def __init__(self, name):
+        self.name = name
+
+        def hook_event(name, function):
+            event_name = lambda name: self.EVENT_PREFIX + "_" + name
+            ev = ToolEvent.create(event_name(name))
+            ev += function
+
+        hook_event(self.START, self.start)
+        hook_event(self.FINISH, self.finish)
+        hook_event(self.EXIT, self.exit)
+
+        # if the derived class implements 'properties' and 'values' methods
+        if hasattr(self, 'properties'):
+            hook_event(self.PROPERTIES, self.properties)
+            hook_event(self.VALUES, self.values)
+
+        Tool.REGISTRY[self.name] = self
+
+    def create_context(self, contextOptions):
+        """
+        Create a context hooked to the events for this instance
+        """
+        props = hasattr(self, 'properties') or None
+        vals = hasattr(self, 'values') or None
+        if not props == vals:
+            raise RuntimeError('Tool classes with custom properties must implement both properties() and values()')
+
+        if props and vals:
+            props = self.PROPERTIES
+            vals = self.VALUES
+
+        opts = contextOptions.value(self.EVENT_PREFIX, self.START, self.FINISH, self.EXIT, props, vals)
+        opts['title'] = self.name
+        context_name = cmds.scriptCtx(**opts)
+        Tool.REGISTRY[context_name] = self
+        return context_name
+
+    def start(self, *args, **kwargs):
+        pass
+
+    def finish(self, *args, **kwargs):
+        pass
+
+    def exit(self, *args, **kwargs):
+        pass
+
+
+    @classmethod
+    def retrieve(cls, name_or_context):
+        return Tool.REGISTRY.get(name_or_context, None)
+
+    @classmethod
+    def delete(cls, name_or_context):
+        target = cls.retrieve(name_or_context)
+        if target is not None:
+            ToolEvent.delete_tool(target)
+            for k, v in Tool.REGISTRY.items():
+                if v == target:
+                    del (Tool.REGISTRY[k])
+
+
+class SelectionTrackingTool(Tool):
+    """
+    This is a variant of the base tool which includes a ComponentSelectionTracker so that
+     it can track serial selections. It preserves selection order to support component selection tools
+     (it's hard to do this in Python otherwise)
+    """
+
+    def __init__(self, name):
+        super(SelectionTrackingTool, self).__init__(name)
+        self.tracker = ComponentSelectionTracker()
+
+    def start(self, *args, **kwargs):
+        self.tracker.start()
+
+    def finish(self, *args, **kwargs):
+        self.tracker.finish()
+
+    def exit(self, *args, **kwargs):
+        self.tracker.exit()
+
+    def component_selection(self):
+        return self.tracker.component_selection()
+
+
+# ---------------------------------------------
+# convenience constants
 
 class Cursors(object):
     """
@@ -110,11 +214,65 @@ class Cursors(object):
     knife = "knife"
 
 
-# ------------------------------------------------
-# build contexts out of these classes.
-# Note that the properties below become instance properties when an instance is created!
+# ----------------------------------------------
+# helper classes for use in assembling contexts
+
+class StructuredOptionProperty(object):
+    """
+    propety accessor for StructuredOptions.  This is used
+    to keep all the boilerplated for defaults, etc in one place
+    """
+
+    def __init__(self, key, flag, default):
+        self.key = "_prop_" + key
+        self.flag = flag
+        self.default = default
+
+    def __get__(self, instance, owner):
+        if not hasattr(instance, self.key):
+            self.__set__(instance, self.default)
+        return getattr(instance, self.key)
+
+    def __set__(self, instance, value):
+        setattr(instance, self.key, value)
+
+
+class StructuredOptionsMeta(type):
+    """
+    Make all StructuredOptions use StructuredOptionsProperties
+    """
+
+    def __new__(cls, name, bases, kwargs):
+        class_props = {'_PROPERTIES': []}
+        for k, v in kwargs.items():
+            if isinstance(v, tuple):
+                new_prop = StructuredOptionProperty(k, v[0], v[1])
+                class_props[k] = new_prop
+                class_props['_PROPERTIES'].append(new_prop)
+            else:
+                class_props[k] = v
+        return type.__new__(cls, name, bases, class_props)
+
+
+class StructuredOptionSet(object):
+    """
+    Base class for structured options. They are just a clean way
+    to assemble the dictionary of options needed by the scriptCtx
+    command
+    """
+    __metaclass__ = StructuredOptionsMeta
+
+    def value(self):
+        results = {}
+        for v in self._PROPERTIES:
+            results[v.flag] = v.__get__(self, None)
+        return results
+
 
 class PromptOptions(StructuredOptionSet):
+    """
+    The prompts for a selection set
+    """
     prompt = 'ssp', ''
     unselected = 'snp', 'select something'
     completed = 'dsp', 'selection completed'
@@ -123,6 +281,10 @@ class PromptOptions(StructuredOptionSet):
 
 
 class SelectionSetOptions(StructuredOptionSet):
+    """
+    A selection set. A finished context includes at least one
+    and possibly more of these
+    """
     autocomplete = 'sac', False
     toggle = 'sat', False
     allow_excess = 'sae', False
@@ -138,6 +300,9 @@ class SelectionSetOptions(StructuredOptionSet):
 
 
 class ScriptContextFactory(StructuredOptionSet):
+    """
+    Collect selection sets into a single dictionary to be fed to the ScriptCtx command.
+    """
     cursor = 'tct', Cursors.edit
     exit_on_completion = 'euc', False
     ignore_invalid = 'iii', True
@@ -148,34 +313,7 @@ class ScriptContextFactory(StructuredOptionSet):
     def __init__(self, *selectionSets):
         self.sets = selectionSets
 
-    def create_tool_sheet_callbacks(self, props):
-
-        if hasattr(self, 'property_script'):
-            props['bcn'] = self.__class__.__name__
-            prop_info = rtc.ImportInfo(self.property_script)
-            val_info = rtc.ImportInfo(self.value_script)
-            prop_script = prop_info.import_statement() + ";" + prop_info.callable_name() + "()"
-            val_script = val_info.import_statement() + ";" + val_info.callable_name() + "('\" + $toolName + \"')"
-            # Properties generates the UI; it's a Mel call.
-            # make sure to setParent to toolPropertyWindow -q -location
-            maya.mel.eval("""global proc {}Properties(){}
-            python("{}");
-            {}
-            """.format(self.__class__.__name__, "{", prop_script, "}"))
-            # values sets context prop values. We can't do that
-            maya.mel.eval("""global proc {}Values(string $toolName){}
-            python("{}");
-            {}
-            """.format(self.__class__.__name__, "{", val_script, "}"))
-
-    def value(self):
-
-        required_class_methods = 'start', 'finish', 'exit', 'create_ctx'
-
-        for method in required_class_methods:
-            assert hasattr(self.__class__, method)
-
-
+    def value(self, tool_class, start_name, finish_name, exit_name, props_name, vals_name):
         result = super(ScriptContextFactory, self).value()
         result['tss'] = len(self.sets)
         opt_flags = ['snp', 'ssp', 'dsp', 'snh', 'ssh', 'ssc', 'sac', 'sat']
@@ -186,13 +324,22 @@ class ScriptContextFactory(StructuredOptionSet):
             for opt in opt_flags:
                 result[opt].append(tmp[opt])
 
-        result['ts'] = rtc.create_runtime_command(self.__class__.__name__ + "_tool_start", self.__class__.start)
-        result['tf'] = rtc.create_runtime_command(self.__class__.__name__ + "_tool_finish", self.__class__.finish)
-        result['fcs'] = rtc.create_runtime_command(self.__class__.__name__ + "_tool_exit", self.__class__.exit)
+        def generate_event_callback(classname, tool_name):
+            long_name = classname + "_" + tool_name
+            return '''python("from mGui.ctx import ToolEvent; ToolEvent.fire('%s')")''' % long_name
 
-        self.create_tool_sheet_callbacks(result)
+        result['ts'] = generate_event_callback(tool_class, start_name)
+        result['tf'] = generate_event_callback(tool_class, finish_name)
+        result['fcs'] = generate_event_callback(tool_class, exit_name)
+
+        if props_name:
+            # if custom properties are provided, define mel proxies
+            result['bcn'] = tool_class
+            prop_event = generate_event_callback(tool_class, props_name)
+            maya.mel.eval("""global proc %sProperties(){%s}""" % (tool_class, prop_event))
+            maya.mel.eval("""global proc %sValues(string $toolName){%s}""" % (tool_class, vals_name))
+
         return result
-
 
     def create(self, title):
         opts = self.value()
@@ -200,43 +347,3 @@ class ScriptContextFactory(StructuredOptionSet):
         return cmds.scriptCtx(**opts)
 
 
-
-class ComponentSelectionContextFactory(ScriptContextFactory):
-    """
-    A variant of ScriptContextOptions which tracks component selections in user selected order -- the stupid mel
-    callback system makes this extremely awkward to do in the tool scripts themselves, so it's easier to just use this.
-    """
-
-    SELECTION_WATCHER = None
-    SELECTED = []
-    VISITED = set()
-
-    @classmethod
-    def start(cls):
-        cls.SELECTED = []
-        cls.VISITED = set()
-
-        cls.SELECTION_WATCHER = SelectionChanged()
-        cls.SELECTION_WATCHER += cls.track_selection
-        cls.SELECTION_WATCHER.start()
-
-
-    @classmethod
-    def track_selection(cls, *ags, **kwargs):
-        for comp in cmds.ls(sl=True):
-            if not comp in cls.VISITED:
-                cls.SELECTED.append(comp)
-                cls.VISITED.add(comp)
-
-    @classmethod
-    def finish(cls):
-        cls.track_selection()
-
-    @classmethod
-    def exit(cls, *args, **kwargs):
-        cls.SELECTION_WATCHER.kill()
-        cls.SELECTION_WATCHER = None
-
-    @classmethod
-    def component_selection(cls):
-        return [i for i in cls.SELECTED]
