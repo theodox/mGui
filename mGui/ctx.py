@@ -6,7 +6,7 @@ import maya.mel
 
 from mGui.scriptJobs import SelectionChanged
 from mGui.events import Event
-
+from mGui.bindings import BindingContext
 
 class ToolEvent(Event):
     REGISTRY = {}
@@ -32,8 +32,8 @@ class ToolEvent(Event):
             v -= tool.exit
             if hasattr(tool, 'values'):
                 v -= tool.values
-            if hasattr(tool, 'properties'):
-                v -= tool.properties
+            if hasattr(tool, 'create_property_ui'):
+                v -= tool.create_property_ui
 
 
 class ComponentSelectionTracker(object):
@@ -48,7 +48,7 @@ class ComponentSelectionTracker(object):
         self.watcher = SelectionChanged()
         self.watcher += self.track_selection
 
-    def track_selection(self, *ags, **kwargs):
+    def track_selection(self, *_, **__):
         sel = set(cmds.ls(sl=True, fl=True))
         for comp in sel:
             if not comp in self.visited:
@@ -80,6 +80,7 @@ class Tool(object):
     Represents a scriptContext tool
     """
     REGISTRY = {}  # don't override this in derived -- always use the Tool version
+    ICON = ''
     START = 'start'
     FINISH = 'finish'
     EXIT = 'exit'
@@ -101,8 +102,8 @@ class Tool(object):
         hook_event(self.EXIT, self.exit)
 
         # if the derived class implements 'properties' and 'values' methods
-        if hasattr(self, 'properties'):
-            hook_event(self.PROPERTIES, self.properties)
+        if hasattr(self, 'create_property_ui'):
+            hook_event(self.PROPERTIES, self.create_property_ui)
             hook_event(self.VALUES, self.values)
 
         Tool.REGISTRY[self.name] = self
@@ -111,7 +112,7 @@ class Tool(object):
         """
         Create a context hooked to the events for this instance
         """
-        props = hasattr(self, 'properties') or None
+        props = hasattr(self, 'create_property_ui') or None
         vals = hasattr(self, 'values') or None
         if not props == vals:
             raise RuntimeError('Tool classes with custom properties must implement both properties() and values()')
@@ -120,9 +121,10 @@ class Tool(object):
             props = self.PROPERTIES
             vals = self.VALUES
 
-        opts = contextOptions.value(self.EVENT_PREFIX, self.START, self.FINISH, self.EXIT, props, vals)
+        opts = contextOptions.options(self.EVENT_PREFIX, self.START, self.FINISH, self.EXIT, props, vals)
         opts['title'] = self.name
         context_name = cmds.scriptCtx(**opts)
+        print opts
         Tool.REGISTRY[context_name] = self
         return context_name
 
@@ -155,6 +157,9 @@ class SelectionTrackingTool(Tool):
     This is a variant of the base tool which includes a ComponentSelectionTracker so that
      it can track serial selections. It preserves selection order to support component selection tools
      (it's hard to do this in Python otherwise)
+
+     You need to remember to call these via super() when implementing start(), finish() and exit() in
+     derived classes to make sure that the selection is properly tracked
     """
 
     def __init__(self, name):
@@ -172,6 +177,46 @@ class SelectionTrackingTool(Tool):
 
     def component_selection(self):
         return self.tracker.component_selection()
+
+
+class UITool(object):
+
+
+    @property
+    def binding_context(self):
+        """
+        createa BindingContext if needed
+        """
+        if not hasattr(self, '_bind_ctx'):
+            self._bind_ctx = BindingContext()
+        return self._bind_ctx
+
+    def create_property_ui(self, *_, **__):
+        """
+        override this in derived classes to create gui.
+
+        You'll need to attach your gui to the results of set_ui_parent() and then
+        close by activating the tab using set_active() as shown below
+        """
+        prop_sheet = self.set_ui_parent()
+        cmds.columnLayout(self.name)
+        cmds.text("no properties")
+        cmds.setParent("..")
+        self.set_active()
+
+    def values(self, *_, **__):
+        # this will probably never be needed,
+        # but if it is, override this
+        pass
+
+    def set_ui_parent(self):
+        prop = cmds.toolPropertyWindow(q=True, loc=True)
+        cmds.setParent(prop)
+        return prop
+
+    def set_active(self):
+        prop = cmds.toolPropertyWindow(q=True, loc=True)
+        cmds.tabLayout(prop, e=True, selectTab=self.name)
 
 
 # ---------------------------------------------
@@ -277,7 +322,7 @@ class PromptOptions(StructuredOptionSet):
     unselected = 'snp', 'select something'
     completed = 'dsp', 'selection completed'
     hud_prompt = 'ssh', ''
-    hud_unselected = 'snh', 'select something'
+    hud_unselected = 'snh', ''
 
 
 class SelectionSetOptions(StructuredOptionSet):
@@ -303,18 +348,22 @@ class ScriptContextFactory(StructuredOptionSet):
     """
     Collect selection sets into a single dictionary to be fed to the ScriptCtx command.
     """
-    cursor = 'tct', Cursors.edit
-    exit_on_completion = 'euc', False
+    cursor = 'tct', Cursors.track
+    exit_on_completion = 'euc', True
     ignore_invalid = 'iii', True
     root_select = 'ers', False
     show_manips = 'sm', False
     cumulative = 'cls', True
+    image1 = 'image1', 'pythonFamily.png'
+    image2 = 'image2', ''
+    image3 = 'image3', ''
 
     def __init__(self, *selectionSets):
         self.sets = selectionSets
 
-    def value(self, tool_class, start_name, finish_name, exit_name, props_name, vals_name):
-        result = super(ScriptContextFactory, self).value()
+    def options(self, tool_class, start_name, finish_name, exit_name, props_name, vals_name):
+        result = self.value()
+
         result['tss'] = len(self.sets)
         opt_flags = ['snp', 'ssp', 'dsp', 'snh', 'ssh', 'ssc', 'sac', 'sat']
         for flag in opt_flags:
@@ -336,14 +385,11 @@ class ScriptContextFactory(StructuredOptionSet):
             # if custom properties are provided, define mel proxies
             result['bcn'] = tool_class
             prop_event = generate_event_callback(tool_class, props_name)
-            maya.mel.eval("""global proc %sProperties(){%s}""" % (tool_class, prop_event))
-            maya.mel.eval("""global proc %sValues(string $toolName){%s}""" % (tool_class, vals_name))
+            val_event = generate_event_callback(tool_class, vals_name)
+            maya.mel.eval("""global proc %sProperties(){%s;}""" % (tool_class, prop_event))
+            maya.mel.eval("""global proc %sValues(string $toolName){%s;}""" % (tool_class, val_event))
 
         return result
 
-    def create(self, title):
-        opts = self.value()
-        opts['title'] = title
-        return cmds.scriptCtx(**opts)
 
 
