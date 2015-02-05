@@ -132,26 +132,29 @@ class MenuItemProxy(MenuProxy):
                 if insertAfter:
                     opts['insertAfter'] = insertAfter
 
-            module, _, cmd = self.command.rpartition(".")
-            imports = []
-            segments = module.split(".")
-            while segments:
-                imports.append(".".join(segments))
-                segments.pop()
-
-            imports.reverse()
-            mod = None
-            for seg in imports:
-                mod = import_module(seg, mod)
-
-            command = dict(inspect.getmembers(mod))[cmd]
-
             if parent:
-                maya.cmds.setParent(parent, menu=True)
-
+                    maya.cmds.setParent(parent, menu=True)
             new_item = gui.MenuItem(self.key, **opts)
-            cp = CallbackProxy(command, new_item)
-            new_item.command += cp
+
+            if hasattr(self, 'command') and self.command:
+                module, _, cmd = self.command.rpartition(".")
+                imports = []
+                segments = module.split(".")
+                while segments:
+                    imports.append(".".join(segments))
+                    segments.pop()
+
+                imports.reverse()
+                mod = None
+                for seg in imports:
+                    mod = import_module(seg, mod)
+
+                command = dict(inspect.getmembers(mod))[cmd]
+
+                cp = CallbackProxy(command, new_item)
+                new_item.command += cp
+
+
         except:
             import traceback
             print traceback.format_exc()
