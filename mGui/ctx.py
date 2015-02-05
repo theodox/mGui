@@ -8,6 +8,7 @@ from mGui.scriptJobs import SelectionChanged
 from mGui.events import Event
 from mGui.bindings import BindingContext
 
+
 class ToolEvent(Event):
     REGISTRY = {}
 
@@ -18,9 +19,9 @@ class ToolEvent(Event):
 
     @classmethod
     def fire(cls, name):
-        res = cls.REGISTRY.get(name)
-        if res:
-            res()
+        target_event = cls.REGISTRY.get(name)
+        if target_event:
+            target_event()
         else:
             cmds.warning("no event for %s" % name)
 
@@ -124,7 +125,6 @@ class Tool(object):
         opts = contextOptions.options(self.EVENT_PREFIX, self.START, self.FINISH, self.EXIT, props, vals)
         opts['title'] = self.name
         context_name = cmds.scriptCtx(**opts)
-        print opts
         Tool.REGISTRY[context_name] = self
         return context_name
 
@@ -180,8 +180,6 @@ class SelectionTrackingTool(Tool):
 
 
 class UITool(object):
-
-
     @property
     def binding_context(self):
         """
