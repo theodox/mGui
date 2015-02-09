@@ -79,7 +79,7 @@ class AttributeAdded(ScriptJobEvent):
 
 class AttributeDeleted(ScriptJobEvent):
     def __init__(self, attrib, **kwargs):
-        super(AttributeDeleted, self).__init__("AttributeDeleted", attrib, **kwargs)
+        super(AttributeDeleted, self).__init__("attributeDeleted", attrib, **kwargs)
         self.attribute = attrib
 
 
