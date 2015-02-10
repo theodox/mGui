@@ -65,9 +65,9 @@ class ScriptJobEvent(events.Event):
 # See maya docs for more on the distinction between scriptJob -e, scriptJob -ct , etc
 # ======================================================================================================================
 
-class AttributeChanged(ScriptJobEvent):
+class AttributeChange(ScriptJobEvent):
     def __init__(self, attrib, **kwargs):
-        super(AttributeChanged, self).__init__("attributeChanged", attrib, **kwargs)
+        super(AttributeChanged, self).__init__("attributeChange", attrib, **kwargs)
         self.attribute = attrib
 
 
