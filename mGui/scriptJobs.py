@@ -67,7 +67,7 @@ class ScriptJobEvent(events.Event):
 
 class AttributeChange(ScriptJobEvent):
     def __init__(self, attrib, **kwargs):
-        super(AttributeChanged, self).__init__("attributeChange", attrib, **kwargs)
+        super(AttributeChange, self).__init__("attributeChange", attrib, **kwargs)
         self.attribute = attrib
 
 
