@@ -63,9 +63,11 @@ class ComponentSelectionTracker(object):
 
     def start(self, *args, **kwargs):
         self.watcher.start()
+        self.track_selection()
 
     def finish(self):
-        self.track_selection()
+        # reserved for future needs
+        pass
 
     def exit(self, *args, **kwargs):
         self.watcher.kill()
@@ -165,18 +167,23 @@ class SelectionTrackingTool(Tool):
     def __init__(self, name):
         super(SelectionTrackingTool, self).__init__(name)
         self.tracker = ComponentSelectionTracker()
+        self._inner_selection = []
 
     def start(self, *args, **kwargs):
         self.tracker.start()
 
     def finish(self, *args, **kwargs):
+        # currently a nullop
+        # reserve for future needs
         self.tracker.finish()
 
     def exit(self, *args, **kwargs):
+        # have to grab these before the tracker shuts down...
+        self._inner_selection = self.tracker.component_selection()
         self.tracker.exit()
 
     def component_selection(self):
-        return self.tracker.component_selection()
+        return self._inner_selection
 
 
 class UITool(object):
