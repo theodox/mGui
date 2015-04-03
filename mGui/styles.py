@@ -122,9 +122,11 @@ class CSS (dict):
     
     def __init__(self, target, *templates, **kwarg):
         super(CSS,self).__init__()
+        inherit = kwarg.get('inherit', True)
 
-        if CSS.ACTIVE:
+        if inherit and CSS.ACTIVE:
             templates = [CSS.ACTIVE] + [i for i in templates]
+
         map(self.update, templates)
         self.update(**kwarg)
         
@@ -203,5 +205,3 @@ class Styled(object):
             del kwargs['css']
                 
         return obj
-   
-                                
