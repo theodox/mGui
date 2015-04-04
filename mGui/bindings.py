@@ -65,9 +65,6 @@ class Accessor(object):
         try:
             self._set(*args, **kwargs)
             return True
-        except MGuiAttributeError:
-            cmds.warning("Slent MGUI fail!")
-            return False
         except:
             if BREAK_ON_ACCESS_FAILURE:
                 raise
@@ -82,9 +79,6 @@ class Accessor(object):
         """
         try:
             return self._get(*args, **kwargs)
-        except MGuiAttributeError:
-            cmds.warning("Slent MGUI fail!")
-            return 0
         except:
             if BREAK_ON_ACCESS_FAILURE:
                 raise
