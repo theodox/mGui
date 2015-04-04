@@ -7,6 +7,7 @@ import maya.utils as utils
 from mGui.events import MayaEvent, Event
 from mGui.bindings import BindableObject
 
+
 class ObservableCollection(BindableObject):
     """
     Encapsulates a collection suitable for data binding. The contents are
@@ -120,13 +121,14 @@ class ObservableCollection(BindableObject):
         for item in self._Internal_Collection:
             yield item
 
-class ImmediateObservableCollection(ObservableCollection):
 
+class ImmediateObservableCollection(ObservableCollection):
     def __init__(self, *items):
         self._Internal_Collection = [i for i in items]
         self.CollectionChanged = Event(collection=self)
         self.ItemAdded = Event(collection=self)
         self.ItemRemoved = Event(collection=self)
+
 
 class ViewCollection(ObservableCollection):
     """
@@ -191,7 +193,7 @@ class BoundCollection(BindableObject):
 
     def __init__(self, conversion=lambda x: (x, [])):
         self._Internal_Collection = ()
-        self._Public_Collecton = {}
+        self._Public_Collection = {}
         self.Conversion = conversion
         self.CollectionChanged = MayaEvent()  # these are MayaEvents so they are thread safe... we hope
         self.WidgetCreated = MayaEvent()
@@ -205,10 +207,10 @@ class BoundCollection(BindableObject):
 
         def safe_create_gui():
             for d in deletions:
-                del (self._Public_Collecton[d])
+                del (self._Public_Collection[d])
             for a in additions:
                 templated = self.Conversion(a)
-                self._Public_Collecton[a] = templated.Widget
+                self._Public_Collection[a] = templated.Widget
                 self.WidgetCreated(templated)
 
         utils.executeInMainThreadWithResult(safe_create_gui)
@@ -229,16 +231,17 @@ class BoundCollection(BindableObject):
 
     @property
     def Contents(self):
-        return [self._Public_Collecton[i] for i in self._Internal_Collection]
+        return [self._Public_Collection[i] for i in self._Internal_Collection]
 
     @property
     def Count(self):
         return len(self._Internal_Collection)
 
+
 class ImmediateBoundCollection(BoundCollection):
-     def __init__(self, conversion=lambda x: (x, [])):
+    def __init__(self, conversion=lambda x: (x, [])):
         self._Internal_Collection = ()
-        self._Public_Collecton = {}
+        self._Public_Collection = {}
         self.Conversion = conversion
         self.CollectionChanged = Event()  # these are MayaEvents so they are thread safe... we hope
         self.WidgetCreated = Event()
