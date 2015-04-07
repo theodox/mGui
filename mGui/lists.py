@@ -30,7 +30,7 @@ class FormList(object):
     layout() method when the collection changes, and will prune the layouts
     control sets as items are added to or removed from the bound collection.
     """
-    SCROLL_WIDTH = 25
+    SCROLL_WIDTH = 33
 
     def __init_bound_collection__(self, kwargs):
         """
@@ -67,39 +67,55 @@ class FormList(object):
         return result
 
     def redraw(self, *args, **kwargs):
-        '''
+        """
         NOTE: depends on the LIST_CLASS being set in the actual class!
-        '''
+        """
 
-        if self._scroll != 'not initialized':
-            cmds.deleteUI(self._scroll)
-            self._scroll = 'not initialized'
-            self._list = 'not initialized'
+        try:
+            cmds.waitCursor(st=1)
+            if self._scroll != 'not initialized':
+                cmds.deleteUI(self._scroll)
+                self._scroll = 'not initialized'
+                self._list = 'not initialized'
 
-        cmds.setParent(self)
-        with layouts.ScrollLayout('_scroll', childResizable=True) as self._scroll:
-            with self.LIST_CLASS('_list', **self.Redraw_Opts) as self._list:
-                for item in self.Collection:
-                    w = self.Template.widget(item)
-                    self.widget_added(w)
-        cmds.setParent(self.parent)
+            cmds.setParent(self)
+            with layouts.ScrollLayout('_scroll', childResizable=True) as self._scroll:
+                with self.LIST_CLASS('_list', **self.Redraw_Opts) as self._list:
+                    for item in self.Collection:
+                        w = self.Template.widget(item)
+                        self.widget_added(w)
+            cmds.setParent(self.parent)
 
-        self._scroll.Deleted._handlers = set()
-        self._list.Deleted._handlers = set()
+            # unhook the delete handlers from these guys, they are closed
+            # so they arent part of the ACTIVE_LAYOUT
 
-        self._scroll.Deleted.kill()
-        self._list.Deleted.kill()
+            self._scroll.Deleted._handlers = set()
+            self._list.Deleted._handlers = set()
+            self._scroll.Deleted.kill()
+            self._list.Deleted.kill()
 
-        self.Controls = [self._scroll]
-        self.layout()
+            # remove them so they fall out of scope, but keep the new _scroll
+            self.Controls = [self._scroll]
+            self.layout()
+
+        finally:
+            cmds.waitCursor(st=0)
 
 
     def widget_added(self, templated_item):
-        '''
+        """
         by default, raise the NewWidget event
         but can be overridden to handle here instead
-        '''
+        """
         self.NewWidget(item=templated_item)
+
+    def gui_contents(self):
+        for item in self._list.Controls:
+            yield item
+
+    def contents(self):
+        for item in self.Collection:
+            yield item
 
 
 class VerticalList(forms.FillForm, FormList):
@@ -119,7 +135,7 @@ class VerticalList(forms.FillForm, FormList):
 
     def redraw(self, *args, **kwargs):
         super(VerticalList, self).redraw()
-        self._list.width = max(self.width - 25, 25)
+        self._list.width = max(self.width - 33, 33)
 
 
 class HorizontalList(forms.FillForm, FormList):
@@ -137,7 +153,7 @@ class HorizontalList(forms.FillForm, FormList):
 
     def redraw(self, *args, **kwargs):
         super(HorizontalList, self).redraw()
-        self._list.height = max(self.width - 25, 25)
+        self._list.height = max(self.width - 33, 33)
 
 
 class ColumnList(forms.FillForm, FormList):
@@ -151,7 +167,7 @@ class ColumnList(forms.FillForm, FormList):
 
     def redraw(self, *args, **kwargs):
         super(ColumnList, self).redraw()
-        self._list.width = max(self.width - 25, 25)
+        self._list.width = max(self.width - 33, 33)
 
 
 class WrapList(forms.FillForm, FormList):
@@ -172,8 +188,8 @@ class WrapList(forms.FillForm, FormList):
 
     def redraw(self, *args, **kwargs):
         super(WrapList, self).redraw()
-        self._list.height = max(self.height - 25, 25)
-        self._list.width = max(self.width - 25, 25)
+        self._list.height = max(self.height - 33, 33)
+        self._list.width = max(self.width - 33, 33)
 
 
 class Templated(object):
@@ -183,9 +199,9 @@ class Templated(object):
         self.Events = events
 
     def get_event(self, key):
-        '''
+        """
         Return the named event, if present
-        '''
+        """
         return self.Events.get(key, None)
 
 
