@@ -100,9 +100,7 @@ class Control(Styled, BindableObject):
 
     def __init__(self, key, *args, **kwargs):
         # arbitrary tag data. Use with care to avoid memory leaks
-        self.Tag = kwargs.get('tag', None)
-        if 'tag' in kwargs:
-            del kwargs['tag']
+        self.Tag = self._extract_kwarg('tag', kwargs)
 
         # this applies any keywords in the current style that are part of the Maya gui flags
         # other flags (like float and margin) are ignored
@@ -195,6 +193,7 @@ class Control(Styled, BindableObject):
         if key in kwarg:
             del kwarg[key]
         return result
+
 
 class Nested(Control):
     """
@@ -318,7 +317,8 @@ class Nested(Control):
 
     @classmethod
     def forget(cls, *args, **kwargs):
-        Nested.ACTIVE_LAYOUT.remove(kwargs['sender'])
+        if Nested.ACTIVE_LAYOUT is not None:
+            Nested.ACTIVE_LAYOUT.remove(kwargs['sender'])
 
 # IMPORTANT NOTE
 # this intentionally duplicates redundant property names from Control.
@@ -369,7 +369,8 @@ class Window(Nested):
 
     @classmethod
     def forget(cls, *args, **kwargs):
-        Window.ACTIVE_WINDOWS.remove(kwargs['sender'])
+        if Window.ACTIVE_WINDOWS is not None:
+            Window.ACTIVE_WINDOWS.remove(kwargs['sender'])
 
     def show(self):
         cmds.showWindow(self.Widget)
@@ -382,6 +383,7 @@ class Window(Nested):
         if Window.ACTIVE_WINDOWS:
             return Window.ACTIVE_WINDOWS[-1]
         return None
+
 
 
 class BindingWindow(Window):
