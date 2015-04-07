@@ -7,7 +7,6 @@ import maya.utils as utils
 from mGui.events import MayaEvent, Event
 from mGui.bindings import BindableObject
 
-
 class ObservableCollection(BindableObject):
     """
     Encapsulates a collection suitable for data binding. The contents are
@@ -121,14 +120,13 @@ class ObservableCollection(BindableObject):
         for item in self._Internal_Collection:
             yield item
 
-
 class ImmediateObservableCollection(ObservableCollection):
+
     def __init__(self, *items):
         self._Internal_Collection = [i for i in items]
         self.CollectionChanged = Event(collection=self)
         self.ItemAdded = Event(collection=self)
         self.ItemRemoved = Event(collection=self)
-
 
 class ViewCollection(ObservableCollection):
     """
@@ -191,60 +189,33 @@ class BoundCollection(BindableObject):
     """
     _BIND_TGT = 'set_collection'
 
-    def __init__(self, conversion=lambda x: (x, [])):
+    def __init__(self):
         self._Internal_Collection = ()
-        self._Public_Collection = {}
-        self.Conversion = conversion
         self.CollectionChanged = MayaEvent()  # these are MayaEvents so they are thread safe... we hope
         self.WidgetCreated = MayaEvent()
 
     def set_collection(self, new_contents):
-        current = set(self._Internal_Collection)
-        incoming = set(new_contents)
-        reordered = sum([x == y for x, y in zip(new_contents, self._Internal_Collection)])
-        additions = incoming.difference(current)
-        deletions = current.difference(incoming)
-
-        def safe_create_gui():
-            for d in deletions:
-                del (self._Public_Collection[d])
-            for a in additions:
-                templated = self.Conversion(a)
-                self._Public_Collection[a] = templated.Widget
-                self.WidgetCreated(templated)
-
-        utils.executeInMainThreadWithResult(safe_create_gui)
-
-        self._Internal_Collection = new_contents
-
-        if len(additions) + len(deletions):
-            self.CollectionChanged(collection=self.Contents)
-        else:
-            if reordered:
-                self.CollectionChanged(sorted=True, collection=self.Contents)
-            else:
-                self.CollectionChanged(why="idontknow")
+        self._Internal_Collection = tuple([i for i in new_contents])
+        self.CollectionChanged()
 
     def __iter__(self):
-        for item in self.Contents:
+        for item in self._Internal_Collection:
             yield item
 
     @property
     def Contents(self):
-        return [self._Public_Collection[i] for i in self._Internal_Collection]
+        for item in self._Internal_Collection:
+            yield item
 
     @property
     def Count(self):
         return len(self._Internal_Collection)
 
-
 class ImmediateBoundCollection(BoundCollection):
-    def __init__(self, conversion=lambda x: (x, [])):
+
+    def __init__(self):
         self._Internal_Collection = ()
-        self._Public_Collection = {}
-        self.Conversion = conversion
         self.CollectionChanged = Event()  # these are MayaEvents so they are thread safe... we hope
         self.WidgetCreated = Event()
-
 
 
