@@ -308,7 +308,7 @@ class Nested(Control):
 
     @classmethod
     def add_current(cls, control):
-        if Nested.ACTIVE_LAYOUT:
+        if Nested.ACTIVE_LAYOUT is not None:
             Nested.ACTIVE_LAYOUT.add(control)
 
     @classmethod
