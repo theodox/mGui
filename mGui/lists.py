@@ -82,6 +82,7 @@ class FormList(object):
                 for item in self.Collection:
                     w = self.Template.widget(item)
                     self.widget_added(w)
+        cmds.setParent(self.parent)
 
         self._scroll.Deleted._handlers = set()
         self._list.Deleted._handlers = set()
