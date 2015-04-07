@@ -3,7 +3,9 @@ helper functions for creating default CSS sheet
 """
 
 from mGui.styles import CSS, Bounds
-from mGui.core.controls import Labeled, IconTextButton, IconTextCheckBox, IconTextRadioButton, RadioCollection, IconTextRadioCollection
+from mGui.core.controls import *
+from mGui.core.layouts import *
+from mGui.core.menus import *
 from mGui.core import Control
 
 
@@ -32,5 +34,10 @@ def defaults(labels=128, controls=128, label_space=8, field_space=1, margin=(0,)
             CSS(IconTextRadioButton, style='iconAndTextHorizontal')
             CSS(IconTextRadioCollection, inherit=False)
             CSS(RadioCollection,inherit=False)
+            CSS(MenuBarLayout, inherit=False)
+            CSS(Menu, inherit=False)
+            CSS(MenuItem, inherit=False)
+
+
     return defaults
 
