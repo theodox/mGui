@@ -318,7 +318,9 @@ class Nested(Control):
     @classmethod
     def forget(cls, *args, **kwargs):
         if Nested.ACTIVE_LAYOUT is not None:
-            Nested.ACTIVE_LAYOUT.remove(kwargs['sender'])
+            sender = kwargs.get('sender', None)
+            if sender in Nested.ACTIVE_LAYOUT:
+               Nested.ACTIVE_LAYOUT.remove(sender)
 
 # IMPORTANT NOTE
 # this intentionally duplicates redundant property names from Control.
@@ -370,7 +372,9 @@ class Window(Nested):
     @classmethod
     def forget(cls, *args, **kwargs):
         if Window.ACTIVE_WINDOWS is not None:
-            Window.ACTIVE_WINDOWS.remove(kwargs['sender'])
+            sender = kwargs.get('sender', None)
+            if sender in Nested.ACTIVE_LAYOUT:
+               Nested.ACTIVE_LAYOUT.remove(sender)
 
     def show(self):
         cmds.showWindow(self.Widget)
