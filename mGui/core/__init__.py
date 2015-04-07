@@ -186,6 +186,15 @@ class Control(Styled, BindableObject):
         finally:
             cls.CMD = _cmd
 
+    def _extract_kwarg(self, key, kwarg, default = None):
+        '''
+        gets the value for <key> from dictionary <kwarg> and returns it. If the key is present in <kwarg> it will be
+        removed. If a default is supplied it will be returned when the key is not present
+        '''
+        result = kwarg.get(key, default)
+        if key in kwarg:
+            del kwarg[key]
+        return result
 
 class Nested(Control):
     """
@@ -205,7 +214,7 @@ class Nested(Control):
         self.Controls = []
         self.ignore_exceptions = False
         super(Nested, self).__init__(key, *args, **kwargs)
-
+        self.Deleted += self.forget
 
     def __enter__(self):
         self.__cache_layout = Nested.ACTIVE_LAYOUT
@@ -306,6 +315,10 @@ class Nested(Control):
     @classmethod
     def current(cls):
         return Nested.ACTIVE_LAYOUT
+
+    @classmethod
+    def forget(cls, *args, **kwargs):
+        Nested.ACTIVE_LAYOUT.remove(kwargs['sender'])
 
 # IMPORTANT NOTE
 # this intentionally duplicates redundant property names from Control.
