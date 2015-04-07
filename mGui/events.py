@@ -122,6 +122,7 @@ class Event(object):
         """
         return len([i for i in self._Handlers])
 
+
     # hook up the instance methods to the base methods
     # doing it this way allows you to override more neatly
     # in derived classes
@@ -129,6 +130,8 @@ class Event(object):
     __len__ = _handlerCount
     __iadd__ = _addHandler
     __isub__ = _removeHandler
+
+
 
 
 class MayaEvent(Event):
