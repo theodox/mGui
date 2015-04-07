@@ -43,17 +43,22 @@ Key points:
 
 class ExampleTemplate(lists.ItemTemplate):
     def widget(self, item):
-        with forms.HorizontalExpandForm('tmp_%i' % id(item), parent=self.Parent, width=250,) as root:
+        with forms.HorizontalExpandForm('tmp_%i' % id(item),  width=250,) as root:
                 gui.IconTextButton('delete', style='iconAndTextHorizontal', image='delete', tag=item)
                 with forms.VerticalForm('names'):
                     gui.NameField(None, object=item, width=250)
                 with forms.VerticalForm('xform'):
                     gui.AttrFieldGrp('t', label='translate', attribute=item + ".t")
-
         return lists.Templated(item, root, request_delete=root.delete.command)
 
 
 class BoundCollectionWindow(object):
+
+    KEEPALIVE = None
+    # this is handy for the example, you don't want to do it this way
+    # if you really need multiple windows: the single Keepalive will
+    # only support the latest one at a time...
+
     def __init__(self, collection):
 
         # this is the collection of stuff to manage
@@ -77,6 +82,8 @@ class BoundCollectionWindow(object):
 
         self.window.main.itemList.NewWidget += self.hook_widget_events
         flt.filtertext.enterCommand += self.update_filter
+        self.KEEPALIVE = self
+
 
     def update_filter(self, *args, **kwargs):
         sender = kwargs['sender']
@@ -93,6 +100,7 @@ class BoundCollectionWindow(object):
         cmds.delete(kwargs['sender'].Tag)
 
     def hook_widget_events(self, *args, **kwargs):
+        print "I HOOKED", args, kwargs
         kwargs['item'].Events['request_delete'] += self.do_delete
 
     def show(self):

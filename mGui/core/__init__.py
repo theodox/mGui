@@ -100,9 +100,7 @@ class Control(Styled, BindableObject):
 
     def __init__(self, key, *args, **kwargs):
         # arbitrary tag data. Use with care to avoid memory leaks
-        self.Tag = kwargs.get('tag', None)
-        if 'tag' in kwargs:
-            del kwargs['tag']
+        self.Tag = self._extract_kwarg('tag', kwargs)
 
         # this applies any keywords in the current style that are part of the Maya gui flags
         # other flags (like float and margin) are ignored
@@ -186,6 +184,16 @@ class Control(Styled, BindableObject):
         finally:
             cls.CMD = _cmd
 
+    def _extract_kwarg(self, key, kwarg, default = None):
+        '''
+        gets the value for <key> from dictionary <kwarg> and returns it. If the key is present in <kwarg> it will be
+        removed. If a default is supplied it will be returned when the key is not present
+        '''
+        result = kwarg.get(key, default)
+        if key in kwarg:
+            del kwarg[key]
+        return result
+
 
 class Nested(Control):
     """
@@ -205,7 +213,7 @@ class Nested(Control):
         self.Controls = []
         self.ignore_exceptions = False
         super(Nested, self).__init__(key, *args, **kwargs)
-
+        self.Deleted += self.forget
 
     def __enter__(self):
         self.__cache_layout = Nested.ACTIVE_LAYOUT
@@ -300,12 +308,19 @@ class Nested(Control):
 
     @classmethod
     def add_current(cls, control):
-        if Nested.ACTIVE_LAYOUT:
+        if Nested.ACTIVE_LAYOUT is not None:
             Nested.ACTIVE_LAYOUT.add(control)
 
     @classmethod
     def current(cls):
         return Nested.ACTIVE_LAYOUT
+
+    @classmethod
+    def forget(cls, *args, **kwargs):
+        if Nested.ACTIVE_LAYOUT is not None:
+            sender = kwargs.get('sender', None)
+            if sender in Nested.ACTIVE_LAYOUT:
+               Nested.ACTIVE_LAYOUT.remove(sender)
 
 # IMPORTANT NOTE
 # this intentionally duplicates redundant property names from Control.
@@ -356,7 +371,10 @@ class Window(Nested):
 
     @classmethod
     def forget(cls, *args, **kwargs):
-        Window.ACTIVE_WINDOWS.remove(kwargs['sender'])
+        if Window.ACTIVE_WINDOWS is not None:
+            sender = kwargs.get('sender', None)
+            if sender in Nested.ACTIVE_LAYOUT:
+               Nested.ACTIVE_LAYOUT.remove(sender)
 
     def show(self):
         cmds.showWindow(self.Widget)
@@ -369,6 +387,7 @@ class Window(Nested):
         if Window.ACTIVE_WINDOWS:
             return Window.ACTIVE_WINDOWS[-1]
         return None
+
 
 
 class BindingWindow(Window):

@@ -16,33 +16,12 @@ complex layout needs. Lists come with inherent scollbars if their contents are
 too large to display.
 """
 import maya.cmds as cmds
+
 import mGui.forms as forms
 import mGui.observable as observable
 import mGui.core.controls as controls
 import mGui.core.layouts as layouts
 import mGui.events as events
-from mGui.properties import MGuiAttributeError
-
-class LayoutContext(object):
-    """
-    Use this to spoof the generic layout context mechanism when adding things
-    like lists, where the GUI root (a scrollbar) and the logical root (the list
-    collection) differ. The context will add the control reference to the dict
-    of parent layout without adding the underlying widget, which would mess up
-    layouts
-    """
-    def __init__(self, item):
-        self.items = [item]
-
-    def __enter__(self):
-        self.temp_layout = layouts.Layout.ACTIVE_LAYOUT
-        return self
-
-    def add(self, *items):
-        self.items += list(items)
-
-    def __exit__(self, exc, value, tb):
-        map(self.temp_layout.add, self.items)
 
 
 class FormList(object):
@@ -51,6 +30,8 @@ class FormList(object):
     layout() method when the collection changes, and will prune the layouts
     control sets as items are added to or removed from the bound collection.
     """
+    SCROLL_WIDTH = 33
+
     def __init_bound_collection__(self, kwargs):
         """
         initialize the mixin. Call after the layout constructor, eg:
@@ -59,137 +40,169 @@ class FormList(object):
             self.__init_bound_collection__()
 
         """
-        self.Template = ItemTemplate(self)  # default
-        if 'itemTemplate' in kwargs:
-            self.Template = kwargs['itemTemplate'](self)
-            del kwargs['itemTemplate']
+        self._scroll = 'not initialized'
+        self._list = 'not initialized'
 
-        if 'synchronous' in kwargs:
-            self.Collection = observable.ImmediateBoundCollection(self.Template)
-            self.NewWidget = events.Event(type='widget created')
-        else:
-            self.Collection = observable.BoundCollection(self.Template)
-            self.NewWidget = events.MayaEvent(type='widget created')
+        self.Template = self._extract_kwarg('itemTemplate', kwargs, ItemTemplate)(self)
+        self.Sync = self._extract_kwarg('synchronous', kwargs, True)
+        self.Redraw_Opts = {}
+
+        event_class = events.Event
+        collection_class = observable.ImmediateBoundCollection
+
+        if not self.Sync:
+            event_class = events.MayaEvent
+            collection_class = observable.BoundCollection
+
+        self.Collection = collection_class()
+        self.NewWidget = event_class(type='widget created')
+        self.Updated = event_class(type='updated')
 
         self.Collection.CollectionChanged += self.redraw  # automatically forward collection changes
-        self.Collection.WidgetCreated += self.widget_created
+
+    def _extract_kwarg(self, key, kwarg, default=None):
+        result = kwarg.get(key, default)
+        if key in kwarg:
+            del kwarg[key]
+        return result
 
     def redraw(self, *args, **kwargs):
         """
-        redraw the GUI for this item when the collection changes
+        NOTE: depends on the LIST_CLASS being set in the actual class!
         """
+
         try:
             cmds.waitCursor(st=1)
-            _collection = self.Collection.Contents
-            delenda = [i for i in self.Controls if i not in _collection]
-            for item in delenda:
-                item.visible = False
-            self.Controls = [i for i in self.Collection]
+            if self._scroll != 'not initialized':
+                cmds.deleteUI(self._scroll)
+                self._scroll = 'not initialized'
+                self._list = 'not initialized'
 
-            an = []
-            for item in self.Controls:
-                item.visible = True
-                an.append((item, 'right'))
-                an.append((item, 'bottom'))
-            self.attachNone = an
-            fudge = 16
+            cmds.setParent(self)
+            with layouts.ScrollLayout('_scroll', childResizable=True) as self._scroll:
+                with self.LIST_CLASS('_list', **self.Redraw_Opts) as self._list:
+                    for item in self.Collection:
+                        w = self.Template.widget(item)
+                        self.widget_added(w)
+            cmds.setParent(self.parent)
 
-            if kwargs.get('horizontal', False):
-                if len(self.Controls):
-                    fudge = (self.Controls[0].width or 1) * (len(self.Controls) + 1)
-                self.width = fudge
-            else:
-                if len(self.Controls):
-                    fudge = self.Controls[0].height * (len(self.Controls) + 1)
-                self.height = fudge
+            # unhook the delete handlers from these guys, they are closed
+            # so they arent part of the ACTIVE_LAYOUT
+
+            self._scroll.Deleted._handlers = set()
+            self._list.Deleted._handlers = set()
+            self._scroll.Deleted.kill()
+            self._list.Deleted.kill()
+
+            # remove them so they fall out of scope, but keep the new _scroll
+            self.Controls = [self._scroll]
             self.layout()
-        except MGuiAttributeError:
-            print 'Silent mGUI exception in lists!'
+
         finally:
             cmds.waitCursor(st=0)
 
-    def widget_created(self, *args, **kwargs):
-        self.NewWidget(item=args[0])
+
+    def widget_added(self, templated_item):
+        """
+        by default, raise the NewWidget event
+        but can be overridden to handle here instead
+        """
+        self.NewWidget(item=templated_item)
+
+    def gui_contents(self):
+        for item in self._list.Controls:
+            yield item
+
+    def contents(self):
+        for item in self.Collection:
+            yield item
 
 
-class VerticalList(forms.VerticalForm, FormList):
+class VerticalList(forms.FillForm, FormList):
     """
     A vertical list of items with an automatic scrollbar
     """
 
+    LIST_CLASS = forms.VerticalForm
+
     def __init__(self, key, *args, **kwargs):
-        self.Key = key
-        with LayoutContext(self):
-            self.ScrollLayout = layouts.ScrollLayout("_scroll")
-            self.Widget = self.ScrollLayout.Widget + "|temp"
-            self.ScrollLayout.__enter__()
-            self.__init_bound_collection__(kwargs)
-            if 'synchronous' in kwargs:
-                kwargs.pop('synchronous')
-            super(VerticalList, self).__init__(key, *args, **kwargs)
-            self.__enter__()
-            self.__exit__(None, None, None)
-            self.ScrollLayout.__exit__(None, None, None)
-
-        # # the enter/exits make sure that you can place a listForm as a single control without it
-        # # trying to gobble up subsequent objects
+        self.__init_bound_collection__(kwargs)
+        super(VerticalList, self).__init__(key, *args, **kwargs)
+        self._scroll = 'not initialized'
+        self._list = 'not initialized'
+        self.redraw()
 
 
-class HorizontalList(forms.HorizontalForm, FormList):
+    def redraw(self, *args, **kwargs):
+        super(VerticalList, self).redraw()
+        self._list.width = max(self.width - 33, 33)
+
+
+class HorizontalList(forms.FillForm, FormList):
     """
     A horizontal list of Items with an automatic scrollbar
     """
-    def __init__(self, key, *args, **kwargs):
 
-        self.Key = key
-        with LayoutContext(self):
-            self.ScrollLayout = layouts.ScrollLayout("_scroll")
-            self.Widget = self.ScrollLayout.Widget + "|temp"
-            self.ScrollLayout.__enter__()
-            self.__init_bound_collection__(kwargs)
-            super(HorizontalList, self).__init__(key, *args, **kwargs)
-            self.__enter__()
-            self.__exit__(None, None, None)
+    LIST_CLASS = forms.HorizontalForm
+
+    def __init__(self, key, *args, **kwargs):
+        self.__init_bound_collection__(kwargs)
+        super(HorizontalList, self).__init__(key, *args, **kwargs)
+        self.redraw()
+
 
     def redraw(self, *args, **kwargs):
-        kwargs.update({'horizontal': True})
-        super(HorizontalList, self).redraw(*args, **kwargs)
+        super(HorizontalList, self).redraw()
+        self._list.height = max(self.width - 33, 33)
 
 
-class ColumnList(layouts.ColumnLayout, FormList):
+class ColumnList(forms.FillForm, FormList):
+    LIST_CLASS = layouts.ColumnLayout
 
     def __init__(self, key, *args, **kwargs):
-        self.Key = key
-        with LayoutContext(self):
-            self.ScrollLayout = layouts.ScrollLayout("_scroll")
-            self.Widget = self.ScrollLayout.Widget + "|temp"
-            self.ScrollLayout.__enter__()
-            self.__init_bound_collection__(kwargs)
-            super(ColumnList, self).__init__(key, *args, **kwargs)
-            self.__enter__()
-            self.__exit__(None, None, None)
+        self.__init_bound_collection__(kwargs)
+        super(ColumnList, self).__init__(key, *args, **kwargs)
+        self.redraw()
 
 
-class WrapList(layouts.FlowLayout, FormList):
+    def redraw(self, *args, **kwargs):
+        super(ColumnList, self).redraw()
+        self._list.width = max(self.width - 33, 33)
+
+
+class WrapList(forms.FillForm, FormList):
     """
     A flowLayout based list of items with optional wrapping. This will clip if
     the width exceeds the layout width unles 'wrap' is set to true
-
-    @note no scrollbars, so no need for LayoutContext
     """
+    LIST_CLASS = layouts.FlowLayout
+
     def __init__(self, key, *args, **kwargs):
+        self.wrap = self._extract_kwarg('wrap', kwargs, False)
         self.__init_bound_collection__(kwargs)
+        self.Redraw_Opts['wrap'] = self.wrap
+
         super(WrapList, self).__init__(key, *args, **kwargs)
-        self.__enter__()
-        self.__exit__(None, None, None)
+        self.redraw()
+
+
+    def redraw(self, *args, **kwargs):
+        super(WrapList, self).redraw()
+        self._list.height = max(self.height - 33, 33)
+        self._list.width = max(self.width - 33, 33)
 
 
 class Templated(object):
-
     def __init__(self, datum, widget, **events):
         self.Datum = datum
         self.Widget = widget
         self.Events = events
+
+    def get_event(self, key):
+        """
+        Return the named event, if present
+        """
+        return self.Events.get(key, None)
 
 
 class ItemTemplate(object):
@@ -201,16 +214,18 @@ class ItemTemplate(object):
     item in the bound data collection.
 
     """
-    def __init__(self, parent):
-        self.Parent = parent
+
+    def __init__(self, owner):
+        self.owner = owner
 
     def widget(self, item):
         """
         returns the topmost mGui item of a templated list item, along with any events defined in the widget
         """
-        cmds.setParent(self.Parent.Widget)
-        r = controls.Button(0, label=str(item))
-        return Templated(item, r)
+
+        with forms.HorizontalForm(None) as root:
+            r = controls.Button(None, label=str(item))
+        return Templated(item, root, command=r.command)
 
     def __call__(self, item):
         return self.widget(item)
