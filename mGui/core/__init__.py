@@ -373,8 +373,8 @@ class Window(Nested):
     def forget(cls, *args, **kwargs):
         if Window.ACTIVE_WINDOWS is not None:
             sender = kwargs.get('sender', None)
-            if sender in Nested.ACTIVE_LAYOUT:
-               Nested.ACTIVE_LAYOUT.remove(sender)
+            if sender in Window.ACTIVE_WINDOWS:
+               Window.ACTIVE_WINDOWS.remove(sender)
 
     def show(self):
         cmds.showWindow(self.Widget)
