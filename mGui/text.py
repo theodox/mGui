@@ -141,6 +141,10 @@ class Colors(object):
     YellowGreen = "#9ACD32"
 
 class TextStyle(unicode):
+    """
+    for a list of supported text styles, see http://techartsurvival.blogspot.com/2014/04/warning-garish-graphics-ahead.html
+    """
+    
     TAG = '<span{0}>{1}</span>'
     def __new__(self, val, **attribs):
         attr = ''
@@ -148,6 +152,7 @@ class TextStyle(unicode):
             kv = [str(k).replace("_", "-") + ":" + str(v) for k, v in attribs.items()]
             attr = ' style="{0}"'.format(";".join(kv))
         return unicode(self.TAG.format(attr, val))
+
 
 
 
