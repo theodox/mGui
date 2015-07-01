@@ -63,12 +63,15 @@ class MenuProxy(yaml.YAMLObject):
         setattr(res, 'after', None)
         setattr(res, 'options', {})
         setattr(res, 'preMenuCommand', None)
+        setattr(res, 'postMenuCommand', '')
         return res
 
     def instantiate(self, parent=None):
         opts = copy.copy(self.options)
         opts['parent'] = parent
         opts['label'] = self.label or self.key.replace('_', ' ')
+        if self.postMenuCommand:
+            opts['postMenuCommand'] = self.postMenuCommand
 
         with gui.Menu(self.key, **opts) as result:
             for item in self.items:
@@ -91,12 +94,16 @@ class EditMenuProxy(yaml.YAMLObject):
         setattr(res, 'items', [])
         setattr(res, 'options', {})
         setattr(res, 'preMenuCommand', None)
+        setattr(res, 'postMenuCommand', '')
         return res
 
     def instantiate(self, parent=None):
         opts = copy.copy(self.options)
         opts['parent'] = parent
         opts['label'] = self.label or self.key.replace('_', ' ')
+        if self.postMenuCommand:
+            opts['postMenuCommand'] = self.postMenuCommand
+
 
         preMenuCommand = self.preMenuCommand or None
         if preMenuCommand:
