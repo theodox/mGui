@@ -45,24 +45,23 @@ class ComponentSelectionTracker(object):
 
     def __init__(self):
         self.selected = []
-        self.visited = set()
         self.watcher = SelectionChanged()
         self.watcher += self.track_selection
 
     def track_selection(self, *_, **__):
-        sel = set(cmds.ls(sl=True, fl=True))
-        for comp in sel:
-            if not comp in self.visited:
-                self.selected.append(comp)
-                self.visited.add(comp)
-
-        deletions = sel.difference(self.visited)
-        for d in deletions:
-            self.selected.remove(d)
-            self.visited.remove(d)
+        new_sel = cmds.ls(sl=True, fl=True, l=True) or []
+        results = []
+        for item in self.selected:
+            if item in new_sel:
+                results.append(item)
+        for item in new_sel:
+            if not item in results:
+                results.append(item)
+        self.selected = results
 
     def start(self, *args, **kwargs):
         self.watcher.start()
+        self.selected = []
         self.track_selection()
 
     def finish(self):
@@ -71,8 +70,6 @@ class ComponentSelectionTracker(object):
 
     def exit(self, *args, **kwargs):
         self.watcher.kill()
-        self.selected = []
-        self.visited = set()
 
     def component_selection(self):
         return [i for i in self.selected]
@@ -138,7 +135,6 @@ class Tool(object):
 
     def exit(self, *args, **kwargs):
         pass
-
 
     @classmethod
     def retrieve(cls, name_or_context):
@@ -395,6 +391,3 @@ class ScriptContextFactory(StructuredOptionSet):
             maya.mel.eval("""global proc %sValues(string $toolName){%s;}""" % (tool_class, val_event))
 
         return result
-
-
-
