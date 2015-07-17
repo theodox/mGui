@@ -7,6 +7,7 @@ import maya.mel
 from mGui.scriptJobs import SelectionChanged
 from mGui.events import Event
 from mGui.bindings import BindingContext
+from mGui.debugging import Logger
 
 
 class ToolEvent(Event):
@@ -45,8 +46,7 @@ class ComponentSelectionTracker(object):
 
     def __init__(self):
         self.selected = []
-        self.watcher = SelectionChanged()
-        self.watcher += self.track_selection
+        self.watcher = None
 
     def track_selection(self, *_, **__):
         new_sel = cmds.ls(sl=True, fl=True, l=True) or []
@@ -58,18 +58,23 @@ class ComponentSelectionTracker(object):
             if not item in results:
                 results.append(item)
         self.selected = results
+        Logger.debug("selection %s" % self.selected)
 
     def start(self, *args, **kwargs):
+        Logger.debug("starting selection watcher")
+        self.watcher = SelectionChanged()
+        self.watcher += self.track_selection
+        self.selected = cmds.ls(sl=True, fl=True, l=True) or []
         self.watcher.start()
-        self.selected = []
-        self.track_selection()
 
     def finish(self):
         # reserved for future needs
-        pass
+        if self.watcher and self.watcher.running:
+            self.watcher.kill()
 
     def exit(self, *args, **kwargs):
-        self.watcher.kill()
+        if self.watcher and self.watcher.running:
+            self.watcher.kill()
 
     def component_selection(self):
         return [i for i in self.selected]
@@ -171,12 +176,14 @@ class SelectionTrackingTool(Tool):
     def finish(self, *args, **kwargs):
         # currently a nullop
         # reserve for future needs
+        self._inner_selection = self.tracker.component_selection()
         self.tracker.finish()
 
     def exit(self, *args, **kwargs):
         # have to grab these before the tracker shuts down...
         self._inner_selection = self.tracker.component_selection()
         self.tracker.exit()
+
 
     def component_selection(self):
         return self._inner_selection
