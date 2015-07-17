@@ -7,6 +7,7 @@ Created on May 2, 2014
 import maya.cmds as cmds
 import mGui.events as events
 import mGui.properties as properties
+from mGui.debugging import Logger
 
 
 class ScriptJobEvent(events.Event):
@@ -36,7 +37,6 @@ class ScriptJobEvent(events.Event):
     Run conditions (such as -runOnce, -parent,  or -protected) should be specificied when the scriptJob is started.
     """
 
-
     def __init__(self, scriptJobFlag, eventType, **kwargs):
         self.ScriptFlag = scriptJobFlag
         self.EventType = eventType
@@ -47,11 +47,13 @@ class ScriptJobEvent(events.Event):
         kwargs = {self.ScriptFlag: (self.EventType, self)}
         kwargs.update(sjFlags)
         self.Data['scriptJob'] = cmds.scriptJob(**kwargs)
+        Logger.info('start scriptJob %s' % self.__class__)
 
     def kill(self):
         if self.Data.get('scriptJob') > 0:
             cmds.scriptJob(k=self.Data['scriptJob'])
             self.Data['scriptJob'] = -1
+            Logger.info('kill scriptJob %s' % self.__class__)
 
     @property
     def running(self):
@@ -463,8 +465,6 @@ class ScriptJobC(ScriptJobEvent):
         if type is False:
             changetype = "cf"
 
-
-
         super(ScriptJobC, self).__init__(changetype, self.CONDITION, **kwargs)
 
     def get_state(self):
@@ -720,6 +720,7 @@ class CustomCondition(ScriptJobC):
     def __init__(self, conditionName, type):
         super(CustomCondition, self).__init__(conditionName, type)
 
+
 # ======================================================================================================================
 # Property Descriptor
 # used by all ScriptJobEvent classes
@@ -751,5 +752,3 @@ class ScriptJobCallbackProperty(properties.CallbackProperty):
         obj.Callbacks[self.Key] = sjEvent
         if not sjEvent.running:
             sjEvent.start()
-
-
