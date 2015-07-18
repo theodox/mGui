@@ -69,10 +69,12 @@ class ComponentSelectionTracker(object):
 
     def finish(self):
         # reserved for future needs
+        self.track_selection()
         if self.watcher and self.watcher.running:
             self.watcher.kill()
 
     def exit(self, *args, **kwargs):
+        self.track_selection()
         if self.watcher and self.watcher.running:
             self.watcher.kill()
 
