@@ -14,7 +14,7 @@ import maya.cmds
 
 import mGui.gui as gui
 import yaml
-
+import traceback
 
 
 # empty command for unbound item
@@ -163,10 +163,7 @@ class MenuItemProxy(MenuProxy):
 
 
         except:
-            import traceback
-            print traceback.format_exc()
-            raise NameError('MMenuItem ('+str(self.label) +
-                            ') had issues getting created, check the script editor for details.')
+            maya.cmds.confirmDialog(message = traceback.format_exc())
 
 
 def load_menu(menu_string):
