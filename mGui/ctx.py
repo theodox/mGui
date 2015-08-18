@@ -3,7 +3,7 @@ This module is for scriptCtx based tools
 """
 import maya.cmds as cmds
 import maya.mel
-
+import maya.utils as utils
 from mGui.scriptJobs import SelectionChanged
 from mGui.events import Event
 from mGui.bindings import BindingContext
@@ -98,6 +98,8 @@ class Tool(object):
 
     def __init__(self, name):
         self.name = name
+        self.context_name = None
+        self.repeat = False
 
         def hook_event(name, function):
             event_name = lambda name: self.EVENT_PREFIX + "_" + name
@@ -115,7 +117,7 @@ class Tool(object):
 
         Tool.REGISTRY[self.name] = self
 
-    def create_context(self, contextOptions):
+    def create_context(self, contextOptions, repeat= False):
         """
         Create a context hooked to the events for this instance
         """
@@ -132,16 +134,22 @@ class Tool(object):
         opts['title'] = self.name
         context_name = cmds.scriptCtx(**opts)
         Tool.REGISTRY[context_name] = self
+        self.context_name = context_name
+        self.repeat = repeat
         return context_name
 
     def start(self, *args, **kwargs):
         pass
 
+    def exit(self, *args, **kwargs):
+        if self.repeat:
+            lazy_reset = lambda: cmds.setToolTo(self.context_name)
+            utils.executeDeferred(lazy_reset)
+
+
     def finish(self, *args, **kwargs):
         pass
 
-    def exit(self, *args, **kwargs):
-        pass
 
     @classmethod
     def retrieve(cls, name_or_context):
@@ -173,6 +181,7 @@ class SelectionTrackingTool(Tool):
         self._inner_selection = []
 
     def start(self, *args, **kwargs):
+        super(SelectionTrackingTool, self).start(*args, **kwargs)
         self.tracker.start()
 
     def finish(self, *args, **kwargs):
@@ -180,12 +189,13 @@ class SelectionTrackingTool(Tool):
         # reserve for future needs
         self._inner_selection = self.tracker.component_selection()
         self.tracker.finish()
+        super(SelectionTrackingTool, self).finish(*args, **kwargs)
 
     def exit(self, *args, **kwargs):
         # have to grab these before the tracker shuts down...
         self._inner_selection = self.tracker.component_selection()
         self.tracker.exit()
-
+        super(SelectionTrackingTool, self).exit(*args, **kwargs)
 
     def component_selection(self):
         return self._inner_selection
