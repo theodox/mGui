@@ -13,19 +13,19 @@ class TestWeakRefs(unittest.TestCase):
     def test_free_method(self):
         def example (*args, **kwargs):
             return -99
-        wr = events.WeakMethod(example)
+        wr = events.get_weak_reference(example)
         assert isinstance(wr, events.WeakMethodFree)
         
     def test_free_method_works(self):
         def example (*args, **kwargs):
             return -99
-        wr = events.WeakMethod(example)
+        wr = events.get_weak_reference(example)
         assert  wr() == -99
         
     def test_free_method_excepts_on_dead_ref(self):
         def example (*args, **kwargs):
             return -99
-        wr = events.WeakMethod(example)
+        wr = events.get_weak_reference(example)
         del(example)
         self.assertRaises(events.DeadReferenceError, wr)
         
@@ -35,10 +35,10 @@ class TestWeakRefs(unittest.TestCase):
         
         def example2 (*args, **kwargs):
             return -99
-        wr = events.WeakMethod(example)
-        wr2 =  events.WeakMethod(example)
-        wr3 =  events.WeakMethod(example2)
-        wr4 =  events.WeakMethod(example2)
+        wr = events.get_weak_reference(example)
+        wr2 =  events.get_weak_reference(example)
+        wr3 =  events.get_weak_reference(example2)
+        wr4 =  events.get_weak_reference(example2)
         assert wr.ID == wr2.ID
         assert wr3.ID == wr4.ID
         assert wr.ID != wr4.ID
@@ -51,27 +51,27 @@ class TestWeakRefs(unittest.TestCase):
     def test_bound_method(self):
         b = self.bound_tester()
         
-        wr = events.WeakMethod(b.example)
+        wr = events.get_weak_reference(b.example)
         assert isinstance(wr, events.WeakMethodBound)
         
     def test_bound_method_works(self):
         b = self.bound_tester()
-        wr = events.WeakMethod(b.example)
+        wr = events.get_weak_reference(b.example)
         assert  wr() == 111
         
     def test_bound_method_excepts_on_dead_ref(self):
         b = self.bound_tester()
-        wr = events.WeakMethod(b.example)
+        wr = events.get_weak_reference(b.example)
         del(b)
         self.assertRaises(events.DeadReferenceError, wr)
     
     def test_bound_method_ids_are_stable(self):
         b = self.bound_tester()
         b2 = self.bound_tester()
-        wr = events.WeakMethod(b.example)
-        wr2 = events.WeakMethod(b.example)
-        wr3 = events.WeakMethod(b2.example)
-        wr4 = events.WeakMethod(b2.example)
+        wr = events.get_weak_reference(b.example)
+        wr2 = events.get_weak_reference(b.example)
+        wr3 = events.get_weak_reference(b2.example)
+        wr4 = events.get_weak_reference(b2.example)
         assert wr.ID == wr2.ID
         assert wr3.ID == wr4.ID
         assert wr.ID != wr4.ID
@@ -83,7 +83,7 @@ class TestWeakRefs(unittest.TestCase):
         the hood.
         '''
         b = self.bound_tester()
-        wr = events.WeakMethod(b.example)
+        wr = events.get_weak_reference(b.example)
         b.example = lambda x: 121
         try:
             wr()

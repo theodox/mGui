@@ -8,7 +8,8 @@ they don't keep their handlers alive if they are otherwise out of scope.
 """
 import weakref
 import maya.utils
-from functools import  partial
+from functools import partial, wraps
+import inspect
 
 
 class Event(object):
@@ -76,20 +77,21 @@ class Event(object):
         self.Data = data
         self.Data['event'] = self
 
-    def _addHandler(self, handler):
+    def _add_handler(self, handler):
         """
         Add a handler callable. Raises a ValueError if the argument is not callable
         """
-        wr = WeakMethod(handler)
+        if not callable(handler):
+            raise ValueError("%s is not callable", handler)
 
-        self._Handlers.add(wr)
+        self._Handlers.add(get_weak_reference(handler))
         return self
 
-    def _removeHandler(self, handler):
+    def _remove_handler(self, handler):
         """
         Remove a handler. Ignores handlers that are not present.
         """
-        wr = WeakMethod(handler)
+        wr = get_weak_reference(handler)
         delenda = [h for h in self._Handlers if h == wr]
         self._Handlers = self._Handlers.difference(set(delenda))
         return self
@@ -116,28 +118,26 @@ class Event(object):
                 delenda.append(handler)
         self._Handlers = self._Handlers.difference(set(delenda))
 
-    def _handlerCount (self):
+    def _handler_Count(self):
         """
         Returns the count of the _Handlers field
         """
         return len([i for i in self._Handlers])
 
-
     # hook up the instance methods to the base methods
     # doing it this way allows you to override more neatly
     # in derived classes
     __call__ = _fire
-    __len__ = _handlerCount
-    __iadd__ = _addHandler
-    __isub__ = _removeHandler
-
-
+    __len__ = _handler_Count
+    __iadd__ = _add_handler
+    __isub__ = _remove_handler
 
 
 class MayaEvent(Event):
     """
     Subclass of event that uses Maya.utils.executeDeferred.
     """
+
     def _fire(self, *args, **kwargs):
         """
         Call all handlers.  Any decayed references will be purged.
@@ -162,26 +162,29 @@ class DeadReferenceError(TypeError):
     """
     pass
 
+
 # # create weak references to both bound and unbound methods
 # # hat tip to  Frederic Jolliton on ActiveState
 
 
-class WeakMethodBound:
+class WeakMethodBound(object):
     """
     Encapsulates a weak reference to a bound method on an object.  Has a
     hashable ID so that Events can identify multiple references to the same
     method and not duplicate them
     """
+    __slots__ = ('function', 'referent', 'ID')
+
     def __init__(self, f):
 
-        self.f = f.im_func
-        self.c = weakref.ref(f.im_self)
+        self.function = f.im_func
+        self.referent = weakref.ref(f.im_self)
         self.ID = id(f.im_self) ^ id(f.im_func.__name__)
 
     def __call__(self, *arg, **kwarg):
-        ref = self.c()
+        ref = self.referent()
         if not ref is False and not ref is None:
-            return apply(self.f, (self.c(),) + arg, kwarg)
+            return apply(self.function, (self.referent(),) + arg, kwarg)
         else:
             raise DeadReferenceError
 
@@ -194,17 +197,19 @@ class WeakMethodBound:
         return self.ID
 
 
-class WeakMethodFree:
+class WeakMethodFree(object):
     """
     Encapsulates a weak reference to an unbound method
     """
+    __slots__ = ('function', 'ID')
+
     def __init__(self, f):
-        self.f = weakref.ref(f)
+        self.function = weakref.ref(f)
         self.ID = id(f)
 
-    def __call__(self, *arg, **kwarg) :
-        if self.f():
-            return apply(self.f(), arg, kwarg)
+    def __call__(self, *arg, **kwarg):
+        if self.function():
+            return apply(self.function(), arg, kwarg)
         else:
             raise DeadReferenceError
 
@@ -216,13 +221,25 @@ class WeakMethodFree:
         return self.ID
 
 
-def WeakMethod(f) :
+def get_weak_reference(f):
     """
     Returns a WeakMethodFree or a WeakMethodBound for the supplied function, as
     appropriate
     """
-    try :
+    try:
         f.im_func
-    except AttributeError :
+    except AttributeError:
         return WeakMethodFree(f)
     return WeakMethodBound(f)
+
+
+def event_handler(fn):
+    """
+    decorator for making event handlers out of functions with no arguments
+    """
+
+    @wraps(fn)
+    def wrapper(*_, **__):
+        return fn()
+
+    return wrapper
