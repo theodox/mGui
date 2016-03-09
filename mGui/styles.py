@@ -193,11 +193,23 @@ class Styled(object):
     """
     Mixin class which makes an object try to hook the appropriate style from CSS.current
     """
+    DEFAULT_ATTRIBS = set(
+        ('annotation', 'backgroundColor', 'defineTemplate', 'docTag', 'enable', 'enableBackground', 'exists',
+         'fullPathName', 'height', 'manage', 'noBackground', 'numberOfPopupMenus', 'parent', 'popupMenuArray',
+         'preventOverride', 'useTemplate', 'visible', 'visibleChangeCommand', 'width')
+    )
 
-    def __init__(self, *_, **kwargs):
+    def __init__(self, kwargs):
+        # note this removes 'css' from the kwargs before they are processed by Control!
         self.Style = kwargs.pop('css', {})
         if not self.Style:
             current_style = CSS.current()
             if current_style:
                 self.Style = current_style.find(self, self.__class__) or self.Style
 
+    def format_maya_arguments(self, **kwargs):
+        # this applies any keywords in the current style that are part of the Maya gui flags
+        # other flags (like float and margin) are ignored
+        maya_args = {k: v for k, v in self.Style.items() if k in self._ATTRIBS or k in self.DEFAULT_ATTRIBS}
+        maya_args.update(kwargs)
+        return maya_args
