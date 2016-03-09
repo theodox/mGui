@@ -1,11 +1,11 @@
-import maya.cmds as cmds
 from collections import OrderedDict
+import inspect
+
+import maya.cmds as cmds
 from mGui.bindings import BindableObject, BindingContext
 from mGui.styles import Styled
 from mGui.properties import CtlProperty, CallbackProperty
 from mGui.scriptJobs import ScriptJobCallbackProperty
-import inspect
-import itertools
 
 """
 # MGui.Core
@@ -100,25 +100,16 @@ class Control(Styled, BindableObject):
     __metaclass__ = ControlMeta
 
     def __init__(self, key=None, *args, **kwargs):
+        # apply Styled, and filter out any CSS tags
+        super(Control,self).__init__(kwargs)
         # arbitrary tag data. Use with care to avoid memory leaks
-        self.Tag = self._extract_kwarg('tag', kwargs)
+        self.Tag = kwargs.pop('tag', None)
 
-        # this applies any keywords in the current style that are part of the Maya gui flags
-        # other flags (like float and margin) are ignored
-        _style = dict((k, v) for k, v in self.Style.items() if k in self._ATTRIBS or k in Control._ATTRIBS)
-        _style.update(kwargs)
-
-        # if the style dict contains an 'html' keyword, treate it as a
-        # callable which modifies the incoming 'label'
-        if 'css' in _style:
-            css = _style.pop('css')
-            if 'html' in css and 'label' in _style:
-                _style['label'] = css['html'](_style['label'])
-
+        maya_kwargs = self.format_maya_arguments(**kwargs)
         if not args:
-            args = (key,)
+            args = ('mGui' + self.__class__.__name__,)
 
-        self.Widget = self.CMD(*args, **_style)
+        self.Widget = self.CMD(*args, **maya_kwargs)
         self.Key = key or "__" + self.Widget.split("|")[-1]
 
         """
@@ -156,7 +147,7 @@ class Control(Styled, BindableObject):
     @classmethod
     def wrap(cls, control_name, key=None):
 
-        def _spoof_create(*args, **kwargs):
+        def _spoof_create(*_, **__):
             return control_name
 
         try:
@@ -164,6 +155,7 @@ class Control(Styled, BindableObject):
             cls.CMD = _spoof_create
             key = key or control_name
             return cls(key, control_name)
+
         finally:
             cls.CMD = cache_CMD
 
@@ -173,26 +165,22 @@ class Control(Styled, BindableObject):
         Create an instance of <cls> from an existing widgets
         """
 
-        def fake_init(self, *args, **kwargs):
+        def fake_init(self, *_, **__):
             return widget
 
         _cmd = cls.CMD
+
         try:
             cls.CMD = fake_init
             return cls(key)
+
         finally:
             cls.CMD = _cmd
 
-    @staticmethod
-    def _extract_kwarg(key, kwarg, default=None):
-        '''
-        gets the value for <key> from dictionary <kwarg> and returns it. If the key is present in <kwarg> it will be
-        removed. If a default is supplied it will be returned when the key is not present
-        '''
-        try:
-            return kwarg.pop(key)
-        except KeyError:
-            return default
+
+    @classmethod
+    def delete(cls, instance):
+        cmds.deleteUI(instance.Widget)
 
 
 class Nested(Control):
@@ -211,7 +199,7 @@ class Nested(Control):
 
     def __init__(self, key=None, *args, **kwargs):
         self.Controls = []
-        self._named_children = OrderedDict()
+        self.named_children = OrderedDict()
         self.ignore_exceptions = False
         super(Nested, self).__init__(key, *args, **kwargs)
         self.Deleted += self.forget
@@ -224,7 +212,7 @@ class Nested(Control):
     def __exit__(self, typ, value, tb):
         # by default, allow inner exceptions to propagate up
         # you can turn this off in production by
-        # setting ignore_exceptionts to true
+        # setting ignore_exceptions to true
         # if this is suppresed you should expect misleading
         # error messages if child controls error out; parent controls
         # may get fewer controls than they expect, but the real
@@ -244,6 +232,8 @@ class Nested(Control):
         # restore the layout level
         Nested.ACTIVE_LAYOUT = self.__cache_layout
         self.__cache_layout = None
+
+        self.layout()
 
         # restore gui parenting
         abs_parent, sep, _ = self.Widget.rpartition("|")
@@ -282,7 +272,7 @@ class Nested(Control):
         # we now overwrite existing children instead of excepting
         # we also DON'T explicitly check to ensure that <control> is a kind of this widget
         control_key = key or control.Key
-        self._named_children[control_key] = control
+        self.named_children[control_key] = control
         if control not in self.Controls:
             self.Controls.append(control)
 
@@ -292,22 +282,27 @@ class Nested(Control):
 
         @note this will only work if the existing item has a key
         """
-        original = self._named_children.get(key)
+        original = self.named_children.get(key)
         if original:
             self.Controls.remove(original)
-            cmds.deleteUI(original)
+            Control.delete(original)
         self.add(control, key)
         self.layout()
 
     def remove(self, control):
+        """
+        remove <control> from my children
+        """
+        if control not in self.Controls:
+            raise KeyError, "%s is not a child of %s" ( control, self )
         self.Controls.remove(control)
-        cmds.deleteUI(control)
-        for key, ctrl in self._named_children.items():
+        control.delete(control)
+        for key, ctrl in self.named_children.items():
             if ctrl == control:
-                self._named_children.pop(key)
+                self.named_children.pop(key)
 
     def clear(self):
-        delenda = [i for i in self.Controls]
+        delenda = (i for i in self.Controls)
         for d in delenda:
             self.remove(d)
 
@@ -319,7 +314,7 @@ class Nested(Control):
 
     def __getattr__(self, item):
         try:
-            return self._named_children[item]
+            return self.named_children[item]
         except KeyError:
             return self.__dict__[item]
 
