@@ -766,6 +766,18 @@ class TextScrollList(Control):
     _BIND_SRC = 'selectItem'
     _BIND_TGT = 'selectItem'
 
+    @property
+    def items(self):
+        return self.allItems
+
+    @items.setter
+    def items(self, items):
+        self.removeAll = True
+        self.append = tuple(str(i) for i in items)
+
+    def clear(self):
+        self.removeAll = True
+
 
 class TimeControl(Control):
     """Wrapper class for cmds.timeControl"""
