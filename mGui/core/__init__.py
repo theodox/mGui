@@ -252,14 +252,32 @@ class Nested(Control):
         Add the supplied control (an mGui object) to the both the Controls list  and the _named_children dictionary
         in this item.  If the control has a unique key.
 
-        _named_children allows for dot notation access:
+        named_children allows for dot notation access:
 
             with gui.ColumnLayout('items') as items:
-                gui.Button('first', label = 'a button')
-                gui.Button('second', label = 'another button')
+                first = gui.Button(label = 'a button')
+                second = gui.Button( label = 'another button')
 
             print items.first.label
             # a button
+
+        named_children will contain a reference to the key name (the optional first argument) of any mGui control. It
+        will also close over any local variable names in a layout context.  Thus
+
+            with Window() as outer:
+                with ColumnLayout() as column:
+                    Button('first')
+                    second = Button()
+
+        produces  both
+
+            outer.column.first
+
+        and
+
+            outer.column.second
+
+        the first one via explicit naming and the second via closure.
 
         Controls contains all of the *physical* widgets under this object (layouts, controls, etc).
         Non-physical entities -- such as a RadioButtonCollection -- are available with dot notation but *not*
