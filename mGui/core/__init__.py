@@ -4,6 +4,8 @@ from mGui.bindings import BindableObject, BindingContext
 from mGui.styles import Styled
 from mGui.properties import CtlProperty, CallbackProperty
 from mGui.scriptJobs import ScriptJobCallbackProperty
+import inspect
+import itertools
 
 """
 # MGui.Core
@@ -149,7 +151,7 @@ class Control(Styled, BindableObject):
         return self.Widget
 
     def __iter__(self):
-        yield self
+        yield
 
     @classmethod
     def wrap(cls, control_name, key=None):
@@ -209,6 +211,7 @@ class Nested(Control):
 
     def __init__(self, key=None, *args, **kwargs):
         self.Controls = []
+        self._named_children = OrderedDict()
         self.ignore_exceptions = False
         super(Nested, self).__init__(key, *args, **kwargs)
         self.Deleted += self.forget
@@ -228,11 +231,24 @@ class Nested(Control):
         # problem is in the suppressed exception
         if typ and not self.ignore_exceptions:
             return False
-        self.layout()
+
+        # look into the local namespace for Control-derived
+        # objects with named vars. If they are children of the context manager
+        # that is closing, add them with variable name as a key
+        # this supports a more natural, keyless idiom (see 'add')
+
+        for key, value in inspect.currentframe().f_back.f_locals.items():
+            if value in self:
+                self.add(value, key)
+
+        # restore the layout level
         Nested.ACTIVE_LAYOUT = self.__cache_layout
         self.__cache_layout = None
+
+        # restore gui parenting
         abs_parent, sep, _ = self.Widget.rpartition("|")
-        if abs_parent == '': abs_parent = _
+        if abs_parent == '':
+            abs_parent = _
         cmds.setParent(abs_parent)
 
     def layout(self):
@@ -242,10 +258,12 @@ class Nested(Control):
         """
         return len(self.Controls)
 
-    def add(self, control):
+    def add(self, control, key=None):
         """
-        Add the supplied control (an mGui object) to the Controls list in this item.  If the control has a unique key,
-        add the key to this object's __dict__.  This allows dot notation access:
+        Add the supplied control (an mGui object) to the both the Controls list  and the _named_children dictionary
+        in this item.  If the control has a unique key.
+
+        _named_children allows for dot notation access:
 
             with gui.ColumnLayout('items') as items:
                 gui.Button('first', label = 'a button')
@@ -254,20 +272,22 @@ class Nested(Control):
             print items.first.label
             # a button
 
-        The Controls field contains all of the *physical* widgets under this object (layouts, controls, etc).
+        Controls contains all of the *physical* widgets under this object (layouts, controls, etc).
         Non-physical entities -- such as a RadioButtonCollection -- are available with dot notation but *not*
         in the Controls field. This allows the layout() functions in various layouts to rely on the presence of
         controls that can be manipulated.
         """
 
         path_difference = control.Widget[len(self.Widget):].count('|') - 1
-        if not path_difference and hasattr(control, 'visible'):
-            self.Controls.append(control)
+        if path_difference > 0:
+            raise RuntimeError('%s is not a child of %s' % (control.Widget, self.Widget))
 
-        if control.Key and not control.Key[0] == "_":
-            if control.Key in self.__dict__:
-                raise RuntimeError('Children of a layout must have unique IDs')
-            self.__dict__[control.Key] = control
+        # @ this is a change in behavior from mGui 1
+        # we now overwrite existing children instead of excepting
+        control_key = key or control.Key
+        self._named_children[control_key] = control
+        if control not in self.Controls:
+            self.Controls.append(control)
 
     def replace(self, key, control):
         """
@@ -275,30 +295,42 @@ class Nested(Control):
 
         @note this will only work if the existing item has a key
         """
-        original = self.__dict__[key]
-        original_idx = self.Controls.index(original)
-        self.Controls.insert(original_idx, control)
-        self.__dict__[key] = control
-        self.Controls.remove(original)
-        cmds.deleteUI(original)
+        original = self._named_children.get(key)
+        if original:
+            self.Controls.remove(original)
+            cmds.deleteUI(original)
+        self.add(control, key)
         self.layout()
 
     def remove(self, control):
         self.Controls.remove(control)
-        k = [k for k, v in self.__dict__.items() if v == control]
-        if k:
-            del self.__dict__[k[0]]
+        cmds.deleteUI(control)
+        for key, ctrl in self._named_children.items():
+            if ctrl == control:
+                self._named_children.pop(key)
 
     def clear(self):
         delenda = [i for i in self.Controls]
         for d in delenda:
             self.remove(d)
 
+    def __setattr__(self, key, value):
+        if isinstance(value, Control):
+            self.add(value, key=key)
+        else:
+            super(Nested, self).__setattr__(key, value)
+
+    def __getattr__(self, item):
+        if item in self._named_children:
+            return self._named_children[item]
+        return self.__getattribute__(item)
+
     def __iter__(self):
-        for item in self.Controls:
-            for sub in item:
-                yield sub
-        yield self
+        for sub in self.Controls:
+            yield sub
+
+    def __contains__(self, item):
+        return item in self.Controls
 
     # note: both of these explicitly use Nested instead of cls
     # so that there is only one global layout stack...
