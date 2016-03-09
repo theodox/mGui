@@ -108,10 +108,8 @@ class Control(Styled, BindableObject):
 
         maya_kwargs = self.format_maya_arguments(**kwargs)
 
-        named_param = key or 'mGui' +  self.__class__.__name__
-
         # widget holds the actual maya gui string
-        self.widget = self.CMD(named_param, **maya_kwargs)
+        self.widget = self.CMD(key, **maya_kwargs)
 
         # key is our internal name
         self.key = self.widget.split("|")[-1]
