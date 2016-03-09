@@ -17,7 +17,7 @@ class window_object(object):
     settings = {'namespace': 'Starting example, type here'}
 
     def __init__(self):
-        with gui.Window(None, title="Example") as window:
+        with gui.Window( title="Example") as window:
             with forms.VerticalForm(None):
                 self.thing1 = testItem(self.settings)
                 self.thing1.field.proxy_update()
