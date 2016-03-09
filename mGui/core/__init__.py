@@ -1,10 +1,9 @@
 import maya.cmds as cmds
-
+from collections import OrderedDict
 from mGui.bindings import BindableObject, BindingContext
 from mGui.styles import Styled
 from mGui.properties import CtlProperty, CallbackProperty
 from mGui.scriptJobs import ScriptJobCallbackProperty
-
 
 """
 # MGui.Core
@@ -98,7 +97,7 @@ class Control(Styled, BindableObject):
     _READ_ONLY = ['isObscured', 'popupMenuArray', 'numberOfPopupMenus']
     __metaclass__ = ControlMeta
 
-    def __init__(self, key, *args, **kwargs):
+    def __init__(self, key=None, *args, **kwargs):
         # arbitrary tag data. Use with care to avoid memory leaks
         self.Tag = self._extract_kwarg('tag', kwargs)
 
@@ -110,10 +109,9 @@ class Control(Styled, BindableObject):
         # if the style dict contains an 'html' keyword, treate it as a
         # callable which modifies the incoming 'label'
         if 'css' in _style:
-            css = _style['css']
+            css = _style.pop('css')
             if 'html' in css and 'label' in _style:
                 _style['label'] = css['html'](_style['label'])
-            del _style['css']
 
         if not args:
             args = (key,)
@@ -167,7 +165,6 @@ class Control(Styled, BindableObject):
         finally:
             cls.CMD = cache_CMD
 
-
     @classmethod
     def from_existing(cls, key, widget):
         """
@@ -184,15 +181,16 @@ class Control(Styled, BindableObject):
         finally:
             cls.CMD = _cmd
 
-    def _extract_kwarg(self, key, kwarg, default = None):
+    @staticmethod
+    def _extract_kwarg(key, kwarg, default=None):
         '''
         gets the value for <key> from dictionary <kwarg> and returns it. If the key is present in <kwarg> it will be
         removed. If a default is supplied it will be returned when the key is not present
         '''
-        result = kwarg.get(key, default)
-        if key in kwarg:
-            del kwarg[key]
-        return result
+        try:
+            return kwarg.pop(key)
+        except KeyError:
+            return default
 
 
 class Nested(Control):
@@ -209,7 +207,7 @@ class Nested(Control):
 
     Deleted = ScriptJobCallbackProperty('Deleted', 'uiDeleted')
 
-    def __init__(self, key, *args, **kwargs):
+    def __init__(self, key=None, *args, **kwargs):
         self.Controls = []
         self.ignore_exceptions = False
         super(Nested, self).__init__(key, *args, **kwargs)
@@ -236,7 +234,6 @@ class Nested(Control):
         abs_parent, sep, _ = self.Widget.rpartition("|")
         if abs_parent == '': abs_parent = _
         cmds.setParent(abs_parent)
-
 
     def layout(self):
         """
@@ -320,7 +317,8 @@ class Nested(Control):
         if Nested.ACTIVE_LAYOUT is not None:
             sender = kwargs.get('sender', None)
             if sender in Nested.ACTIVE_LAYOUT:
-               Nested.ACTIVE_LAYOUT.remove(sender)
+                Nested.ACTIVE_LAYOUT.remove(sender)
+
 
 # IMPORTANT NOTE
 # this intentionally duplicates redundant property names from Control.
@@ -364,7 +362,7 @@ class Window(Nested):
     _CALLBACKS = ["minimizeCommand", "restoreCommand"]
     _READ_ONLY = ["numberOfMenus", "menuArray", "menuBar", "retain"]
 
-    def __init__(self, key, *args, **kwargs):
+    def __init__(self, key=None, *args, **kwargs):
         super(Window, self).__init__(key, *args, **kwargs)
         Window.ACTIVE_WINDOWS.append(self)
         self.Deleted += self.forget
@@ -374,7 +372,7 @@ class Window(Nested):
         if Window.ACTIVE_WINDOWS is not None:
             sender = kwargs.get('sender', None)
             if sender in Window.ACTIVE_WINDOWS:
-               Window.ACTIVE_WINDOWS.remove(sender)
+                Window.ACTIVE_WINDOWS.remove(sender)
 
     def show(self):
         cmds.showWindow(self.Widget)
@@ -389,13 +387,12 @@ class Window(Nested):
         return None
 
 
-
 class BindingWindow(Window):
     """
     A Window with a built in BindingContext
     """
 
-    def __init__(self, key, *args, **kwargs):
+    def __init__(self, key=None, *args, **kwargs):
         super(BindingWindow, self).__init__(key, *args, **kwargs)
         self.bindingContext = BindingContext()
 
@@ -409,4 +406,3 @@ class BindingWindow(Window):
 
     def update_bindings(self):
         self.bindingContext.update(True)
-
