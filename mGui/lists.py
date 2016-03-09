@@ -22,6 +22,7 @@ import mGui.observable as observable
 import mGui.core.controls as controls
 import mGui.core.layouts as layouts
 import mGui.events as events
+import time
 
 
 class FormList(object):
@@ -40,81 +41,73 @@ class FormList(object):
             self.__init_bound_collection__()
 
         """
-        self._scroll = 'not initialized'
-        self._list = 'not initialized'
-
-        self.Template = self._extract_kwarg('itemTemplate', kwargs, ItemTemplate)(self)
-        self.Sync = self._extract_kwarg('synchronous', kwargs, True)
-        self.Redraw_Opts = {}
+        self.template = kwargs.pop('itemTemplate', ItemTemplate)(self)
+        self.sync = kwargs.pop('synchronous', True)
+        self.redraw_options = {}
 
         event_class = events.Event
         collection_class = observable.ImmediateBoundCollection
 
-        if not self.Sync:
+        if not self.sync:
             event_class = events.MayaEvent
             collection_class = observable.BoundCollection
 
-        self.Collection = collection_class()
-        self.NewWidget = event_class(type='widget created')
-        self.Updated = event_class(type='updated')
+        self.collection = collection_class()
+        self.onWidgetCreated = event_class(type='widget created')
+        self.onUpdated = event_class(type='updated')
 
-        self.Collection.CollectionChanged += self.redraw  # automatically forward collection changes
+        self.collection.CollectionChanged += self.redraw  # automatically forward collection changes
 
-    def _extract_kwarg(self, key, kwarg, default=None):
-        result = kwarg.get(key, default)
-        if key in kwarg:
-            del kwarg[key]
-        return result
 
     def redraw(self, *args, **kwargs):
         """
         NOTE: depends on the LIST_CLASS being set in the actual class!
         """
 
-        try:
-            cmds.waitCursor(st=1)
-            if self._scroll != 'not initialized':
-                cmds.deleteUI(self._scroll)
-                self._scroll = 'not initialized'
-                self._list = 'not initialized'
+        self.named_children = {}
+        self.controls = []
 
-            cmds.setParent(self)
-            with layouts.ScrollLayout('_scroll', childResizable=True) as self._scroll:
-                with self.LIST_CLASS('_list', **self.Redraw_Opts) as self._list:
-                    for item in self.Collection:
-                        w = self.Template.widget(item)
+        seed = int(time.time())
+
+        cmds.setParent(self)
+        with self:
+            with layouts.ScrollLayout(childResizable=True) as inner_scroll:
+                with self.LIST_CLASS('mGuiInnerList_%i' % seed, **self.redraw_options) as inner_list:
+                    for item in self.collection:
+                        w = self.template.widget(item)
                         self.widget_added(w)
-            cmds.setParent(self.parent)
 
-            # unhook the delete handlers from these guys, they are closed
-            # so they arent part of the ACTIVE_LAYOUT
+        cmds.setParent(self)
+        cmds.setParent("..")
 
-            self._scroll.Deleted._handlers = set()
-            self._list.Deleted._handlers = set()
-            self._scroll.Deleted.kill()
-            self._list.Deleted.kill()
 
-            # remove them so they fall out of scope, but keep the new _scroll
-            self.controls = [self._scroll]
-            self.layout()
+        # unhook the delete handlers from these guys, they are closed
+        # so they arent part of the ACTIVE_LAYOUT
+        inner_scroll.Deleted.kill()
+        inner_list.Deleted.kill()
+        inner_scroll.Deleted._handlers = set()
+        inner_list.Deleted._handlers = set()
 
-        finally:
-            cmds.waitCursor(st=0)
+        # controls only includes 'inner_scroll' for layout
+        self.named_children['inner_scroll'] = inner_scroll
+        self.named_children['inner_list'] = inner_scroll
+        self.controls = [inner_scroll]
 
+        self.layout()
 
     def widget_added(self, templated_item):
         """
         by default, raise the NewWidget event
         but can be overridden to handle here instead
         """
-        self.NewWidget(item=templated_item)
+        self.onWidgetCreated(item=templated_item)
 
     def gui_contents(self):
-        for item in self._list.controls:
+        for item in self.inner_list.controls:
             yield item
 
     def contents(self):
-        for item in self.Collection:
+        for item in self.collection:
             yield item
 
 
@@ -125,17 +118,14 @@ class VerticalList(forms.FillForm, FormList):
 
     LIST_CLASS = forms.VerticalForm
 
-    def __init__(self, key, *args, **kwargs):
+    def __init__(self, key=None, *args, **kwargs):
         self.__init_bound_collection__(kwargs)
         super(VerticalList, self).__init__(key, *args, **kwargs)
-        self._scroll = 'not initialized'
-        self._list = 'not initialized'
         self.redraw()
-
 
     def redraw(self, *args, **kwargs):
         super(VerticalList, self).redraw()
-        self._list.width = max(self.width - 33, 33)
+        self.inner_list.width = max(self.width - 33, 33)
 
 
 class HorizontalList(forms.FillForm, FormList):
@@ -145,29 +135,27 @@ class HorizontalList(forms.FillForm, FormList):
 
     LIST_CLASS = forms.HorizontalForm
 
-    def __init__(self, key, *args, **kwargs):
+    def __init__(self, key=None, *args, **kwargs):
         self.__init_bound_collection__(kwargs)
         super(HorizontalList, self).__init__(key, *args, **kwargs)
         self.redraw()
 
-
     def redraw(self, *args, **kwargs):
         super(HorizontalList, self).redraw()
-        self._list.height = max(self.width - 33, 33)
+        self.inner_list.height = max(self.width - 33, 33)
 
 
 class ColumnList(forms.FillForm, FormList):
     LIST_CLASS = layouts.ColumnLayout
 
-    def __init__(self, key, *args, **kwargs):
+    def __init__(self, key=None, *args, **kwargs):
         self.__init_bound_collection__(kwargs)
         super(ColumnList, self).__init__(key, *args, **kwargs)
         self.redraw()
 
-
     def redraw(self, *args, **kwargs):
         super(ColumnList, self).redraw()
-        self._list.width = max(self.width - 33, 33)
+        self.inner_list.width = max(self.width - 33, 33)
 
 
 class WrapList(forms.FillForm, FormList):
@@ -177,32 +165,34 @@ class WrapList(forms.FillForm, FormList):
     """
     LIST_CLASS = layouts.FlowLayout
 
-    def __init__(self, key, *args, **kwargs):
+    def __init__(self, key=None, *args, **kwargs):
         self.wrap = kwargs.pop('wrap', False)
         self.__init_bound_collection__(kwargs)
-        self.Redraw_Opts['wrap'] = self.wrap
+        self.redraw_options['wrap'] = self.wrap
 
         super(WrapList, self).__init__(key, *args, **kwargs)
         self.redraw()
 
-
     def redraw(self, *args, **kwargs):
         super(WrapList, self).redraw()
-        self._list.height = max(self.height - 33, 33)
-        self._list.width = max(self.width - 33, 33)
+        self.inner_list.height = max(self.height - 33, 33)
+        self.inner_list.width = max(self.width - 33, 33)
 
 
 class Templated(object):
-    def __init__(self, datum, widget, **events):
-        self.Datum = datum
+    """
+    contains the original data item, the widget represents it, and any named event objects it exposes
+    """
+    def __init__(self, datum, widget, **named_events):
+        self.datum = datum
         self.widget = widget
-        self.Events = events
+        self.events = named_events
 
     def get_event(self, key):
         """
         Return the named event, if present
         """
-        return self.Events.get(key, None)
+        return self.events.get(key, None)
 
 
 class ItemTemplate(object):
@@ -210,8 +200,7 @@ class ItemTemplate(object):
     Base class for item template classes.
 
     The job of an itemTemplate is to provide a GUI widget (which can be a single
-    control or a layout with other controls) that represents the underying data
-    item in the bound data collection.
+    control or a layout with other controls) that represents the underying data    item in the bound data collection.
 
     """
 
@@ -223,10 +212,9 @@ class ItemTemplate(object):
         returns the topmost mGui item of a templated list item, along with any events defined in the widget
         """
 
-        with forms.HorizontalForm(None) as root:
-            r = controls.Button(None, label=str(item))
+        with forms.HorizontalForm() as root:
+            r = controls.Button(label=str(item))
         return Templated(item, root, command=r.command)
 
     def __call__(self, item):
         return self.widget(item)
-

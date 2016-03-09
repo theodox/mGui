@@ -40,11 +40,10 @@ class Form(FormLayout):
 
     """
 
-    def __init__(self, key = None, **kwargs):
+    def __init__(self, key=None, **kwargs):
         super(Form, self).__init__(key, **kwargs)
         self.margin = Bounds(*self.Style.get('margin', (0, 0)))
         self.spacing = Bounds(*self.Style.get('spacing', (0, 0)))
-
 
     def _fill(self, ctrl, *sides, **kwargs):
         """
@@ -74,7 +73,6 @@ class Form(FormLayout):
         dock 'ctrl' along the right side of the form with the supplied margin
         """
         self._fill(ctrl, 'top', 'bottom', 'right', margin=margin)
-
 
     def bottom(self, ctrl, margin=None):
         """
