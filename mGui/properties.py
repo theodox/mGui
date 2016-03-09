@@ -36,8 +36,8 @@ class CtlProperty (object):
             raise MGuiAttributeError('attribute .%s is not writable' % self.flag)
         try:
             self.command(obj.widget, **{'e':True, self.flag:value})
-        except RuntimeError:
-            raise MGuiAttributeError("Cannot access property {0} on {1}".format(self.flag, obj))
+        except RuntimeError as e:
+            raise MGuiAttributeError("Unable to set {0} on {1}".format(self.flag, obj), e)
 
 class CallbackProperty(object):
     """
