@@ -278,12 +278,9 @@ class Nested(Control):
         controls that can be manipulated.
         """
 
-        path_difference = control.Widget[len(self.Widget):].count('|') - 1
-        if path_difference > 0:
-            raise RuntimeError('%s is not a child of %s' % (control.Widget, self.Widget))
-
         # @ this is a change in behavior from mGui 1
         # we now overwrite existing children instead of excepting
+        # we also DON'T explicitly check to ensure that <control> is a kind of this widget
         control_key = key or control.Key
         self._named_children[control_key] = control
         if control not in self.Controls:
@@ -315,15 +312,16 @@ class Nested(Control):
             self.remove(d)
 
     def __setattr__(self, key, value):
-        if isinstance(value, Control):
+        if isinstance(value, Control) and not key.startswith("_"):
             self.add(value, key=key)
         else:
             super(Nested, self).__setattr__(key, value)
 
     def __getattr__(self, item):
-        if item in self._named_children:
+        try:
             return self._named_children[item]
-        return self.__getattribute__(item)
+        except KeyError:
+            return self.__dict__[item]
 
     def __iter__(self):
         for sub in self.Controls:
