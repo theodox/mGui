@@ -99,7 +99,7 @@ class Control(Styled, BindableObject):
     _READ_ONLY = ['isObscured', 'popupMenuArray', 'numberOfPopupMenus']
     __metaclass__ = ControlMeta
 
-    def __init__(self, key=None, *args, **kwargs):
+    def __init__(self, key=None, **kwargs):
         # apply Styled, and filter out any CSS tags
         super(Control,self).__init__(kwargs)
 
@@ -107,14 +107,14 @@ class Control(Styled, BindableObject):
         self.tag = kwargs.pop('tag', None)
 
         maya_kwargs = self.format_maya_arguments(**kwargs)
-        if not args:
-            args = ('mGui' + self.__class__.__name__,)
+
+        named_param = key or 'mGui' +  self.__class__.__name__
 
         # widget holds the actual maya gui string
-        self.widget = self.CMD(*args, **maya_kwargs)
+        self.widget = self.CMD(named_param, **maya_kwargs)
 
         # key is our internal name
-        self.key = key or "__" + self.widget.split("|")[-1]
+        self.key = self.widget.split("|")[-1]
 
         # Event objects
         self.callbacks = {}
@@ -198,11 +198,11 @@ class Nested(Control):
 
     Deleted = ScriptJobCallbackProperty('Deleted', 'uiDeleted')
 
-    def __init__(self, key=None, *args, **kwargs):
+    def __init__(self, key=None, **kwargs):
         self.controls = []
         self.named_children = OrderedDict()
         self.ignore_exceptions = False
-        super(Nested, self).__init__(key, *args, **kwargs)
+        super(Nested, self).__init__(key, **kwargs)
         self.Deleted += self.forget
 
     def __enter__(self):
@@ -388,8 +388,8 @@ class Window(Nested):
     _CALLBACKS = ["minimizeCommand", "restoreCommand"]
     _READ_ONLY = ["numberOfMenus", "menuArray", "menuBar", "retain"]
 
-    def __init__(self, key=None, *args, **kwargs):
-        super(Window, self).__init__(key, *args, **kwargs)
+    def __init__(self, key=None, **kwargs):
+        super(Window, self).__init__(key, **kwargs)
         Window.ACTIVE_WINDOWS.append(self)
         self.Deleted += self.forget
 
@@ -418,8 +418,8 @@ class BindingWindow(Window):
     A Window with a built in BindingContext
     """
 
-    def __init__(self, key=None, *args, **kwargs):
-        super(BindingWindow, self).__init__(key, *args, **kwargs)
+    def __init__(self, key=None,  **kwargs):
+        super(BindingWindow, self).__init__(key, **kwargs)
         self.bindingContext = BindingContext()
 
     def __enter__(self):
