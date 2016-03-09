@@ -41,18 +41,18 @@ class Accessor(object):
     Truth-testing an accessor returns true if the Accessors <Target> exists.
     """
 
-    def __init__(self, datum, fieldName):
+    def __init__(self, datum, field_name):
         try:
-            self.Target = weakref.proxy(datum)
+            self.target = weakref.proxy(datum)
         except TypeError:
-            self.Target = datum
-        self.FieldName = fieldName
+            self.target = datum
+        self.field_name = field_name
 
     def _set(self, *args, **kwargs):
-        setattr(self.Target, self.FieldName, args[0])
+        setattr(self.target, self.field_name, args[0])
 
     def _get(self, *args, **kwargs):
-        return getattr(self.Target, self.FieldName)
+        return getattr(self.target, self.field_name)
 
     def push(self, *args, **kwargs):
         """
@@ -87,25 +87,25 @@ class Accessor(object):
 
 
     @classmethod
-    def can_access(cls, datum, fieldname):
+    def can_access(cls, datum, field_name):
         """
-        Return true if the supplied object / fieldname combination can be accessed from this class
+        Return true if the supplied object / field_name combination can be accessed from this class
 
         Derived classes should implement this so that the AccessorFactory can
         pick the correct Accessor for a given object
         """
-        return fieldname and hasattr(datum, fieldname) and not callable(getattr(datum, fieldname))
+        return field_name and hasattr(datum, field_name) and not callable(getattr(datum, field_name))
 
     def __nonzero__(self):
         try:
-            return self.Target is not None
+            return self.target is not None
         except ReferenceError:
             return False
 
 
     def __str__(self):
         try:
-            return "<%s.%s>" % (self.Target, self.FieldName)
+            return "<%s.%s>" % (self.target, self.field_name)
         except ReferenceError:
             return "<invalid accessor>"
 
@@ -118,18 +118,18 @@ class DictAccessor(Accessor):
     Accessor for a dictionary entry
     """
 
-    def __init__(self, datum, fieldName):
-        self.Target = datum
-        self.FieldName = fieldName
+    def __init__(self, datum, field_name):
+        self.target = datum
+        self.field_name = field_name
 
     def _set(self, *args, **kwargs):
-        self.Target[self.FieldName] = args[0]
+        self.target[self.field_name] = args[0]
 
     def _get(self, *args, **kwargs):
-        return self.Target[self.FieldName]
+        return self.target[self.field_name]
 
     @classmethod
-    def can_access(cls, datum, fieldname):
+    def can_access(cls, datum, field_name):
         return isinstance(datum, Mapping) or (hasattr(datum, '__getitem__') and hasattr(datum, '__setitem__'))
 
 
@@ -139,14 +139,14 @@ class PyNodeAccessor(Accessor):
     """
 
     def _set(self, *args, **kwargs):
-        getattr(self.Target, self.FieldName).set(args[0])
+        getattr(self.target, self.field_name).set(args[0])
 
     def _get(self, *args, **kwargs):
-        return self.Target.attr(self.FieldName).get()
+        return self.target.attr(self.field_name).get()
 
     @classmethod
-    def can_access(cls, datum, fieldname):
-        return hasattr(datum, '__melcmd__') and hasattr(datum, fieldname)
+    def can_access(cls, datum, field_name):
+        return hasattr(datum, '__melcmd__') and hasattr(datum, field_name)
 
 
 class PyAttributeAccessor(Accessor):
@@ -156,21 +156,21 @@ class PyAttributeAccessor(Accessor):
     Note this creates a _strong_ reference to the attribute, so it may leak
     """
 
-    def __init__(self, datum, fieldname):
+    def __init__(self, datum, field_name):
         pyAttr = datum
-        self.Target = pyAttr.node()
-        self.FieldName = pyAttr.plugAttr()
-        self.Attrib = pyAttr
+        self.target = pyAttr.node()
+        self.field_name = pyAttr.plugAttr()
+        self.attrib = pyAttr
 
     def _set(self, *args, **kwargs):
-        self.Attrib.set(args[0])
+        self.attrib.set(args[0])
 
     def _get(self, *args, **kwargs):
-        return self.Attrib.get()
+        return self.attrib.get()
 
 
     @classmethod
-    def can_access(cls, datum, fieldname):
+    def can_access(cls, datum, field_name):
         return 'Attribute' in datum.__class__.__name__
 
 
@@ -181,10 +181,10 @@ class CmdsAccessor(Accessor):
     Unlike the other accessors the target is just a string, not a weakref
     """
 
-    def __init__(self, datum, fieldName):
-        self.Target = str(datum)
-        self.FieldName = str(fieldName)
-        self._attrib = "%s.%s" % (self.Target, self.FieldName)
+    def __init__(self, datum, field_name):
+        self.target = str(datum)
+        self.field_name = str(field_name)
+        self._attrib = "%s.%s" % (self.target, self.field_name)
 
     def _set(self, *args, **kwargs):
         cmds.setAttr(self._attrib, args[0])
@@ -193,9 +193,9 @@ class CmdsAccessor(Accessor):
         return cmds.getAttr(self._attrib)
 
     @classmethod
-    def can_access(self, datum, fieldname):
+    def can_access(self, datum, field_name):
         try:
-            return cmds.ls(datum) and cmds.attributeQuery(fieldname, node=datum, w=True)
+            return cmds.ls(datum) and cmds.attributeQuery(field_name, node=datum, w=True)
         except RuntimeError:
             return False
         except TypeError:
@@ -208,14 +208,14 @@ class MethodAccessor(Accessor):
     """
 
     def _set(self, *args, **kwargs):
-        getattr(self.Target, self.FieldName)(*args, **kwargs)
+        getattr(self.target, self.field_name)(*args, **kwargs)
 
     def _get(self, *args, **kwargs):
-        return getattr(self.Target, self.FieldName)(*args, **kwargs)
+        return getattr(self.target, self.field_name)(*args, **kwargs)
 
     @classmethod
-    def can_access(cls, datum, fieldname):
-        return fieldname and hasattr(datum, fieldname) and callable(getattr(datum, fieldname))
+    def can_access(cls, datum, field_name):
+        return field_name and hasattr(datum, field_name) and callable(getattr(datum, field_name))
 
 
 class AccessorFactory(object):
@@ -248,10 +248,10 @@ class AccessorFactory(object):
         If no appropriate class is found, returns None
         """
         datum = args[0]
-        fieldname = args[-1]
+        field_name = args[-1]
 
         for fclass in self.Tests:
-            if fclass.can_access(datum, fieldname):
+            if fclass.can_access(datum, field_name):
                 return fclass
         return None
 
@@ -259,7 +259,7 @@ class AccessorFactory(object):
 _DEFAULT_FACTORY = AccessorFactory()
 
 
-def get_accessor(datum, fieldname=None, factory_class=None):
+def get_accessor(datum, field_name=None, factory_class=None):
     """
     Returns an appropriate Accessor object for the supplied datum and datum
     field.
@@ -275,13 +275,13 @@ def get_accessor(datum, fieldname=None, factory_class=None):
     site = datum
     if isinstance(datum, BindProxy):
         site = datum.Item
-        fieldname = datum.Attribute
+        field_name = datum.Attribute
 
-    target_class = factory.accessor_class(site, fieldname)
+    target_class = factory.accessor_class(site, field_name)
     if target_class:
-        return target_class(site, fieldname)
+        return target_class(site, field_name)
 
-    raise BindingError('%s is not a bindable attribute of %s' % (fieldname, site))
+    raise BindingError('%s is not a bindable attribute of %s' % (field_name, site))
 
 
 class BindingContext(object):
@@ -301,7 +301,7 @@ class BindingContext(object):
 
     def __init__(self, auto_update=True):
         self.Bindings = []
-        self.Children = []
+        self.children = []
         self._cache_context = None
         self.auto_update = auto_update
 
@@ -313,7 +313,7 @@ class BindingContext(object):
     def __exit__(self, typ, value, traceback):
         BindingContext.ACTIVE = self._cache_context
         if self._cache_context:
-            self._cache_context.Children.append(self)
+            self._cache_context.children.append(self)
         if self.auto_update:
             self.update(False)
 
@@ -326,7 +326,7 @@ class BindingContext(object):
         for item in delenda:
             self.Bindings.remove(item)
         if recurse:
-            for item in self.Children:
+            for item in self.children:
                 item.update(recurse)
         return len(self.Bindings)
 
@@ -344,7 +344,7 @@ class BindingContext(object):
         print "INVALIDATING BINDINGS"
         for b in self.Bindings:
             b.invalidate()
-        for c in self.Children:
+        for c in self.children:
             c.invalidate()
 
 
@@ -365,33 +365,33 @@ class Binding(object):
         if not source: raise BindingError("invalid source binding")
         if not target: raise BindingError("invalid target binding")
 
-        self.Getter = source
-        self.Setter = target
+        self.getter = source
+        self.setter = target
 
         self.Translator = kwargs.get('translator', passthru)
         assert callable(self.Translator), 'Translator must be a single argument callable'
 
         BindingContext.add(self)
-        if hasattr(self.Getter.Target, 'bindings'):
-            self.Getter.Target.bindings.append(self)
-            if hasattr(self.Getter.Target, "_BIND_TRIGGER"):
-                cb = getattr(self.Getter.Target, self.Getter.Target._BIND_TRIGGER)
+        if hasattr(self.getter.target, 'bindings'):
+            self.getter.target.bindings.append(self)
+            if hasattr(self.getter.target, "_BIND_TRIGGER"):
+                cb = getattr(self.getter.target, self.getter.target._BIND_TRIGGER)
                 cb += self.proxy_update
 
-        if hasattr(self.Setter.Target, 'bindings'):
-            self.Setter.Target.bindings.append(self)
+        if hasattr(self.setter.target, 'bindings'):
+            self.setter.target.bindings.append(self)
 
 
     def invalidate(self):
         """
         Mark the current binding as invalid. Typically it will be deleted on the next update
         """
-        self.Getter = None
-        self.Setter = None
+        self.getter = None
+        self.setter = None
 
     def __nonzero__(self):
-        if self.Setter:
-            if self.Getter:
+        if self.setter:
+            if self.getter:
                 return True
         return False
 
@@ -414,8 +414,8 @@ class Binding(object):
             if self.__nonzero__() == False: return False
 
             try:
-                val = self.Getter.pull()
-                self.Setter.push(self.Translator(val))
+                val = self.getter.pull()
+                self.setter.push(self.Translator(val))
                 return True
 
             except (ReferenceError, BindingError, RuntimeError):
@@ -441,38 +441,38 @@ class TwoWayBinding(Binding):
 
     def __init__(self, source, target, *extra, **kwargs):
         super(TwoWayBinding, self).__init__(source, target, *extra, **kwargs)
-        if hasattr(self.Setter.Target, "_BIND_TRIGGER"):
-            cb = getattr(self.Setter.Target, self.Setter.Target._BIND_TRIGGER)
+        if hasattr(self.setter.target, "_BIND_TRIGGER"):
+            cb = getattr(self.setter.target, self.setter.target._BIND_TRIGGER)
             cb += self.proxy_update
-        self._last_getter_value = self.Getter.pull()
-        self._last_setter_value = self.Setter.pull()
+        self._last_getter_value = self.getter.pull()
+        self._last_setter_value = self.setter.pull()
 
     def __call__(self):
         if self.__nonzero__() == False:
             return False
 
         try:
-            getter_val = self.Getter.pull()
+            getter_val = self.getter.pull()
             new_getter = getter_val != self._last_getter_value
-            setter_val = self.Setter.pull()
+            setter_val = self.setter.pull()
             new_setter = setter_val != self._last_setter_value
 
             if new_getter and not new_setter:
-                self.Setter.push(self.Translator(getter_val))
+                self.setter.push(self.Translator(getter_val))
                 self._last_setter_value = getter_val
 
             if new_setter and not new_getter:
-                self.Getter.push(self.Translator(setter_val))
+                self.getter.push(self.Translator(setter_val))
                 self._last_getter_value = setter_val
 
             if not new_getter and not new_setter:
                 # getter wins if both are undefined
-                self.Getter.push(self.Translator(setter_val))
+                self.getter.push(self.Translator(setter_val))
                 self._last_getter_value = setter_val
 
             if new_setter and new_getter:
                 # 'getter' > setter wins
-                self.Setter.push(self.Translator(getter_val))
+                self.setter.push(self.Translator(getter_val))
                 self._last_getter_value = getter_val
                 self._last_setter_value = getter_val
             return True

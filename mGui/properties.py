@@ -18,26 +18,26 @@ class CtlProperty (object):
 
     def __init__(self, flag, cmd, writeable=True):
         assert callable(cmd), "cmd flag must be a maya command for editing gui objects"
-        self.Flag = flag or self.FLAG
-        self.Writeable = writeable
-        self.Command = cmd
+        self.flag = flag or self.FLAG
+        self.writeable = writeable
+        self.command = cmd
 
     def __get__(self, obj, objtype):
         try:
-            result = self.Command(obj.Widget, **{'q':True, self.Flag:True})
+            result = self.command(obj.widget, **{'q':True, self.flag:True})
         except RuntimeError:
-            raise MGuiAttributeError("Cannot access property {0} on {1}".format(self.Flag, obj))
-        if result is None and self.Flag.endswith("rray"):
+            raise MGuiAttributeError("Cannot access property {0} on {1}".format(self.flag, obj))
+        if result is None and self.flag.endswith("rray"):
             result = []
         return result
 
     def __set__(self, obj, value):
-        if not self.Writeable:
-            raise MGuiAttributeError('attribute .%s is not writable' % self.Flag)
+        if not self.writeable:
+            raise MGuiAttributeError('attribute .%s is not writable' % self.flag)
         try:
-            self.Command(obj.Widget, **{'e':True, self.Flag:value})
+            self.command(obj.widget, **{'e':True, self.flag:value})
         except RuntimeError:
-            raise MGuiAttributeError("Cannot access property {0} on {1}".format(self.Flag, obj))
+            raise MGuiAttributeError("Cannot access property {0} on {1}".format(self.flag, obj))
 
 class CallbackProperty(object):
     """
@@ -56,22 +56,22 @@ class CallbackProperty(object):
 
     """
     def __init__(self, key):
-        self.Key = key
+        self.key = key
 
     def __get__(self, obj, objtype):
-        cb = obj.Callbacks.get(self.Key, None)
+        cb = obj.callbacks.get(self.key, None)
         # @note: don't use simple truth test here! No-handler event evals to false,
         # so manually assigned events are overwritten!
         if cb is None:
-            obj.Callbacks[self.Key] = MayaEvent(sender=obj)
-            obj.register_callback(self.Key, obj.Callbacks[self.Key])
-        return obj.Callbacks[self.Key]
+            obj.callbacks[self.key] = MayaEvent(sender=obj)
+            obj.register_callback(self.key, obj.callbacks[self.key])
+        return obj.callbacks[self.key]
 
     def __set__(self, obj, value):
         if not isinstance(value, Event):
             raise ValueError('Callback properties must be instances of mGui.events.Event')
-        obj.Callbacks[self.Key] = value
-        obj.register_callback(self.Key, obj.Callbacks[self.Key])
+        obj.callbacks[self.key] = value
+        obj.register_callback(self.key, obj.callbacks[self.key])
 
 
 class LateBoundProperty(object):

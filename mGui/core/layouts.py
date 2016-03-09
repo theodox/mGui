@@ -125,7 +125,7 @@ class TabLayout(Layout):
 
 
     def layout(self):
-        kids = [(i.Widget, i.Key) for i in self.Controls]
+        kids = [(i.widget, i.key) for i in self.controls]
         self.tabLabel = kids
         return super(TabLayout, self).layout()
 

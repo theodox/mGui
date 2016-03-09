@@ -53,12 +53,12 @@ class ExampleWindow(Bindable):
                         gui.Canvas('canvas').bind.rgbValue <  bind() <  self.bind.Color
                         gui.Text('display').bind.label < bind(pretty) < self.bind.Color
     
-            for grp in sliders.Controls:
+            for grp in sliders.controls:
                 grp.changeCommand += self.update_color
                 grp.buttonCommand += self.average
                 
     def update_color(self, *args, **kwargs):
-        self.Color[kwargs['sender'].Tag] = kwargs['sender'].value
+        self.Color[kwargs['sender'].tag] = kwargs['sender'].value
         self.Window.bindingContext.update()
         
     def average(self, *args, **kwargs):

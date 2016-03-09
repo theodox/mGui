@@ -56,6 +56,6 @@ def derive(widget):
         kids = result.itemListLong or []
 
     for k in kids:
-        result.Controls.append(derive(k))
+        result.controls.append(derive(k))
 
     return result

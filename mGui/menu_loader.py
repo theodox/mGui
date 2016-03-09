@@ -117,7 +117,7 @@ def get_insert_after_item(parent, match_label):
     result = None
 
     main_menu = gui.derive(parent)
-    for item in main_menu.Controls:
+    for item in main_menu.controls:
         label_item = maya.cmds.menuItem(item, q=True, l=True)
         if match_label == label_item:
             result = item

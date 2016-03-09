@@ -102,23 +102,24 @@ class Control(Styled, BindableObject):
     def __init__(self, key=None, *args, **kwargs):
         # apply Styled, and filter out any CSS tags
         super(Control,self).__init__(kwargs)
+
         # arbitrary tag data. Use with care to avoid memory leaks
-        self.Tag = kwargs.pop('tag', None)
+        self.tag = kwargs.pop('tag', None)
 
         maya_kwargs = self.format_maya_arguments(**kwargs)
         if not args:
             args = ('mGui' + self.__class__.__name__,)
 
-        self.Widget = self.CMD(*args, **maya_kwargs)
-        self.Key = key or "__" + self.Widget.split("|")[-1]
+        # widget holds the actual maya gui string
+        self.widget = self.CMD(*args, **maya_kwargs)
 
-        """
-        Widget is the gui element in the scene
-        """
-        self.Callbacks = {}
-        """
-        A dictionary of Event objects
-        """
+        # key is our internal name
+        self.key = key or "__" + self.widget.split("|")[-1]
+
+        # Event objects
+        self.callbacks = {}
+
+        # add us to the current layout under our own key name
         Layout.add_current(self)
 
     def register_callback(self, callbackName, event):
@@ -127,19 +128,19 @@ class Control(Styled, BindableObject):
         gui widget's callback function
         """
         kwargs = {'e': True, callbackName: event}
-        self.CMD(self.Widget, **kwargs)
+        self.CMD(self.widget, **kwargs)
 
     def __nonzero__(self):
         return self.exists
 
     def __repr__(self):
         if self:
-            return self.Widget
+            return self.widget
         else:
             return "<deleted UI element %s>" % self.__class__
 
     def __str__(self):
-        return self.Widget
+        return self.widget
 
     def __iter__(self):
         yield
@@ -180,7 +181,7 @@ class Control(Styled, BindableObject):
 
     @classmethod
     def delete(cls, instance):
-        cmds.deleteUI(instance.Widget)
+        cmds.deleteUI(instance.widget)
 
 
 class Nested(Control):
@@ -198,7 +199,7 @@ class Nested(Control):
     Deleted = ScriptJobCallbackProperty('Deleted', 'uiDeleted')
 
     def __init__(self, key=None, *args, **kwargs):
-        self.Controls = []
+        self.controls = []
         self.named_children = OrderedDict()
         self.ignore_exceptions = False
         super(Nested, self).__init__(key, *args, **kwargs)
@@ -236,7 +237,7 @@ class Nested(Control):
         self.layout()
 
         # restore gui parenting
-        abs_parent, sep, _ = self.Widget.rpartition("|")
+        abs_parent, sep, _ = self.widget.rpartition("|")
         if abs_parent == '':
             abs_parent = _
         cmds.setParent(abs_parent)
@@ -246,7 +247,7 @@ class Nested(Control):
         this is called at the end of a context, it can be used to (for example) perform attachments
         in a formLayout.  Override in derived classes for different behaviors.
         """
-        return len(self.Controls)
+        return len(self.controls)
 
     def add(self, control, key=None):
         """
@@ -271,10 +272,10 @@ class Nested(Control):
         # @ this is a change in behavior from mGui 1
         # we now overwrite existing children instead of excepting
         # we also DON'T explicitly check to ensure that <control> is a kind of this widget
-        control_key = key or control.Key
+        control_key = key or control.key
         self.named_children[control_key] = control
-        if control not in self.Controls:
-            self.Controls.append(control)
+        if control not in self.controls:
+            self.controls.append(control)
 
     def replace(self, key, control):
         """
@@ -284,7 +285,7 @@ class Nested(Control):
         """
         original = self.named_children.get(key)
         if original:
-            self.Controls.remove(original)
+            self.controls.remove(original)
             Control.delete(original)
         self.add(control, key)
         self.layout()
@@ -293,16 +294,16 @@ class Nested(Control):
         """
         remove <control> from my children
         """
-        if control not in self.Controls:
+        if control not in self.controls:
             raise KeyError, "%s is not a child of %s" ( control, self )
-        self.Controls.remove(control)
+        self.controls.remove(control)
         control.delete(control)
         for key, ctrl in self.named_children.items():
             if ctrl == control:
                 self.named_children.pop(key)
 
     def clear(self):
-        delenda = (i for i in self.Controls)
+        delenda = (i for i in self.controls)
         for d in delenda:
             self.remove(d)
 
@@ -319,11 +320,11 @@ class Nested(Control):
             return self.__dict__[item]
 
     def __iter__(self):
-        for sub in self.Controls:
+        for sub in self.controls:
             yield sub
 
     def __contains__(self, item):
-        return item in self.Controls
+        return item in self.controls
 
     # note: both of these explicitly use Nested instead of cls
     # so that there is only one global layout stack...
@@ -400,7 +401,7 @@ class Window(Nested):
                 Window.ACTIVE_WINDOWS.remove(sender)
 
     def show(self):
-        cmds.showWindow(self.Widget)
+        cmds.showWindow(self.widget)
 
     def hide(self):
         self.visible = False

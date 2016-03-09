@@ -95,7 +95,7 @@ class FormList(object):
             self._list.Deleted.kill()
 
             # remove them so they fall out of scope, but keep the new _scroll
-            self.Controls = [self._scroll]
+            self.controls = [self._scroll]
             self.layout()
 
         finally:
@@ -110,7 +110,7 @@ class FormList(object):
         self.NewWidget(item=templated_item)
 
     def gui_contents(self):
-        for item in self._list.Controls:
+        for item in self._list.controls:
             yield item
 
     def contents(self):
@@ -178,7 +178,7 @@ class WrapList(forms.FillForm, FormList):
     LIST_CLASS = layouts.FlowLayout
 
     def __init__(self, key, *args, **kwargs):
-        self.wrap = self._extract_kwarg('wrap', kwargs, False)
+        self.wrap = kwargs.pop('wrap', False)
         self.__init_bound_collection__(kwargs)
         self.Redraw_Opts['wrap'] = self.wrap
 
@@ -195,7 +195,7 @@ class WrapList(forms.FillForm, FormList):
 class Templated(object):
     def __init__(self, datum, widget, **events):
         self.Datum = datum
-        self.Widget = widget
+        self.widget = widget
         self.Events = events
 
     def get_event(self, key):

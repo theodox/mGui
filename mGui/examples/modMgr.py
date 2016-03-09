@@ -161,11 +161,11 @@ class ModuleTemplate(lists.ItemTemplate):
         
     @classmethod
     def show_item(cls, *args, **kwargs):
-        wb.open('"%s"' % os.path.dirname(kwargs['sender'].Tag.file))
+        wb.open('"%s"' % os.path.dirname(kwargs['sender'].tag.file))
 
     @classmethod
     def edit(cls, *args, **kwargs):
-        os.startfile('"%s"' % kwargs['sender'].Tag.file)    
+        os.startfile('"%s"' % kwargs['sender'].tag.file)
 
 
 class ModuleManagerDialog(object):
@@ -175,7 +175,7 @@ class ModuleManagerDialog(object):
     def __init__(self):
         self.ModMgr = ModuleManager()
         self.ModMgr.refresh()
-        self.Widgets = {}
+        self.widgets = {}
         
     def _layout(self):
         with forms.LayoutDialogForm('base') as base:

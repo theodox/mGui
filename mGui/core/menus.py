@@ -58,7 +58,7 @@ class ActiveOptionMenu(OptionMenu):
         """
         this ensures that the command attached to the selected MenuItem is fired when that menu is selected
         """
-        selected = self.Controls[self.select - 1]
+        selected = self.controls[self.select - 1]
         selected.command()
 
 

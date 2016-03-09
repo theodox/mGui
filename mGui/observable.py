@@ -192,7 +192,7 @@ class BoundCollection(BindableObject):
     def __init__(self):
         self._Internal_Collection = ()
         self.CollectionChanged = MayaEvent()  # these are MayaEvents so they are thread safe... we hope
-        self.WidgetCreated = MayaEvent()
+        self.widgetCreated = MayaEvent()
 
     def set_collection(self, new_contents):
         self._Internal_Collection = tuple([i for i in new_contents])
@@ -216,6 +216,6 @@ class ImmediateBoundCollection(BoundCollection):
     def __init__(self):
         self._Internal_Collection = ()
         self.CollectionChanged = Event()  # these are MayaEvents so they are thread safe... we hope
-        self.WidgetCreated = Event()
+        self.widgetCreated = Event()
 
 

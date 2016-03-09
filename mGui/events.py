@@ -74,8 +74,8 @@ class Event(object):
     def __init__(self, **data):
         self._Handlers = set()
         '''Set list of handlers callables. Use a set to avoid multiple calls on one handler'''
-        self.Data = data
-        self.Data['event'] = self
+        self.data = data
+        self.data['event'] = self
 
     def _add_handler(self, handler):
         """
@@ -101,7 +101,7 @@ class Event(object):
         returns the me
         """
         md = {}
-        md.update(self.Data)
+        md.update(self.data)
         md.update(kwargs)
         return md
 

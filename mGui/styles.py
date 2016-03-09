@@ -132,10 +132,10 @@ class CSS(dict):
         map(self.update, templates)
         self.update(**kwarg)
 
-        self.Target = target
-        self.Children = []
+        self.target = target
+        self.children = []
         if CSS.ACTIVE:
-            CSS.ACTIVE.Children.append(self)
+            CSS.ACTIVE.children.append(self)
 
     def __enter__(self):
         self._cache_css = CSS.ACTIVE
@@ -151,13 +151,13 @@ class CSS(dict):
         """
         if len(args) == 1:
             ctrl = args[0]
-            return (self.Target == ctrl.Key) or isinstance(ctrl, self.Target)
+            return (self.target == ctrl.key) or isinstance(ctrl, self.target)
         if len(args) == 2:
             cls, key = args
-            if self.Target == key:
+            if self.target == key:
                 return True
-            if isinstance(self.Target, type):
-                return issubclass(cls, self.Target)
+            if isinstance(self.target, type):
+                return issubclass(cls, self.target)
             return False
 
     def begin(self):
@@ -176,7 +176,7 @@ class CSS(dict):
         """
         find the style in this nested style which matches the supplied arg.  See applies for arguments.
         """
-        for item in self.Children:
+        for item in self.children:
             recurse = item.find(*args)
             if recurse:
                 return recurse

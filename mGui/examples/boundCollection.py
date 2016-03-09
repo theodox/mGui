@@ -96,8 +96,8 @@ class BoundCollectionWindow(object):
             self.Collection.update_filter(None)
 
     def do_delete(self, *args, **kwargs):
-        self.Collection.remove(kwargs['sender'].Tag)
-        cmds.delete(kwargs['sender'].Tag)
+        self.Collection.remove(kwargs['sender'].tag)
+        cmds.delete(kwargs['sender'].tag)
 
     def hook_widget_events(self, *args, **kwargs):
         print "I HOOKED", args, kwargs

@@ -34,30 +34,30 @@ class ScriptJobEvent(events.Event):
 
         sj.kill()
 
-    Run conditions (such as -runOnce, -parent,  or -protected) should be specificied when the scriptJob is started.
+    Run conditions (such as -runOnce, -parent,  or -protected) should be specified when the scriptJob is started.
     """
 
     def __init__(self, scriptJobFlag, eventType, **kwargs):
-        self.ScriptFlag = scriptJobFlag
-        self.EventType = eventType
+        self.script_flag = scriptJobFlag
+        self.event_type = eventType
         super(ScriptJobEvent, self).__init__(**kwargs)
-        self.Data['scriptJob'] = -1
+        self.data['scriptJob'] = -1
 
     def start(self, **sjFlags):
-        kwargs = {self.ScriptFlag: (self.EventType, self)}
+        kwargs = {self.script_flag: (self.event_type, self)}
         kwargs.update(sjFlags)
-        self.Data['scriptJob'] = cmds.scriptJob(**kwargs)
+        self.data['scriptJob'] = cmds.scriptJob(**kwargs)
         Logger.info('start scriptJob %s' % self.__class__)
 
     def kill(self):
-        if self.Data.get('scriptJob') > 0:
-            cmds.scriptJob(k=self.Data['scriptJob'])
-            self.Data['scriptJob'] = -1
+        if self.data.get('scriptJob') > 0:
+            cmds.scriptJob(k=self.data['scriptJob'])
+            self.data['scriptJob'] = -1
             Logger.info('kill scriptJob %s' % self.__class__)
 
     @property
     def running(self):
-        sid = self.Data['scriptJob']
+        sid = self.data['scriptJob']
         return sid != -1 and cmds.scriptJob(exists=sid)
 
 
@@ -468,7 +468,7 @@ class ScriptJobC(ScriptJobEvent):
         super(ScriptJobC, self).__init__(changetype, self.CONDITION, **kwargs)
 
     def get_state(self):
-        return cmds.condition(self.EventType, q=True, st=True)
+        return cmds.condition(self.event_type, q=True, st=True)
 
 
 class PlayingBack(ScriptJobC):
@@ -733,22 +733,22 @@ class ScriptJobCallbackProperty(properties.CallbackProperty):
     """
 
     def __init__(self, key, scriptFlag):
-        self.ScriptFlag = scriptFlag
+        self.script_flag = scriptFlag
         super(ScriptJobCallbackProperty, self).__init__(key)
 
     def __get__(self, obj, objtype):
-        cb = obj.Callbacks.get(self.Key, None)
+        cb = obj.callbacks.get(self.key, None)
 
         if cb is None:
-            new_cb = ScriptJobEvent(self.ScriptFlag, str(obj), sender=obj)
-            obj.Callbacks[self.Key] = new_cb
+            new_cb = ScriptJobEvent(self.script_flag, str(obj), sender=obj)
+            obj.callbacks[self.key] = new_cb
             new_cb.start()
 
-        return obj.Callbacks[self.Key]
+        return obj.callbacks[self.key]
 
     def __set__(self, obj, sjEvent):
         if not isinstance(sjEvent, ScriptJobEvent):
             raise ValueError('Callback properties must be instances of mGui.scriptJobs.ScriptJobEvent')
-        obj.Callbacks[self.Key] = sjEvent
+        obj.callbacks[self.key] = sjEvent
         if not sjEvent.running:
             sjEvent.start()
