@@ -4,6 +4,7 @@ Defines the CSS class, a cascading style sheet like class for GUI layout.
 Also defines the Bounds class, which reprsents margins
 """
 
+
 class Bounds(object):
     """
     A bounding area (in pixels).  Can be constructed 3 ways:
@@ -20,21 +21,22 @@ class Bounds(object):
         B['top']
         # 20
     """
+
     def __init__(self, *args):
         if len(args) == 1:
             vals = list(args) * 4
         else:
-            vals = list(args) * 2  + [0] * 4
+            vals = list(args) * 2 + [0] * 4
 
         self.left, self.top, self.right, self.bottom = vals[:4]
 
     def __getitem__(self, key):
         return {
-        'left':self.left,
-        'right':self.right,
-        'top':self.top,
-        'bottom': self.bottom
-         }[key]
+            'left': self.left,
+            'right': self.right,
+            'top': self.top,
+            'bottom': self.bottom
+        }[key]
 
     def __iter__(self):
         yield self.left
@@ -45,8 +47,8 @@ class Bounds(object):
     def __repr__(self):
         return "< %i, %i, %i, %i >" % (self.left, self.top, self.right, self.bottom)
 
-class CSS (dict):
-        
+
+class CSS(dict):
     """
     A css is a dictionary of style values keyed to a particular target.
     
@@ -117,11 +119,11 @@ class CSS (dict):
                                                 # explicitly passed style wins over the styles in outer.
                                 
     """
-    
+
     ACTIVE = None
-    
+
     def __init__(self, target, *templates, **kwarg):
-        super(CSS,self).__init__()
+        super(CSS, self).__init__()
         inherit = kwarg.get('inherit', True)
 
         if inherit and CSS.ACTIVE:
@@ -129,8 +131,7 @@ class CSS (dict):
 
         map(self.update, templates)
         self.update(**kwarg)
-        
-                
+
         self.Target = target
         self.Children = []
         if CSS.ACTIVE:
@@ -140,7 +141,7 @@ class CSS (dict):
         self._cache_css = CSS.ACTIVE
         CSS.ACTIVE = self
         return self
-        
+
     def __exit__(self, exc, val, tb):
         CSS.ACTIVE = self._cache_css
 
@@ -150,7 +151,7 @@ class CSS (dict):
         """
         if len(args) == 1:
             ctrl = args[0]
-            return  (self.Target == ctrl.Key) or isinstance(ctrl, self.Target) 
+            return (self.Target == ctrl.Key) or isinstance(ctrl, self.Target)
         if len(args) == 2:
             cls, key = args
             if self.Target == key:
@@ -158,50 +159,45 @@ class CSS (dict):
             if isinstance(self.Target, type):
                 return issubclass(cls, self.Target)
             return False
-    
-    
+
     def begin(self):
         """
         Set this style to be active; the same as entering it via a context manager
         """
         self.__enter__()
-        
-    
+
     def end(self):
-        self.__exit__(None, None, None)
-        '''
+        """
         Unset this style; the same as the end of a context block
-        '''
-    
+        """
+        self.__exit__(None, None, None)
+
     def find(self, *args):
         """
         find the style in this nested style which matches the supplied arg.  See applies for arguments.
         """
         for item in self.Children:
             recurse = item.find(*args)
-            if recurse: return recurse
-            
+            if recurse:
+                return recurse
+
         if self.applies(*args):
             return self
-        
+
     @classmethod
     def current(cls):
         return cls.ACTIVE
-    
+
+
 class Styled(object):
     """
-    Mixin class which makes an object try to hook the appropriate style from CSS.curretn
+    Mixin class which makes an object try to hook the appropriate style from CSS.current
     """
-    def __new__(self, *args, **kwargs):
-        obj = object.__new__(self)
-        self.Style = kwargs.get('css', {})
-        current_style = CSS.current()
-        if current_style and not self.Style:
-            self.Style = current_style.find(self, args[0]) or self.Style
-        
-        # intercept the style argument before __init__ so any
-        # non-style arguments are passed directly
-        if 'css' in kwargs:
-            del kwargs['css']
-                
-        return obj
+
+    def __init__(self, *_, **kwargs):
+        self.Style = kwargs.pop('css', {})
+        if not self.Style:
+            current_style = CSS.current()
+            if current_style:
+                self.Style = current_style.find(self, self.__class__) or self.Style
+
