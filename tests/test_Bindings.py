@@ -352,8 +352,8 @@ class TestBindings(TestCase):
         ex = self.Example('fred', 'flintstone')
         ex2 = self.Example('barney', 'rubble')
         tester = bindings.Binding(bindings.get_accessor(ex, 'Name'), bindings.get_accessor(ex2, 'Val'))
-        assert tester.Getter.Target.Name == 'fred'
-        assert tester.Setter.Target.Name == 'barney'
+        assert tester.getter.Target.Name == 'fred'
+        assert tester.setter.Target.Name == 'barney'
 
     def test_binding_survives_object_deletion(self):
         ex = self.Example('fred', 'flintstone')

@@ -68,9 +68,9 @@ class Test_CSS(unittest.TestCase):
             with styles.CSS('inner', bgc = (1,0,0), size = 3) as inner:
                 q = styles.CSS('innermost', size = 4)
             z = styles.CSS('2dlevel', q, bgc = (2,0,0))
-        assert inner in outer.Children
-        assert q in inner.Children
-        assert z in outer.Children
+        assert inner in outer.children
+        assert q in inner.children
+        assert z in outer.children
         
     def test_css_nesting_values(self):
         with styles.CSS('outer', width = 100, height = 100) as outer:
