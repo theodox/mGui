@@ -25,9 +25,9 @@ class InputBuffer(object):
         self.fn = fn
         self.buffer = []
         self.accumulate = inspect.getargspec(fn).varargs
-        self.idleEvent = Idle(parent = parent)
+        self.idleEvent = Idle()
         self.idleEvent += self.update
-        self.idleEvent.start()
+        self.idleEvent.start(p=parent)
 
     def handle(self, input, *_, **__):
         self.buffer.append(input)
@@ -74,8 +74,9 @@ def create_filter (fn):
     items.update_filter(test)
 
 
-buffer = InputBuffer(w, create_filter, interval = .4)
+buffer = InputBuffer(w, create_filter)
 
 filter_field.textChanged += buffer.handle
 
 
+cmds.scriptJob(lj=True)
