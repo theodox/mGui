@@ -7,6 +7,8 @@ from mGui.styles import Styled
 from mGui.properties import CtlProperty, CallbackProperty
 from mGui.scriptJobs import ScriptJobCallbackProperty
 
+from weakref import ref
+
 """
 # MGui.Core
 A system for defininng proxies that make it easier to work with maya GUI controls.
@@ -76,6 +78,8 @@ class ControlMeta(type):
         for item in _CALLBACKS:
             kwargs[item] = CallbackProperty(item)
 
+        kwargs['parent'] = None
+
         kwargs['__bases__'] = parents
 
         return super(ControlMeta, mcs).__new__(mcs, name, parents, kwargs)
@@ -101,9 +105,11 @@ class Control(Styled, BindableObject):
     _READ_ONLY = ['isObscured', 'popupMenuArray', 'numberOfPopupMenus']
     __metaclass__ = ControlMeta
 
+    Deleted = ScriptJobCallbackProperty('Deleted', 'uiDeleted')
+
     def __init__(self, key=None, **kwargs):
         # apply Styled, and filter out any CSS tags
-        super(Control,self).__init__(kwargs)
+        super(Control, self).__init__(kwargs)
 
         # arbitrary tag data. Use with care to avoid memory leaks
         self.tag = kwargs.pop('tag', None)
@@ -154,7 +160,7 @@ class Control(Styled, BindableObject):
         try:
             cache_CMD = cls.CMD
             cls.CMD = _spoof_create
-            return cls(key = control_name)
+            return cls(key=control_name)
 
         finally:
             cls.CMD = cache_CMD
@@ -177,6 +183,16 @@ class Control(Styled, BindableObject):
         finally:
             cls.CMD = _cmd
 
+    @staticmethod
+    def forget(*args, **kwargs):
+        print "forgetting"
+        fallback = args[0] if len(args) else None
+        sender = kwargs.get('sender', fallback)
+        if sender:
+            owner = sender.parent
+            if owner is not None:
+                print "remove", sender, owner
+                owner().remove(sender)
 
     @classmethod
     def delete(cls, instance):
@@ -194,8 +210,6 @@ class Nested(Control):
 
     """
     ACTIVE_LAYOUT = None
-
-    Deleted = ScriptJobCallbackProperty('Deleted', 'uiDeleted')
 
     def __init__(self, key=None, **kwargs):
         self.controls = []
@@ -235,7 +249,7 @@ class Nested(Control):
 
         # restore gui parenting
         abs_parent, sep, _ = self.widget.rpartition("|")
-        if abs_parent :
+        if abs_parent:
             cmds.setParent(abs_parent)
 
     def layout(self):
@@ -291,6 +305,8 @@ class Nested(Control):
         if control not in self.controls:
             self.controls.append(control)
 
+        control.parent = ref(self)
+
     def replace(self, key, control):
         """
         replace the control at <key> with the supplied control, and redo the layout for this item.
@@ -309,7 +325,7 @@ class Nested(Control):
         remove <control> from my children
         """
         if control not in self.controls:
-            raise KeyError, "%s is not a child of %s" ( control, self )
+            raise KeyError, "%s is not a child of %s"(control, self)
         self.controls.remove(control)
         control.delete(control)
         for key, ctrl in self.named_children.items():
@@ -344,19 +360,17 @@ class Nested(Control):
 
     @classmethod
     def add_current(cls, control):
-        if Nested.ACTIVE_LAYOUT is not None:
+        active = Nested.current()
+        if active:
             Nested.ACTIVE_LAYOUT.add(control)
 
     @classmethod
     def current(cls):
-        return Nested.ACTIVE_LAYOUT
-
-    @classmethod
-    def forget(cls, *args, **kwargs):
-        if Nested.ACTIVE_LAYOUT is not None:
-            sender = kwargs.get('sender', None)
-            if sender in Nested.ACTIVE_LAYOUT:
-                Nested.ACTIVE_LAYOUT.remove(sender)
+        """
+        return the active layout if it exists
+        """
+        if Nested.ACTIVE_LAYOUT:
+            return Nested.ACTIVE_LAYOUT
 
 
 # IMPORTANT NOTE
@@ -431,7 +445,7 @@ class BindingWindow(Window):
     A Window with a built in BindingContext
     """
 
-    def __init__(self, key=None,  **kwargs):
+    def __init__(self, key=None, **kwargs):
         super(BindingWindow, self).__init__(key, **kwargs)
         self.bindingContext = BindingContext()
 
