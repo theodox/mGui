@@ -202,7 +202,6 @@ class Nested(Control):
         self.named_children = OrderedDict()
         self.ignore_exceptions = False
         super(Nested, self).__init__(key, **kwargs)
-        self.Deleted += self.forget
 
     def __enter__(self):
         self.__cache_layout = Nested.ACTIVE_LAYOUT
@@ -232,14 +231,12 @@ class Nested(Control):
         # restore the layout level
         Nested.ACTIVE_LAYOUT = self.__cache_layout
         self.__cache_layout = None
-
         self.layout()
 
         # restore gui parenting
         abs_parent, sep, _ = self.widget.rpartition("|")
-        if abs_parent == '':
-            abs_parent = _
-        cmds.setParent(abs_parent)
+        if abs_parent :
+            cmds.setParent(abs_parent)
 
     def layout(self):
         """
