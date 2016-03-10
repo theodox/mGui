@@ -76,6 +76,8 @@ class ControlMeta(type):
         for item in _CALLBACKS:
             kwargs[item] = CallbackProperty(item)
 
+        kwargs['__bases__'] = parents
+
         return super(ControlMeta, mcs).__new__(mcs, name, parents, kwargs)
 
 
@@ -152,8 +154,7 @@ class Control(Styled, BindableObject):
         try:
             cache_CMD = cls.CMD
             cls.CMD = _spoof_create
-            key = key or control_name
-            return cls(key, control_name)
+            return cls(key = control_name)
 
         finally:
             cls.CMD = cache_CMD
@@ -330,10 +331,9 @@ class Nested(Control):
             super(Nested, self).__setattr__(key, value)
 
     def __getattr__(self, item):
-        try:
+        if item in self.named_children:
             return self.named_children[item]
-        except KeyError:
-            return self.__dict__[item]
+        raise AttributeError
 
     def __iter__(self):
         for sub in self.controls:
