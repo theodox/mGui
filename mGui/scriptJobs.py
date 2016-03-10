@@ -732,8 +732,9 @@ class ScriptJobCallbackProperty(properties.CallbackProperty):
     The scriptJob must be able to take an object as it's second argument
     """
 
-    def __init__(self, key, scriptFlag):
+    def __init__(self, key, scriptFlag, **run_flags):
         self.script_flag = scriptFlag
+        self.run_flags = run_flags
         super(ScriptJobCallbackProperty, self).__init__(key)
 
     def __get__(self, obj, objtype):
@@ -742,7 +743,7 @@ class ScriptJobCallbackProperty(properties.CallbackProperty):
         if cb is None:
             new_cb = ScriptJobEvent(self.script_flag, str(obj), sender=obj)
             obj.callbacks[self.key] = new_cb
-            new_cb.start()
+            new_cb.start(**self.run_flags)
 
         return obj.callbacks[self.key]
 
@@ -751,4 +752,4 @@ class ScriptJobCallbackProperty(properties.CallbackProperty):
             raise ValueError('Callback properties must be instances of mGui.scriptJobs.ScriptJobEvent')
         obj.callbacks[self.key] = sjEvent
         if not sjEvent.running:
-            sjEvent.start()
+            sjEvent.start(**self.run_flags)
