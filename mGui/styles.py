@@ -3,7 +3,7 @@ Defines the CSS class, a cascading style sheet like class for GUI layout.
 
 Also defines the Bounds class, which reprsents margins
 """
-
+import inspect
 
 class Bounds(object):
     """
@@ -149,16 +149,18 @@ class CSS(dict):
         """
         return True if this style matches the arguments.  Arguments are EITHER a control OR a class, key pair
         """
+
+        def target_in_mro(obj):
+            return self.target in inspect.getmro(obj)
+
         if len(args) == 1:
             ctrl = args[0]
-            return (self.target == ctrl.key) or isinstance(ctrl, self.target)
+            return (self.target == ctrl.key) or target_in_mro(ctrl.__class__)
         if len(args) == 2:
             cls, key = args
             if self.target == key:
                 return True
-            if isinstance(self.target, type):
-                return issubclass(cls, self.target)
-            return False
+            return target_in_mro(cls)
 
     def begin(self):
         """
