@@ -396,4 +396,4 @@ class NavForm(HorizontalForm):
 
 __all__ = ['FillForm', 'VerticalForm', 'HorizontalForm', 'VerticalExpandForm', 'HorizontalExpandForm',
            'VerticalStretchForm', 'HorizontalStretchForm', 'HorizontalThreePane', 'VerticalThreePane',
-           'HeaderForm', 'FooterForm']
+           'HeaderForm', 'FooterForm', 'NavForm']
