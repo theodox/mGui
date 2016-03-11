@@ -79,9 +79,10 @@ class QTextField(TextField):
             16777235: 'up',
             16777237: 'down',
             16777220: 'enter',
-            16777217: 'tab'
+            16777217: 'tab',
+            16777216: 'esc'
         }
-        #-------------------------
+        # -------------------------
 
         class KeypressFilter(QtCore.QObject):
 
