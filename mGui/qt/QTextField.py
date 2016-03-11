@@ -18,6 +18,14 @@ def hook_text_changed_event(maya_text_field, event):
     return qt_wrapper
 
 
+def hook_key_changed_event(maya_text_field, event):
+    ptr = MQtUtil.findControl(maya_text_field)
+    qt_wrapper = wrapInstance(long(ptr), QTextEdit)
+    signal = QtCore.SIGNAL("keyReleaseEvent(QKeyEvent * ev)")
+    qt_wrapper.connect(signal, event)
+    return qt_wrapper
+
+
 class InputBuffer(object):
     '''
     accumulate inputs until a certain amount of time passes
@@ -62,6 +70,30 @@ class QTextField(TextField):
         self._qt_wrapper = hook_text_changed_event(self.widget, self.textChanged)
         self.textChanged.data['qWidget'] = self._qt_wrapper
         self.buffer = None
+        self.keypress = Event()
+
+        # this is unduly specific for a simple application
+        # should be generalized
+        fire_event = self.keypress
+        special_keys = {
+            16777235: 'up',
+            16777237: 'down',
+            16777220: 'enter',
+            16777217: 'tab'
+        }
+        #-------------------------
+
+        class KeypressFilter(QtCore.QObject):
+
+            def eventFilter(self, obj, event):
+                if event.type() == QtCore.QEvent.KeyPress:
+                    key_val = event.key()
+                    if key_val in special_keys:
+                        fire_event(special_keys[key_val])
+                        return True
+                return False
+
+        self._qt_wrapper.installEventFilter(KeypressFilter(self._qt_wrapper))
 
         if interval:
             self.textBufferChanged = Event(**{'sender': self})

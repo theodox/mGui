@@ -6,7 +6,7 @@ import maya.utils as utils
 
 from mGui.events import MayaEvent, Event
 from mGui.bindings import BindableObject
-
+import itertools
 class ObservableCollection(BindableObject):
     """
     Encapsulates a collection suitable for data binding. The contents are
@@ -120,6 +120,11 @@ class ObservableCollection(BindableObject):
         for item in self._Internal_Collection:
             yield item
 
+    def __getitem__(self, item):
+        return self._Internal_Collection.__getitem__(item)
+
+
+
 class ImmediateObservableCollection(ObservableCollection):
 
     def __init__(self, *items):
@@ -140,12 +145,14 @@ class ViewCollection(ObservableCollection):
     """
     _BIND_SRC = 'View'
 
-    def __init__(self, *items):
+    def __init__(self, *items, **kwargs):
+        self.max_size = kwargs.pop('limit', 0)
         super(ViewCollection, self).__init__(*items)
         self.ViewChanged = MayaEvent(collection=self)
 
         self.Filter = lambda p: p
         self._last_count = len(self._Internal_Collection)
+        self._truncated = False
 
     @property
     def View(self):
@@ -153,9 +160,15 @@ class ViewCollection(ObservableCollection):
         Returns a tuple of all the items in this collection which pass the
         current filter. Bindable.
         """
-        t = tuple([i for i in self._Internal_Collection if self.Filter(i)])
-        self._last_count = len(t)
-        return t
+        filtered  = itertools.ifilter( self.Filter, self._Internal_Collection)
+        result = None
+        if self.max_size > 0:
+            result = tuple(itertools.islice(filtered, self.max_size))
+        else:
+            result = tuple(filtered)
+        self._last_count = len(result)
+        self._truncated = len(result) == self.max_size
+        return result
 
     @property
     def ViewCount(self):
@@ -163,6 +176,14 @@ class ViewCollection(ObservableCollection):
         The number of items currently passing the filter. Bindable
         """
         return self._last_count
+
+    @property
+    def Limit(self):
+        return self.max_size
+
+    @property
+    def Truncated(self):
+        return self._truncated
 
     def update_filter(self, filter_fn):
         """
@@ -176,6 +197,9 @@ class ViewCollection(ObservableCollection):
         self._last_count = len(self.View)
         self.update_bindings()
         self.ViewChanged()
+
+    def __getitem__(self, item):
+        return self.View.__getitem__(item)
 
 
 class BoundCollection(BindableObject):

@@ -5,6 +5,7 @@ Also defines the Bounds class, which reprsents margins
 """
 import inspect
 
+
 class Bounds(object):
     """
     A bounding area (in pixels).  Can be constructed 3 ways:
@@ -189,6 +190,16 @@ class CSS(dict):
     @classmethod
     def current(cls):
         return cls.ACTIVE
+
+    def apply(self, *controls):
+        for control in controls:
+            #            debugf = self.applies(control)
+            #           if self.applies(control):
+            for k, v in self.items():
+                try:
+                    setattr(control, k, v)
+                except:
+                    print "unable to set %s on %s" % (k, v)
 
 
 class Styled(object):

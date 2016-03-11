@@ -58,42 +58,38 @@ class FormList(object):
 
         self.collection.CollectionChanged += self.redraw  # automatically forward collection changes
 
-
     def redraw(self, *args, **kwargs):
         """
         NOTE: depends on the LIST_CLASS being set in the actual class!
         """
+        try:
+            cmds.waitCursor(st=1)
 
-        self.named_children = {}
-        self.controls = []
+            self.named_children = {}
+            self.controls = []
 
-        seed = int(time.time())
+            seed = int(time.time())
 
-        cmds.setParent(self)
-        with self:
-            with layouts.ScrollLayout(childResizable=True) as inner_scroll:
-                with self.LIST_CLASS('mGuiInnerList_%i' % seed, **self.redraw_options) as inner_list:
-                    for item in self.collection:
-                        w = self.template.widget(item)
-                        self.widget_added(w)
+            cmds.setParent(self)
+            with self:
+                with layouts.ScrollLayout('mGui_scroll_%i' % seed, childResizable=True) as inner_scroll:
+                    with self.LIST_CLASS('mGui_list_%i' % seed, **self.redraw_options) as inner_list:
+                        for item in self.collection:
+                            w = self.template.widget(item)
+                            self.widget_added(w)
 
-        cmds.setParent(self)
-        cmds.setParent("..")
+            cmds.setParent(self)
+            cmds.setParent("..")
+
+            # controls only includes 'inner_scroll' for layout
+            self.named_children['inner_scroll'] = inner_scroll
+            self.named_children['inner_list'] = inner_list
+            self.controls = [inner_scroll]
 
 
-        # unhook the delete handlers from these guys, they are closed
-        # so they arent part of the ACTIVE_LAYOUT
-        inner_scroll.Deleted.kill()
-        inner_list.Deleted.kill()
-        inner_scroll.Deleted._handlers = set()
-        inner_list.Deleted._handlers = set()
-
-        # controls only includes 'inner_scroll' for layout
-        self.named_children['inner_scroll'] = inner_scroll
-        self.named_children['inner_list'] = inner_scroll
-        self.controls = [inner_scroll]
-
-        self.layout()
+        finally:
+            self.layout()
+            cmds.waitCursor(st=0)
 
     def widget_added(self, templated_item):
         """
@@ -183,6 +179,7 @@ class Templated(object):
     """
     contains the original data item, the widget represents it, and any named event objects it exposes
     """
+
     def __init__(self, datum, widget, **named_events):
         self.datum = datum
         self.widget = widget
