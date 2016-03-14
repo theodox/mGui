@@ -2,11 +2,11 @@
 Observable.py
 @author: stevetheodore
 """
-import maya.utils as utils
-
 from mGui.events import MayaEvent, Event
 from mGui.bindings import BindableObject
 import itertools
+
+
 class ObservableCollection(BindableObject):
     """
     Encapsulates a collection suitable for data binding. The contents are
@@ -124,14 +124,13 @@ class ObservableCollection(BindableObject):
         return self._Internal_Collection.__getitem__(item)
 
 
-
 class ImmediateObservableCollection(ObservableCollection):
-
     def __init__(self, *items):
         self._Internal_Collection = [i for i in items]
         self.CollectionChanged = Event(collection=self)
         self.ItemAdded = Event(collection=self)
         self.ItemRemoved = Event(collection=self)
+
 
 class ViewCollection(ObservableCollection):
     """
@@ -160,7 +159,7 @@ class ViewCollection(ObservableCollection):
         Returns a tuple of all the items in this collection which pass the
         current filter. Bindable.
         """
-        filtered  = itertools.ifilter( self.Filter, self._Internal_Collection)
+        filtered = itertools.ifilter(self.Filter, self._Internal_Collection)
         result = None
         if self.max_size > 0:
             result = tuple(itertools.islice(filtered, self.max_size))
@@ -235,11 +234,9 @@ class BoundCollection(BindableObject):
     def Count(self):
         return len(self._Internal_Collection)
 
-class ImmediateBoundCollection(BoundCollection):
 
+class ImmediateBoundCollection(BoundCollection):
     def __init__(self):
         self._Internal_Collection = ()
         self.CollectionChanged = Event()  # these are MayaEvents so they are thread safe... we hope
         self.widgetCreated = Event()
-
-
