@@ -72,8 +72,8 @@ class FormList(object):
 
             cmds.setParent(self)
             with self:
-                with layouts.ScrollLayout( childResizable=True) as inner_scroll:
-                    with self.LIST_CLASS( **self.redraw_options) as inner_list:
+                with layouts.ScrollLayout('mGuiScroll#', childResizable=True) as inner_scroll:
+                    with self.LIST_CLASS('mGuiList#', **self.redraw_options) as inner_list:
                         for item in self.collection:
                             w = self.template.widget(item)
                             self.widget_added(w)
