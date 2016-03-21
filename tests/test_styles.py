@@ -1,8 +1,8 @@
-'''
+"""
 Created on Mar 7, 2014
 
 @author: Stephen Theodore
-'''
+"""
 import mGui.styles as styles
 import unittest
 
@@ -112,9 +112,9 @@ class Test_CSS(unittest.TestCase):
         assert style.applies(example)
 
     def test_style_finds_lowest_in_hierarchy(self):
-        '''
+        """
         note as written, this privileges POSITION hierarchy over CLASS hierarchy... is that bad?
-        '''
+        """
         with styles.CSS(MockCtrl, name='outer') as outer:
             with styles.CSS(MockButton, name='middle'):
                 styles.CSS(MockRedButton, name='inner')
@@ -123,9 +123,9 @@ class Test_CSS(unittest.TestCase):
         assert outer.find(test)['name'] == 'inner'
 
     def test_style_finds_lowest_in_hierarchy_despite_class_hierarchy(self):
-        '''
+        """
         see docs. Style hierarchy position matters, not class hieratchy!
-        '''
+        """
         with styles.CSS(MockCtrl, name='outer') as outer:
             with styles.CSS(MockRedButton, name='middle'):
                 styles.CSS(MockButton, name='inner')

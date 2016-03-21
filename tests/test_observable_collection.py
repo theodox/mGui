@@ -4,9 +4,8 @@ Created on Mar 14, 2014
 @author: Stephen Theodore
 '''
 from mGui.bindings import BindableObject, bind
-from mGui.observable import ObservableCollection, ViewCollection, ImmediateBoundCollection, ImmediateObservableCollection
+from mGui.observable import ObservableCollection, ViewCollection, ImmediateObservableCollection
 from unittest import TestCase
-
 
 
 class TestTarget(BindableObject):
@@ -41,12 +40,6 @@ class Test_ObservableCollection(TestCase):
     def test_base_binding_force(self):
         t = TestTarget()
         c = ObservableCollection(1, 2, 3, 4, 5, 6, 7, 8, 9, 10)
-        try:
-            t < bind() < c
-        except Exception as e:
-            print e
-
-
         t < bind() < c
         c._internal_collection = ['a', 'b', 'c']  # don't do this in practice!
         c.update_bindings()
@@ -94,14 +87,14 @@ class TestObservableCollectionEvents(TestCase):
         t = self.Tester()
         c.onCollectionChanged += t.handle_event
         c.add(11)
-        assert  t.kwargs['collection'] == c
+        assert t.kwargs['collection'] == c
 
     def test_onCollectionChanged_remove(self):
         c = ImmediateObservableCollection(1, 2, 3, 4, 5, 6, 7, 8, 9, 10)
         t = self.Tester()
         c.onCollectionChanged += t.handle_event
         c.remove(1)
-        assert  t.kwargs['collection'] == c
+        assert t.kwargs['collection'] == c
 
     def test_ItemAdded(self):
         c = ImmediateObservableCollection(1, 2, 3, 4)
@@ -109,7 +102,7 @@ class TestObservableCollectionEvents(TestCase):
 
         c.onItemAdded += t.handle_event
         c.add(1)
-        assert  t.kwargs['collection'] == c
+        assert t.kwargs['collection'] == c
         assert t.args == (1, 4)
 
     def test_ItemRemoved(self):
@@ -117,7 +110,7 @@ class TestObservableCollectionEvents(TestCase):
         t = self.Tester()
         c.onItemRemoved += t.handle_event
         c.remove(1)
-        assert  t.kwargs['collection'] == c
+        assert t.kwargs['collection'] == c
         assert t.args == (1, 0)
 
     def test_ViewChanged(self):
@@ -125,7 +118,7 @@ class TestObservableCollectionEvents(TestCase):
         t = self.Tester()
         v.onViewChanged += t.handle_event
         v.update_filter(lambda x: x < 5)
-        assert  t.kwargs['collection'] == v
+        assert t.kwargs['collection'] == v
 
 
 class TestViewCollection(TestCase):
