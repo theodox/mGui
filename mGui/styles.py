@@ -156,7 +156,7 @@ class CSS(dict):
 
         if len(args) == 1:
             ctrl = args[0]
-            return (self.target == ctrl.key) or target_in_mro(ctrl.__class__)
+            return (hasattr(self.target, 'key') and self.target == ctrl.key) or target_in_mro(ctrl.__class__)
         if len(args) == 2:
             cls, key = args
             if self.target == key:
@@ -192,14 +192,30 @@ class CSS(dict):
         return cls.ACTIVE
 
     def apply(self, *controls):
-        for control in controls:
-            #            debugf = self.applies(control)
-            #           if self.applies(control):
-            for k, v in self.items():
-                try:
-                    setattr(control, k, v)
-                except:
-                    print "unable to set %s on %s" % (k, v)
+        if not controls:
+            return
+        for c in controls:
+            matching = self.find(c)
+            if matching:
+                for k, v in matching.items():
+                    try:
+                        setattr(c, k, v)
+                    except:
+                        pass
+
+    def apply_recursive(self, *controls):
+
+        def iter_children(c):
+            for item in c or tuple():
+                for sub_item in iter_children(item):
+                    if sub_item:
+                        yield item
+                yield item
+            yield c
+
+        for root in controls:
+            for grandkid in iter_children(root):
+                self.apply(grandkid)
 
 
 class Styled(object):
