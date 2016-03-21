@@ -197,6 +197,7 @@ class WeakMethodBound(object):
         return self.ID
 
 
+
 class WeakMethodFree(object):
     """
     Encapsulates a weak reference to an unbound method
@@ -237,6 +238,9 @@ def event_handler(fn):
     """
     decorator for making event handlers out of functions with no arguments
     """
+
+    if  inspect.getargspec(fn).varargs and  inspect.getargspec(fn).keywords:
+        return fn
 
     @wraps(fn)
     def wrapper(*_, **__):
