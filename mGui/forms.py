@@ -114,7 +114,7 @@ class Form(FormLayout):
 
         side2 = {'left': 'right', 'right': 'left', 'top': 'bottom', 'bottom': 'top'}[side]
 
-        widths = [i.width for i in self.controls]
+        widths = [i.width  if hasattr(i, 'width') else 0 for i in self.controls]
         total_width = sum(widths)
         proportions = map(lambda q: q * 100.0 / total_width, widths)
         p_l = len(proportions)
