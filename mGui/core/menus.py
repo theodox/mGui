@@ -50,7 +50,7 @@ class ActiveOptionMenu(OptionMenu):
 
     """
 
-    def __init__(self, key, *args, **kwargs):
+    def __init__(self, key = None, *args, **kwargs):
         super(ActiveOptionMenu, self).__init__(key, *args, **kwargs)
         self.changeCommand += self.fire_menu_callback
 
