@@ -3,12 +3,12 @@ Created on Feb 16, 2014
 
 @author: Stephen Theodore
 """
-import maya.cmds as cmds
-from collections import Mapping
-import weakref
 import sys
-from mGui.properties import LateBoundProperty, MGuiAttributeError
-import maya.utils as utils
+
+import maya.cmds as cmds
+import weakref
+from collections import Mapping
+from mGui.properties import LateBoundProperty
 
 # these are primarily intended for debugging.
 # Generally you want to break on access failure, since the Binding
@@ -85,7 +85,6 @@ class Accessor(object):
             else:
                 return 0
 
-
     @classmethod
     def can_access(cls, datum, field_name):
         """
@@ -102,15 +101,11 @@ class Accessor(object):
         except ReferenceError:
             return False
 
-
     def __str__(self):
         try:
             return "<%s.%s>" % (self.target, self.field_name)
         except ReferenceError:
             return "<invalid accessor>"
-
-
-
 
 
 class DictAccessor(Accessor):
@@ -167,7 +162,6 @@ class PyAttributeAccessor(Accessor):
 
     def _get(self, *args, **kwargs):
         return self.attrib.get()
-
 
     @classmethod
     def can_access(cls, datum, field_name):
@@ -237,10 +231,11 @@ class AccessorFactory(object):
     default classes
     """
 
-    def __init__(self, *accessorClasses):
+    def __init__(self, *acccessor_classes):
 
-        self.Tests = [cls for cls in accessorClasses] + [PyAttributeAccessor, PyNodeAccessor, Accessor, MethodAccessor,
-                                                         DictAccessor, CmdsAccessor]
+        self.Tests = [cls for cls in acccessor_classes] + [PyAttributeAccessor, PyNodeAccessor, Accessor,
+                                                           MethodAccessor,
+                                                           DictAccessor, CmdsAccessor]
 
     def accessor_class(self, *args):
         """
@@ -274,8 +269,8 @@ def get_accessor(datum, field_name=None, factory_class=None):
     factory = factory_class or _DEFAULT_FACTORY
     site = datum
     if isinstance(datum, BindProxy):
-        site = datum.Item
-        field_name = datum.Attribute
+        site = datum.item
+        field_name = datum.attribute
 
     target_class = factory.accessor_class(site, field_name)
     if target_class:
@@ -300,7 +295,7 @@ class BindingContext(object):
     ACTIVE = None
 
     def __init__(self, auto_update=True):
-        self.Bindings = []
+        self.bindings = []
         self.children = []
         self._cache_context = None
         self.auto_update = auto_update
@@ -322,13 +317,13 @@ class BindingContext(object):
         update all bindings in this context.  If recurse is True, update all bindings in child contexts
 
         """
-        delenda = [i for i in self.Bindings if not i()]
+        delenda = [i for i in self.bindings if not i()]
         for item in delenda:
-            self.Bindings.remove(item)
+            self.bindings.remove(item)
         if recurse:
             for item in self.children:
                 item.update(recurse)
-        return len(self.Bindings)
+        return len(self.bindings)
 
         self.update()
 
@@ -338,11 +333,10 @@ class BindingContext(object):
         Add a binding to the currently active BindingContext
         """
         if cls.ACTIVE is not None:
-            cls.ACTIVE.Bindings.append(binding)
+            cls.ACTIVE.bindings.append(binding)
 
     def invalidate(self):
-        print "INVALIDATING BINDINGS"
-        for b in self.Bindings:
+        for b in self.bindings:
             b.invalidate()
         for c in self.children:
             c.invalidate()
@@ -362,8 +356,10 @@ class Binding(object):
 
     def __init__(self, source, target, **kwargs):
 
-        if not source: raise BindingError("invalid source binding")
-        if not target: raise BindingError("invalid target binding")
+        if not source:
+            raise BindingError("invalid source binding")
+        if not target:
+            raise BindingError("invalid target binding")
 
         self.getter = source
         self.setter = target
@@ -380,7 +376,6 @@ class Binding(object):
 
         if hasattr(self.setter.target, 'bindings'):
             self.setter.target.bindings.append(self)
-
 
     def invalidate(self):
         """
@@ -540,34 +535,34 @@ class BindingExpression(object):
     """
 
     def __gt__(self, other):
-        self.Right = self._flatten(other, target=True)
-        if self.Left and self.Right:
+        self.right = self._flatten(other, target=True)
+        if self.left and self.right:
             return self._binding()
         return self
 
     def __lt__(self, other):
-        self.Left = self._flatten(other, target=False)
-        if self.Left and self.Right:
+        self.left = self._flatten(other, target=False)
+        if self.left and self.right:
             return self._binding()
         return self
 
     def __init__(self, translator=passthru):
-        self.Left = None
-        self.Right = None
-        self.TwoWay = False
-        self.Translator = translator
+        self.left = None
+        self.right = None
+        self.isTwoWay = False
+        self.translator = translator
 
     def __or__(self, other):
-        self.Right = self._flatten(other, target=False)
-        self.TwoWay = True
-        if self.Left and self.Right:
+        self.right = self._flatten(other, target=False)
+        self.isTwoWay = True
+        if self.left and self.right:
             return self._binding()
         return self
 
     def __ror__(self, other):
-        self.Left = self._flatten(other, target=False)
-        self.TwoWay = True
-        if self.Left and self.Right:
+        self.left = self._flatten(other, target=False)
+        self.isTwoWay = True
+        if self.left and self.right:
             return self._binding()
         return self
 
@@ -600,17 +595,17 @@ class BindingExpression(object):
             return get_accessor(*other.split("."))
         return get_accessor(other)
 
-
     def _binding(self):
-        if self.TwoWay:
-            return TwoWayBinding(self.Left, self.Right, translator=self.Translator)
-        return Binding(self.Left, self.Right, translator=self.Translator)
+        if self.isTwoWay:
+            return TwoWayBinding(self.left, self.right, translator=self.translator)
+        return Binding(self.left, self.right, translator=self.translator)
 
 
 bind = BindingExpression
 '''
 This is a cheap alias to make the typing less onerous
 '''
+
 
 # ============================================================================================
 
@@ -645,9 +640,10 @@ class Bindable(object):
     """
 
     _BINDINGS = []
-    #===========================================================================
+
+    # ===========================================================================
     # internal classes
-    #===========================================================================
+    # ===========================================================================
 
     class ProxyFactory(object):
         """
@@ -655,13 +651,13 @@ class Bindable(object):
         """
 
         def __init__(self, owner):
-            self.Owner = owner
+            self.owner = owner
 
         def __getattr__(self, name):
-            if name != 'Owner':
-                if hasattr(self.Owner, name):
-                    return BindProxy(self.Owner, name)
-            raise BindingError("Object %s does not have a bindable attribute named %s" % (self.Owner, name))
+            if name != 'owner':
+                if hasattr(self.owner, name):
+                    return BindProxy(self.owner, name)
+            raise BindingError("Object %s does not have a bindable attribute named %s" % (self.owner, name))
 
     class ProxyFactoryProperty(object):
         """
@@ -673,12 +669,11 @@ class Bindable(object):
                 setattr(instance, "_proxy_factory", Bindable.ProxyFactory(instance))
             return instance._proxy_factory
 
-    #===========================================================================
+    # ===========================================================================
     # end internal classes
-    #===========================================================================
+    # ===========================================================================
 
     bind = ProxyFactoryProperty()
-
 
     def __and__(self, name):
         """
@@ -754,8 +749,5 @@ class BindProxy(Bindable):
     """
 
     def __init__(self, item, attrib):
-        self.Item = item
-        self.Attribute = attrib
-
-
-
+        self.item = item
+        self.attribute = attrib

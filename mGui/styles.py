@@ -52,58 +52,58 @@ class Bounds(object):
 class CSS(dict):
     """
     A css is a dictionary of style values keyed to a particular target.
-    
+
     If <target> is a class, the style applies to any instance of that class
     if <target> is a string, the style applies to a control with that name
-    
+
     Styles can inherit content (NOT targets!) from each other. Thus:
-    
+
             a = CSS('a', color = 'red', margin = 1)
             b = CSS('b', a, width = 128}
             print b
             # {'color':'red', 'margin':1, 'width':128}
-            
+
     Multiple inheritance is allowed:
-            a = CSS('a', color = 'red'}            
+            a = CSS('a', color = 'red'}
             b = CSS('b', width = 128}
             c = CSS('c', a, b, margin = 1}
             print c
             # {'color':'red', 'margin':1, 'width':128}
-    
+
     Later assignments overwrite earlier ones. Explicit assignments are the 'latest' of all:
-            a = CSS('a', color = 'red'}            
+            a = CSS('a', color = 'red'}
             b = CSS('b', color = 'blue', width = 128}
             c = CSS('c', a, b, width = 256}
             print c
             # {'color':'blue',  'width':256}
-    
+
     Styles can be used as context managers. All styles declared inside a context
     manager automatically inherit from it:
-    
+
             with styles.CSS('outer', width = 100, height = 100) as outer:
                 with styles.CSS('inner', bgc = (1,0,0), size = 3) as inner:
                     q = styles.CSS('innermost', size = 4)
             assert q['width'] == outer['width']
             assert q['bgc'] == inner['bgc']
             assert q['size'] == 4
-            
+
     Styles can be nested. The context manager syntax does this automatically, or
     users can explicitly add child styles with add_child. Using the find method
     to get the appropriate style for a control will walk the nested control
     hierarchy from the bottom upwards, so more specific styles would be at the
     bottom of the hierarchy
-    
+
             with styles.CSS(MockCtrl, name ='outer') as outer:
                     with styles.CSS(MockButton, name = 'middle') as middle:
                         inner = styles.CSS(MockRedButton, name = 'inner')
-      
+
             test = MockRedButton('mrb')
-            assert outer.find(test)['name'] == 'inner'  
-            # inner style wins because it's lowest in the the nesting. this IS NOT 
-            # based on class hierarchy among targets! If inner looked at MockButton 
+            assert outer.find(test)['name'] == 'inner'
+            # inner style wins because it's lowest in the the nesting. this IS NOT
+            # based on class hierarchy among targets! If inner looked at MockButton
             # (the parent class of MockRedButton) it would STILL win in this example
-            
-            
+
+
     The context manager functionality is REUSABLE. The examples above show how
     nested contexts can be use to prioritize the search order for different
     styles.  The other use is to activate a style for use in the creation of
@@ -111,14 +111,14 @@ class CSS(dict):
         with styles.CSS(StyledMockCtrl, width = 100, height = 100, expected = False) as outer:
             with styles.CSS(StyledMockButton, bgc = (1,0,0), size = 3, expected = None):
                 deepest = styles.CSS(StyledMockRedButton, size = 4, expected = True)
-                        
+
         with outer:
             test = StyledMockRedButton('fred')  # uses deepest on creation, as in earlier example
             test2 = StyledMockList('barney')    # uses uses outer, since its the closes match for the class
             test3 = UnStyledButton('nostyle')   # if the class does not derive from Styled, nothing happens
-            test4 = StyledMockButton('custom', style = CSS('custom', width = 11, height=91)) 
+            test4 = StyledMockButton('custom', style = CSS('custom', width = 11, height=91))
                                                 # explicitly passed style wins over the styles in outer.
-                                
+
     """
 
     ACTIVE = None
@@ -154,14 +154,16 @@ class CSS(dict):
         def target_in_mro(obj):
             return self.target in inspect.getmro(obj)
 
+
         if len(args) == 1:
             ctrl = args[0]
-            return (hasattr(self.target, 'key') and self.target == ctrl.key) or target_in_mro(ctrl.__class__)
-        if len(args) == 2:
-            cls, key = args
-            if self.target == key:
+            if (hasattr(ctrl, 'key') and self.target == ctrl.key) or target_in_mro(ctrl.__class__):
                 return True
-            return target_in_mro(cls)
+        if len(args) == 2:
+            instance, klass = args
+            if self.target == instance.key:
+                return True
+            return target_in_mro(klass)
 
     def begin(self):
         """
@@ -223,22 +225,22 @@ class Styled(object):
     Mixin class which makes an object try to hook the appropriate style from CSS.current
     """
     DEFAULT_ATTRIBS = set(
-        ('annotation', 'backgroundColor', 'defineTemplate', 'docTag', 'enable', 'enableBackground', 'exists',
-         'fullPathName', 'height', 'manage', 'noBackground', 'numberOfPopupMenus', 'parent', 'popupMenuArray',
-         'preventOverride', 'useTemplate', 'visible', 'visibleChangeCommand', 'width')
+            ('annotation', 'backgroundColor', 'defineTemplate', 'docTag', 'enable', 'enableBackground', 'exists',
+             'fullPathName', 'height', 'manage', 'noBackground', 'numberOfPopupMenus', 'parent', 'popupMenuArray',
+             'preventOverride', 'useTemplate', 'visible', 'visibleChangeCommand', 'width')
     )
 
     def __init__(self, kwargs):
         # note this removes 'css' from the kwargs before they are processed by Control!
-        self.Style = kwargs.pop('css', {})
-        if not self.Style:
+        self._style = kwargs.pop('css', {})
+        if not self._style:
             current_style = CSS.current()
             if current_style:
-                self.Style = current_style.find(self, self.__class__) or self.Style
+                self._style = current_style.find(self, self.__class__) or self._style
 
     def format_maya_arguments(self, **kwargs):
         # this applies any keywords in the current style that are part of the Maya gui flags
         # other flags (like float and margin) are ignored
-        maya_args = {k: v for k, v in self.Style.items() if k in self._ATTRIBS or k in self.DEFAULT_ATTRIBS}
+        maya_args = {k: v for k, v in self._style.items() if k in self._ATTRIBS or k in self.DEFAULT_ATTRIBS}
         maya_args.update(kwargs)
         return maya_args

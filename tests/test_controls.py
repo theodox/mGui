@@ -132,6 +132,7 @@ import maya.mel as mel
 import inspect
 import mGui.properties as properties
 import mGui.gui as gui
+import mGui.progress as progress
 
 class test_CtlProperty(TestCase):
     '''
@@ -142,7 +143,7 @@ class test_CtlProperty(TestCase):
         CMD = cmds.control
         
         def __init__(self, *args, **kwargs):
-            self.Widget = 'path|to|widget'
+            self.widget = 'path|to|widget'
         
         fred = properties.CtlProperty("fred", CMD)
         barney = properties.CtlProperty("barney", CMD)
@@ -198,6 +199,7 @@ class TestControlsExist(TestCase):
               
     def test_has_all_controls(self):
         gui_items = [i[0] for i in inspect.getmembers(gui)]
+        gui_items += [i[0] for i in inspect.getmembers(progress)]
 
         for item in CONTROL_CMDS:
             capped = item[0].upper() + item[1:]

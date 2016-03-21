@@ -56,7 +56,7 @@ class FormList(object):
         self.onWidgetCreated = event_class(type='widget created')
         self.onUpdated = event_class(type='updated')
 
-        self.collection.CollectionChanged += self.redraw  # automatically forward collection changes
+        self.collection.onCollectionChanged += self.redraw  # automatically forward collection changes
 
     def redraw(self, *args, **kwargs):
         """
