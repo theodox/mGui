@@ -42,8 +42,8 @@ class Form(FormLayout):
 
     def __init__(self, key=None, **kwargs):
         super(Form, self).__init__(key, **kwargs)
-        self.margin = Bounds(*self.Style.get('margin', (0, 0)))
-        self.spacing = Bounds(*self.Style.get('spacing', (0, 0)))
+        self.margin = Bounds(*self._style.get('margin', (0, 0)))
+        self.spacing = Bounds(*self._style.get('spacing', (0, 0)))
 
     def _fill(self, ctrl, *sides, **kwargs):
         """

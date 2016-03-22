@@ -233,6 +233,7 @@ class Styled(object):
     def __init__(self, kwargs):
         # note this removes 'css' from the kwargs before they are processed by Control!
         self._style = kwargs.pop('css', {})
+        self.key = None
         if not self._style:
             current_style = CSS.current()
             if current_style:

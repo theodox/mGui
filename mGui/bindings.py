@@ -233,7 +233,7 @@ class AccessorFactory(object):
 
     def __init__(self, *acccessor_classes):
 
-        self.Tests = [cls for cls in acccessor_classes] + [PyAttributeAccessor, PyNodeAccessor, Accessor,
+        self.tests = [cls for cls in acccessor_classes] + [PyAttributeAccessor, PyNodeAccessor, Accessor,
                                                            MethodAccessor,
                                                            DictAccessor, CmdsAccessor]
 
@@ -245,7 +245,7 @@ class AccessorFactory(object):
         datum = args[0]
         field_name = args[-1]
 
-        for fclass in self.Tests:
+        for fclass in self.tests:
             if fclass.can_access(datum, field_name):
                 return fclass
         return None
@@ -364,8 +364,8 @@ class Binding(object):
         self.getter = source
         self.setter = target
 
-        self.Translator = kwargs.get('translator', passthru)
-        assert callable(self.Translator), 'Translator must be a single argument callable'
+        self.translator = kwargs.get('translator', passthru)
+        assert callable(self.translator), 'Translator must be a single argument callable'
 
         BindingContext.add(self)
         if hasattr(self.getter.target, 'bindings'):
@@ -410,7 +410,7 @@ class Binding(object):
 
             try:
                 val = self.getter.pull()
-                self.setter.push(self.Translator(val))
+                self.setter.push(self.translator(val))
                 return True
 
             except (ReferenceError, BindingError, RuntimeError):
@@ -453,21 +453,21 @@ class TwoWayBinding(Binding):
             new_setter = setter_val != self._last_setter_value
 
             if new_getter and not new_setter:
-                self.setter.push(self.Translator(getter_val))
+                self.setter.push(self.translator(getter_val))
                 self._last_setter_value = getter_val
 
             if new_setter and not new_getter:
-                self.getter.push(self.Translator(setter_val))
+                self.getter.push(self.translator(setter_val))
                 self._last_getter_value = setter_val
 
             if not new_getter and not new_setter:
                 # getter wins if both are undefined
-                self.getter.push(self.Translator(setter_val))
+                self.getter.push(self.translator(setter_val))
                 self._last_getter_value = setter_val
 
             if new_setter and new_getter:
                 # 'getter' > setter wins
-                self.setter.push(self.Translator(getter_val))
+                self.setter.push(self.translator(getter_val))
                 self._last_getter_value = getter_val
                 self._last_setter_value = getter_val
             return True
