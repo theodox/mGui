@@ -31,6 +31,10 @@ from mGui.core.layouts import FormLayout
 from mGui.styles import Bounds
 
 
+def physical_controls(widget):
+    return (i for i in widget.controls if i.CMD not in (cmds.popupMenu, cmds.menuItem))
+
+
 class Form(FormLayout):
     """
     A wrapper for FormLayout with convenience methods for attaching controls.
@@ -99,14 +103,14 @@ class Form(FormLayout):
         returns a list of (control, side, spacing) values used by attachForm style commands
         """
         attachments = ([side, self.margin[side]] for side in sides)
-        ctls = itertools.product(self.controls, attachments)
+        ctls = itertools.product(physical_controls(self), attachments)
         return [[a] + b for a, b in ctls]
 
     def form_series(self, side):
         """
         returns a series of (control, side, space, control) for use in serial placement
         """
-        first, second = itertools.tee(self.controls)
+        first, second = itertools.tee(physical_controls(self))
         second.next()
         return [(s, side, self.spacing[side], f) for f, s in itertools.izip(first, second)]
 
@@ -114,14 +118,14 @@ class Form(FormLayout):
 
         side2 = {'left': 'right', 'right': 'left', 'top': 'bottom', 'bottom': 'top'}[side]
 
-        widths = [i.width  if hasattr(i, 'width') else 0 for i in self.controls]
+        widths = [i.width if hasattr(i, 'width') else 0 for i in physical_controls(self)]
         total_width = sum(widths)
         proportions = map(lambda q: q * 100.0 / total_width, widths)
         p_l = len(proportions)
         left_edges = [sum(proportions[:r]) for r in range(0, p_l)]
         right_edges = [sum(proportions[:r]) for r in range(1, p_l + 1)]
         ap = []
-        for c, l, r in itertools.izip(self.controls, left_edges, right_edges):
+        for c, l, r in itertools.izip(physical_controls(self), left_edges, right_edges):
             ap.append((c, side, self.spacing[side], l))
             ap.append((c, side2, self.spacing[side2], r))
         return ap
@@ -129,14 +133,14 @@ class Form(FormLayout):
     def equal_series(self, side):
         side2 = {'left': 'right', 'right': 'left', 'top': 'bottom', 'bottom': 'top'}[side]
 
-        widths = [1 for each_item in self.controls]
+        widths = [1 for each_item in physical_controls(self)]
         total_width = sum(widths)
         proportions = map(lambda q: q * 100.0 / total_width, widths)
         p_l = len(proportions)
         left_edges = [sum(proportions[:r]) for r in range(0, p_l)]
         right_edges = [sum(proportions[:r]) for r in range(1, p_l + 1)]
         ap = []
-        for c, l, r in itertools.izip(self.controls, left_edges, right_edges):
+        for c, l, r in itertools.izip(physical_controls(self), left_edges, right_edges):
             ap.append((c, side, self.spacing[side], l))
             ap.append((c, side2, self.spacing[side2], r))
         return ap
@@ -211,7 +215,7 @@ class FillForm(Form):
     """
 
     def layout(self):
-        for item in self.controls:
+        for item in physical_controls(self):
             self.fill(item)
         return len(self.controls)
 
@@ -224,8 +228,10 @@ class VerticalForm(Form):
 
     def layout(self):
         if len(self.controls):
+            ctrls = [i for i in physical_controls(self)]
+
             af = self.form_attachments('left', 'right')
-            af.append([self.controls[0], 'top', self.spacing.top])
+            af.append([ctrls[0], 'top', self.spacing.top])
             ac = self.form_series('top')
             self.attachForm = af
             self.attachControl = ac
@@ -241,8 +247,9 @@ class HorizontalForm(Form):
 
     def layout(self):
         if len(self.controls):
+            ctrls = [i for i in physical_controls(self)]
             af = self.form_attachments('top', 'bottom')
-            af.append((self.controls[0], 'left', self.spacing.top))
+            af.append((ctrls[0], 'left', self.spacing.top))
             ac = self.form_series('left')
             self.attachForm = af
             self.attachControl = ac
@@ -258,9 +265,10 @@ class VerticalExpandForm(Form):
 
     def layout(self):
         if len(self.controls):
+            ctrls = [i for i in physical_controls(self)]
             af = self.form_attachments('left', 'right')
-            af.append((self.controls[0], 'top', self.spacing.top))
-            af.append((self.controls[-1], 'bottom', self.spacing.bottom))
+            af.append((ctrls[0], 'top', self.spacing.top))
+            af.append((ctrls[-1], 'bottom', self.spacing.bottom))
             ac = self.form_series('top')
             self.attachForm = af
             self.attachControl = ac
