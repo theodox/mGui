@@ -211,7 +211,7 @@ class CSS(dict):
             for item in c or tuple():
                 for sub_item in iter_children(item):
                     if sub_item:
-                        yield item
+                        yield sub_item
                 yield item
             yield c
 
