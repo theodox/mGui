@@ -197,6 +197,8 @@ class LayoutDialogForm(Form):
     Shim that will create a formLayout wrapper from an existing formLayout.
     Used with the maya LayoutDialog command, which creates a form for you,
     so you can still use mGui property access.
+
+    you should explicitly call forget() on this form when you close it
     """
 
     def __init__(self, key=None):

@@ -8,7 +8,7 @@ import maya.cmds as cmds
 import mGui.events as events
 import mGui.properties as properties
 from mGui.debugging import Logger
-
+import  weakref
 
 class ScriptJobEvent(events.Event):
     """
@@ -741,7 +741,7 @@ class ScriptJobCallbackProperty(properties.CallbackProperty):
         cb = obj.callbacks.get(self.key, None)
 
         if cb is None:
-            new_cb = ScriptJobEvent(self.script_flag, str(obj), sender=obj)
+            new_cb = ScriptJobEvent(self.script_flag, str(obj), sender=weakref.proxy(obj))
             obj.callbacks[self.key] = new_cb
             new_cb.start(**self.run_flags)
 

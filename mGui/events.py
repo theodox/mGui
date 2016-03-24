@@ -132,6 +132,8 @@ class Event(object):
     __iadd__ = _add_handler
     __isub__ = _remove_handler
 
+    def __del__(self):
+        print 'event expired'
 
 class MayaEvent(Event):
     """

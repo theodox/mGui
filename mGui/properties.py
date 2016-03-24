@@ -5,6 +5,7 @@ Defines Descriptor objects for getting and setting GUI properties
 """
 
 from mGui.events import Event, MayaEvent
+import weakref
 import copy
 
 class MGuiAttributeError(AttributeError):
@@ -63,7 +64,7 @@ class CallbackProperty(object):
         # @note: don't use simple truth test here! No-handler event evals to false,
         # so manually assigned events are overwritten!
         if cb is None:
-            obj.callbacks[self.key] = MayaEvent(sender=obj)
+            obj.callbacks[self.key] = MayaEvent(sender=weakref.proxy(obj))
             obj.register_callback(self.key, obj.callbacks[self.key])
         return obj.callbacks[self.key]
 

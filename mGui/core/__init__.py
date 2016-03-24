@@ -105,7 +105,7 @@ class Control(Styled, BindableObject):
     _READ_ONLY = ['isObscured', 'popupMenuArray', 'numberOfPopupMenus']
     __metaclass__ = ControlMeta
 
-    Deleted = ScriptJobCallbackProperty('Deleted', 'uiDeleted')
+    onDeleted = ScriptJobCallbackProperty('onDeleted', 'uiDeleted')
 
     def __init__(self, key=None, **kwargs):
         # apply Styled, and filter out any CSS tags
@@ -127,6 +127,7 @@ class Control(Styled, BindableObject):
 
         # add us to the current layout under our own key name
         Layout.add_current(self)
+        self.onDeleted += self.forget
 
     def register_callback(self, callbackName, event):
         """
@@ -183,16 +184,9 @@ class Control(Styled, BindableObject):
         finally:
             cls.CMD = _cmd
 
-    @staticmethod
-    def forget(*args, **kwargs):
-        print "forgetting"
-        fallback = args[0] if len(args) else None
-        sender = kwargs.get('sender', fallback)
-        if sender:
-            owner = sender.parent
-            if owner is not None:
-                print "remove", sender, owner
-                owner().remove(sender)
+    def forget(self, *args, **kwargs):
+        self.callbacks.clear()
+        self.tag = None
 
     @classmethod
     def delete(cls, instance):
@@ -336,6 +330,7 @@ class Nested(Control):
         delenda = (i for i in self.controls)
         for d in delenda:
             self.remove(d)
+        self.named_children.clear()
 
     def __setattr__(self, key, value):
         if isinstance(value, Control) and not key.startswith("_"):
@@ -371,6 +366,14 @@ class Nested(Control):
         """
         if Nested.ACTIVE_LAYOUT:
             return Nested.ACTIVE_LAYOUT
+
+    def forget(self, *args, **kwargs):
+        del self.controls
+        del self.named_children
+        super(Nested, self).forget()
+        if Nested.ACTIVE_LAYOUT == self:
+            Nested.ACTIVE_LAYOUT = None
+
 
 
 # IMPORTANT NOTE
@@ -418,14 +421,11 @@ class Window(Nested):
     def __init__(self, key=None, **kwargs):
         super(Window, self).__init__(key, **kwargs)
         Window.ACTIVE_WINDOWS.append(self)
-        self.Deleted += self.forget
 
-    @classmethod
-    def forget(cls, *args, **kwargs):
-        if Window.ACTIVE_WINDOWS is not None:
-            sender = kwargs.get('sender', None)
-            if sender in Window.ACTIVE_WINDOWS:
-                Window.ACTIVE_WINDOWS.remove(sender)
+    def forget(self, *args, **kwargs):
+        if self in Window.ACTIVE_WINDOWS:
+                Window.ACTIVE_WINDOWS.remove(self)
+        super(Window, self).forget()
 
     def show(self):
         cmds.showWindow(self.widget)
@@ -459,3 +459,7 @@ class BindingWindow(Window):
 
     def update_bindings(self):
         self.bindingContext.update(True)
+
+    def forget(self, *args, **kwargs):
+        super(BindingWindow, self).forget()
+        self.bindingContext = None
