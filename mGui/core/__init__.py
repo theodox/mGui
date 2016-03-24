@@ -150,7 +150,7 @@ class Control(Styled, BindableObject):
         return self.widget
 
     def __iter__(self):
-        yield
+        yield self
 
     @classmethod
     def wrap(cls, control_name, key=None):
@@ -346,9 +346,19 @@ class Nested(Control):
     def __iter__(self):
         for sub in self.controls:
             yield sub
+        yield self
 
     def __contains__(self, item):
         return item in self.controls
+
+    def recurse(self):
+        for item in self.controls:
+            if hasattr(item, 'recurse'):
+                for grandchild in item.recurse():
+                    yield grandchild
+            yield item
+
+
 
     # note: both of these explicitly use Nested instead of cls
     # so that there is only one global layout stack...
@@ -368,8 +378,10 @@ class Nested(Control):
             return Nested.ACTIVE_LAYOUT
 
     def forget(self, *args, **kwargs):
-        del self.controls
-        del self.named_children
+        if self.controls:
+            self.controls = []
+        if self.named_children:
+            self.named_children = {}
         super(Nested, self).forget()
         if Nested.ACTIVE_LAYOUT == self:
             Nested.ACTIVE_LAYOUT = None

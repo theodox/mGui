@@ -203,13 +203,17 @@ class LayoutDialogForm(Form):
 
     def __init__(self, key=None):
         self.CMD = self.fake_create
-        super(LayoutDialogForm, self).__init__(key = None)
+        super(LayoutDialogForm, self).__init__(key=None)
         self.CMD = cmds.formLayout
 
     @staticmethod
     def fake_create(*args, **kwargs):
         return cmds.setParent(q=True)
 
+    def forget(self, *args, **kwargs):
+        for item in self.recurse():
+            item.forget()
+        super(LayoutDialogForm, self).forget()
 
 class FillForm(Form):
     """
