@@ -75,9 +75,9 @@ class BoundCollectionWindow(object):
                     gui.TextField('filtertext', width=480)
                     gui.Separator(horizontal=False, style='none', width=4)
                     with forms.HorizontalExpandForm('display', width=32) as hmm:
-                        shown = gui.Text('shown').bind.label < bind() < self.collection.bind.ViewCount
+                        shown = gui.Text('shown').bind.label < bind() < self.collection.bind.viewCount
                         gui.Text(label='/')
-                        total = gui.Text('total').bind.label < bind() < self.collection.bind.Count
+                        total = gui.Text('total').bind.label < bind() < self.collection.bind.count
 
                 self.collection > bind() > lists.VerticalList('itemList', itemTemplate=ExampleTemplate).collection
 

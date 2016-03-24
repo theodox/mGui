@@ -60,8 +60,8 @@ with Window() as w:
             main_list = VerticalList()
 
     items > bind( ) > main_list.collection
-    items.bind.ViewCount > bind() > three.bind.label
-    items.bind.Count > bind() > two.bind.label
+    items.bind.viewCount > bind() > three.bind.label
+    items.bind.count > bind() > two.bind.label
     w.update_bindings()
 w.show()
 
