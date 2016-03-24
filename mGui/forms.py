@@ -199,9 +199,9 @@ class LayoutDialogForm(Form):
     so you can still use mGui property access.
     """
 
-    def __init__(self, key):
+    def __init__(self, key=None):
         self.CMD = self.fake_create
-        super(LayoutDialogForm, self).__init__(key)
+        super(LayoutDialogForm, self).__init__(key = None)
         self.CMD = cmds.formLayout
 
     @staticmethod
@@ -404,4 +404,4 @@ class NavForm(HorizontalForm):
 
 __all__ = ['FillForm', 'VerticalForm', 'HorizontalForm', 'VerticalExpandForm', 'HorizontalExpandForm',
            'VerticalStretchForm', 'HorizontalStretchForm', 'HorizontalThreePane', 'VerticalThreePane',
-           'HeaderForm', 'FooterForm', 'NavForm']
+           'HeaderForm', 'FooterForm', 'NavForm', 'LayoutDialogForm']

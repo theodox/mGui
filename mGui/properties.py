@@ -68,8 +68,8 @@ class CallbackProperty(object):
         return obj.callbacks[self.key]
 
     def __set__(self, obj, value):
-        if not isinstance(value, Event):
-            raise ValueError('Callback properties must be instances of mGui.events.Event')
+        #if not isinstance(value, Event):
+            #raise ValueError('Callback properties must be instances of mGui.events.Event')
         obj.callbacks[self.key] = value
         obj.register_callback(self.key, obj.callbacks[self.key])
 

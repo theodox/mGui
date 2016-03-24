@@ -154,7 +154,6 @@ class CSS(dict):
         def target_in_mro(obj):
             return self.target in inspect.getmro(obj)
 
-
         if len(args) == 1:
             ctrl = args[0]
             if (hasattr(ctrl, 'key') and self.target == ctrl.key) or target_in_mro(ctrl.__class__):
@@ -225,9 +224,9 @@ class Styled(object):
     Mixin class which makes an object try to hook the appropriate style from CSS.current
     """
     DEFAULT_ATTRIBS = set(
-            ('annotation', 'backgroundColor', 'defineTemplate', 'docTag', 'enable', 'enableBackground', 'exists',
-             'fullPathName', 'height', 'manage', 'noBackground', 'numberOfPopupMenus', 'parent', 'popupMenuArray',
-             'preventOverride', 'useTemplate', 'visible', 'visibleChangeCommand', 'width')
+        ('annotation', 'backgroundColor', 'defineTemplate', 'docTag', 'enable', 'enableBackground', 'exists',
+         'fullPathName', 'height', 'manage', 'noBackground', 'numberOfPopupMenus', 'parent', 'popupMenuArray',
+         'preventOverride', 'useTemplate', 'visible', 'visibleChangeCommand', 'width')
     )
 
     def __init__(self, kwargs):
@@ -245,3 +244,16 @@ class Styled(object):
         maya_args = {k: v for k, v in self._style.items() if k in self._ATTRIBS or k in self.DEFAULT_ATTRIBS}
         maya_args.update(kwargs)
         return maya_args
+
+
+
+    def _get_stylesheet(self):
+        return self._style
+
+    def _set_stylesheet(self, css):
+        if not isinstance(css, CSS):
+            css = CSS(**css)
+        self._style = css
+        css.apply_recursive(self)
+
+    stylesheet = property(fset =_set_stylesheet, fget=_get_stylesheet)
