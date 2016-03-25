@@ -32,7 +32,8 @@ from mGui.styles import Bounds
 
 
 def physical_controls(widget):
-    return (i for i in widget.controls if i.CMD not in (cmds.popupMenu, cmds.menuItem))
+    return (i for i in widget.controls if
+            i.CMD not in (cmds.popupMenu, cmds.menuItem, cmds.radioCollection, cmds.iconTextRadioCollection))
 
 
 class Form(FormLayout):
@@ -214,6 +215,7 @@ class LayoutDialogForm(Form):
         for item in self.recurse():
             item.forget()
         super(LayoutDialogForm, self).forget()
+
 
 class FillForm(Form):
     """
