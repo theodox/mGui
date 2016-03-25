@@ -205,18 +205,9 @@ class CSS(dict):
                         pass
 
     def apply_recursive(self, *controls):
-
-        def iter_children(c):
-            for item in c or tuple():
-                for sub_item in iter_children(item):
-                    if sub_item:
-                        yield sub_item
-                yield item
-            yield c
-
-        for root in controls:
-            for grandkid in iter_children(root):
-                self.apply(grandkid)
+        for c in controls:
+            for gc in c.recurse():
+                self.apply(gc)
 
 
 class Styled(object):
