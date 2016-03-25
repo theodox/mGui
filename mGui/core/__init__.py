@@ -358,8 +358,6 @@ class Nested(Control):
                     yield grandchild
             yield item
 
-
-
     # note: both of these explicitly use Nested instead of cls
     # so that there is only one global layout stack...
 
@@ -378,14 +376,13 @@ class Nested(Control):
             return Nested.ACTIVE_LAYOUT
 
     def forget(self, *args, **kwargs):
+        super(Nested, self).forget()
         if self.controls:
             self.controls = []
         if self.named_children:
             self.named_children = {}
-        super(Nested, self).forget()
         if Nested.ACTIVE_LAYOUT == self:
             Nested.ACTIVE_LAYOUT = None
-
 
 
 # IMPORTANT NOTE
@@ -435,9 +432,9 @@ class Window(Nested):
         Window.ACTIVE_WINDOWS.append(self)
 
     def forget(self, *args, **kwargs):
-        if self in Window.ACTIVE_WINDOWS:
-                Window.ACTIVE_WINDOWS.remove(self)
         super(Window, self).forget()
+        if self in Window.ACTIVE_WINDOWS:
+            Window.ACTIVE_WINDOWS.remove(self)
 
     def show(self):
         cmds.showWindow(self.widget)
