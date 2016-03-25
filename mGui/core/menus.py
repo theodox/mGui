@@ -40,6 +40,8 @@ class OptionMenu(Nested):
     _READ_ONLY = ['fullPathName', 'itemListLong', 'itemListShort', 'isObscured', 'numberOfItems', 'numberOfPopupMenus',
                   'popupMenuArray']
     _CALLBACKS = ['changeCommand', 'dragCallback', 'dropCallback', 'visibleChangeCommand']
+    _BIND_SRC = 'value'
+    _BIND_TRIGGER = 'changeCommand'
 
 
 class ActiveOptionMenu(OptionMenu):
