@@ -232,7 +232,11 @@ class Nested(Control):
         # that is closing, add them with variable name as a key
         # this supports a more natural, keyless idiom (see 'add')
 
-        for key, value in inspect.currentframe().f_back.f_locals.items():
+        context_scope = inspect.currentframe()
+        while context_scope.f_back and self in context_scope.f_back.f_locals.values():
+            context_scope = context_scope.f_back
+        
+        for key, value in context_scope.f_locals.items():
             if value in self:
                 self.add(value, key)
 
