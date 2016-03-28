@@ -233,12 +233,11 @@ class Nested(Control):
         # this supports a more natural, keyless idiom (see 'add')
 
         context_scope = inspect.currentframe()
-        while context_scope.f_back and self in context_scope.f_back.f_locals.values():
+        while context_scope.f_back:
             context_scope = context_scope.f_back
-        
-        for key, value in context_scope.f_locals.items():
-            if value in self:
-                self.add(value, key)
+            for key, value in context_scope.f_locals.items():
+                if value in self:
+                    self.add(value, key)
 
         # restore the layout level
         Nested.ACTIVE_LAYOUT = self.__cache_layout
