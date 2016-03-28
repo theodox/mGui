@@ -232,11 +232,10 @@ class Nested(Control):
         # that is closing, add them with variable name as a key
         # this supports a more natural, keyless idiom (see 'add')
 
-        context_scope = inspect.currentframe()
-        while context_scope.f_back and self in context_scope.f_back.f_locals.values():
-            context_scope = context_scope.f_back
-        
-        for key, value in context_scope.f_locals.items():
+        owning_scope = inspect.currentframe().f_back
+        if owning_scope.f_locals.get('mGui_expand_stack'):
+            owning_scope = owning_scope.f_back
+        for key, value in owning_scope.f_locals.items():
             if value in self:
                 self.add(value, key)
 
@@ -467,8 +466,9 @@ class BindingWindow(Window):
         return super(BindingWindow, self).__enter__()
 
     def __exit__(self, typ, value, traceback):
-        super(BindingWindow, self).__exit__(typ, value, traceback)
         self.bindingContext.__exit__(None, None, None)
+        mGui_expand_stack = True
+        super(BindingWindow, self).__exit__(typ, value, traceback)
 
     def update_bindings(self):
         self.bindingContext.update(True)
