@@ -205,11 +205,6 @@ class Nested(Control):
     """
     ACTIVE_LAYOUT = None
 
-    def __new__(cls, key=None, **kwargs):
-        inst = super(Nested, cls).__new__(cls, key=None, **kwargs)
-        inst.context_scope = inspect.currentframe().f_back
-        return inst
-
     def __init__(self, key=None, **kwargs):
         self.controls = []
         self.named_children = OrderedDict()
@@ -237,7 +232,11 @@ class Nested(Control):
         # that is closing, add them with variable name as a key
         # this supports a more natural, keyless idiom (see 'add')
 
-        for key, value in self.context_scope.f_locals.items():
+        context_scope = inspect.currentframe()
+        for _ in xrange(self._stack_depth()):
+            context_scope = context_scope.f_back
+        
+        for key, value in context_scope.f_locals.items():
             if value in self:
                 self.add(value, key)
 
@@ -388,6 +387,13 @@ class Nested(Control):
             self.named_children = {}
         if Nested.ACTIVE_LAYOUT == self:
             Nested.ACTIVE_LAYOUT = None
+
+    @classmethod
+    def _stack_depth(cls):
+        """
+        Used to find exactly how far up the stack we need to go, to find the containing scope.
+        """
+        return len([c for c in cls.mro() if '__exit__' in c.__dict__])
 
 
 # IMPORTANT NOTE
