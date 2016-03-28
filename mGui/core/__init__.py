@@ -233,7 +233,7 @@ class Nested(Control):
         # this supports a more natural, keyless idiom (see 'add')
 
         context_scope = inspect.currentframe()
-        for _ in xrange(self._stack_depth()):
+        while context_scope.f_back and self in context_scope.f_back.f_locals.values():
             context_scope = context_scope.f_back
         
         for key, value in context_scope.f_locals.items():
@@ -387,13 +387,6 @@ class Nested(Control):
             self.named_children = {}
         if Nested.ACTIVE_LAYOUT == self:
             Nested.ACTIVE_LAYOUT = None
-
-    @classmethod
-    def _stack_depth(cls):
-        """
-        Used to find exactly how far up the stack we need to go, to find the containing scope.
-        """
-        return len([c for c in cls.mro() if '__exit__' in c.__dict__])
 
 
 # IMPORTANT NOTE
