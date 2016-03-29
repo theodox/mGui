@@ -206,8 +206,11 @@ class CSS(dict):
 
     def apply_recursive(self, *controls):
         for c in controls:
-            for gc in c.recurse():
-                self.apply(gc)
+            if hasattr(c, 'recurse'):
+                for gc in c.recurse():
+                    self.apply(gc)
+            else:
+                self.apply(c)
 
 
 class Styled(object):
@@ -236,8 +239,6 @@ class Styled(object):
         maya_args.update(kwargs)
         return maya_args
 
-
-
     def _get_stylesheet(self):
         return self._style
 
@@ -247,4 +248,4 @@ class Styled(object):
         self._style = css
         css.apply_recursive(self)
 
-    stylesheet = property(fset =_set_stylesheet, fget=_get_stylesheet)
+    stylesheet = property(fset=_set_stylesheet, fget=_get_stylesheet)
