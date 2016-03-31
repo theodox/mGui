@@ -5,8 +5,9 @@ Originally auto generated using helpers.tools
 """
 
 import maya.cmds as cmds
-
+from mGui.events import Event
 from mGui.core import Control
+import weakref
 
 
 class Labeled(Control):
@@ -405,38 +406,6 @@ class IconTextCheckBox(Control):
     _BIND_TGT = 'value'
 
 
-class IconTextRadioButton(Control):
-    """Wrapper class for cmds.iconTextRadioButton"""
-    CMD = cmds.iconTextRadioButton
-    _ATTRIBS = ['imageOverlayLabel', 'marginHeight', 'style', 'overlayLabelColor', 'overlayLabelBackColor',
-                'highlightImage', 'image1', 'selectionHighlightImage', 'label', 'collection', 'selectionImage', 'align',
-                'image3', 'marginWidth', 'labelOffset', 'image2', 'disabledImage', 'font', 'image', 'select']
-    _CALLBACKS = ['changeCommand', 'offCommand', 'onCommand']
-    _BIND_TRIGGER = 'changeCommand'
-    _BIND_SRC = 'select'
-    _BIND_TGT = 'select'
-
-
-class IconTextRadioCollection(Control):
-    """Wrapper class for cmds.iconTextRadioCollection"""
-    CMD = cmds.iconTextRadioCollection
-    _ATTRIBS = ['collectionItemArray', 'global', 'numberOfCollectionItems', 'select']
-    _CALLBACKS = ['disableCommands']
-    _BIND_SRC = 'select'
-    _BIND_TGT = 'select'
-
-    def __enter__(self):
-        return self
-
-    def __exit__(self, exc_type, exc_val, exc_tb):
-        if exc_val:
-            raise
-        for item in self.collectionItemArray:
-            proxy = IconTextRadioButton.wrap(item)
-            for each_binding in self.bindings:
-                proxy.changeCommand += each_binding.proxy_update
-
-
 class IconTextScrollList(Control):
     """Wrapper class for cmds.iconTextScrollList"""
     CMD = cmds.iconTextScrollList
@@ -605,11 +574,25 @@ class RadioButtonGrp(Labeled):
 
 
 class RadioCollection(Control):
-    """Wrapper class for cmds.radioCollection"""
+    """Wrapper class for cmds.radioCollection
+
+    This class adds an artificial 'changeCommand' event to the default maya RadioCollection
+    so it's possible to track the collection instead of the individual items in the collection
+    in a binding or with events
+    """
     CMD = cmds.radioCollection
     _ATTRIBS = ['collectionItemArray', 'global', 'numberOfCollectionItems', 'select']
     _CALLBACKS = []
 
+    _BIND_SRC = 'select'
+    _BIND_TRIGGER = 'changeCommand'
+    _CHILD_CLASS = RadioButton
+
+    def __init__(self, key=None, **kwargs):
+        super(RadioCollection, self).__init__(key=key, **kwargs)
+        self.changeCommand = Event(sender=weakref.proxy(self))
+        self.members = []
+        self.last_state = None
 
     def __enter__(self):
         return self
@@ -618,9 +601,41 @@ class RadioCollection(Control):
         if exc_val:
             raise
         for item in self.collectionItemArray:
-            proxy = RadioButton.wrap(item)
-            for each_binding in self.bindings:
-                proxy.changeCommand += each_binding.proxy_update
+            proxy = self._CHILD_CLASS.wrap(item)
+            self.members.append(proxy)
+            proxy.changeCommand += self._handle_change
+
+    def _handle_change(self, *_, **__):
+        state = self.select
+        if state != self.last_state:
+            self.changeCommand()
+            self.last_state = state
+
+    def forget(self, *args, **kwargs):
+        self.members = None
+        super(RadioCollection, self).forget()
+
+
+class IconTextRadioButton(Control):
+    """Wrapper class for cmds.iconTextRadioButton"""
+    CMD = cmds.iconTextRadioButton
+    _ATTRIBS = ['imageOverlayLabel', 'marginHeight', 'style', 'overlayLabelColor', 'overlayLabelBackColor',
+                'highlightImage', 'image1', 'selectionHighlightImage', 'label', 'collection', 'selectionImage', 'align',
+                'image3', 'marginWidth', 'labelOffset', 'image2', 'disabledImage', 'font', 'image', 'select']
+    _CALLBACKS = ['changeCommand', 'offCommand', 'onCommand']
+    _BIND_TRIGGER = 'changeCommand'
+    _BIND_SRC = 'select'
+    _BIND_TGT = 'select'
+
+
+class IconTextRadioCollection(RadioCollection):
+    """Wrapper class for cmds.iconTextRadioCollection"""
+    CMD = cmds.iconTextRadioCollection
+    _ATTRIBS = ['collectionItemArray', 'global', 'numberOfCollectionItems', 'select']
+    _CALLBACKS = ['disableCommands']
+    _BIND_SRC = 'select'
+    _BIND_TGT = 'select'
+    _CHILD_CLASS = IconTextRadioButton
 
 
 class RangeControl(Control):
@@ -834,5 +849,3 @@ class TreeView(Control):
                   'itemDblClickCommand', 'itemRenamedCommand', 'pressCommand', 'rightPressCommand', 'selectCommand',
                   'selectionChangedCommand']
     _BIND_TRIGGER = 'selectionChangedCommand'
-
-
