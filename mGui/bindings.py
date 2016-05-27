@@ -16,7 +16,7 @@ from mGui.properties import LateBoundProperty
 # to break on bind failure, so the GUI can run without crashing
 # Use this with caution, since they are effectively globals
 
-BREAK_ON_ACCESS_FAILURE = True  # break when an accessor fails (eg, a deleted object)
+BREAK_ON_ACCESS_FAILURE = False  # break when an accessor fails (eg, a deleted object)
 BREAK_ON_BIND_FAILURE = True  # break when a binding fails (instead of silently deleting bad binding)
 
 
