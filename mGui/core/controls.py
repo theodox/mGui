@@ -690,8 +690,8 @@ class SoundControl(Control):
 class SwatchDisplayPort(Control):
     """Wrapper class for cmds.swatchDisplayPort"""
     CMD = cmds.swatchDisplayPort
-    _ATTRIBS = []
-    _CALLBACKS = []
+    _ATTRIBS = ['borderWidth', 'borderColor', 'widthHeight', 'shadingNode']
+    _CALLBACKS = ['pressCommand']
 
 
 class SwitchTable(Control):
