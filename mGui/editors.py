@@ -32,24 +32,35 @@ class ModelEditor(core.Control):
 
 class Panel(core.Control):
     CMD = cmds.panel
+    PANEL_TYPE = None
     _ATTRIBS = ["copy", "defineTemplate", "docTag", "exists", "init", "label", "menuBarVisible",
                 "needsInit", "parent", "replacePanel", "tearOff", "tearOffCopy", "unParent", "useTemplate"]
     _READONLY = ["control", "isUnique"]
     _CALLBACKS = ["popupMenuProcedure"]
 
 
-
-
 class ModelPanel(Panel):
     CMD = cmds.modelPanel
+    PANEL_TYPE = 'modelPanel'
+
     _ATTRIBS = ["barLayout", "camera", "copy", "defineTemplate", "docTag", "exists", "init", "label", "menuBarVisible",
                 "modelEditor", "needsInit", "parent", "replacePanel", "tearOff", "tearOffCopy", "unParent",
                 "useTemplate"]
     _READONLY = ["control", "isUnique"]
     _CALLBACKS = ["popupMenuProcedure"]
 
+
+
 class PanelFactory(object):
     TYPES = {'modelPanel': ModelPanel}
+
+    @classmethod
+    def get_current_panel(cls):
+        current = cmds.getPanel(wf=True)
+        try:
+            return cls.get(current)
+        except RuntimeError:
+            return None
 
     @classmethod
     def get(cls, panel_string):

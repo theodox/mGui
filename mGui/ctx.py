@@ -9,6 +9,98 @@ from mGui.events import Event
 from mGui.bindings import BindingContext
 from mGui.debugging import Logger
 
+ALL_SELECT_MODES = """
+component
+hierarchical
+leaf
+object
+preset
+root
+template
+""".split()
+
+ALL_SELECT_TYPES = """animBreakdown
+animCurve
+animInTangent
+animKeyframe
+allComponents
+allObjects
+animOutTangent
+curve
+camera
+curveKnot
+cluster
+collisionModel
+curveOnSurface
+curveParameterPoint
+controlVertex
+dynamicConstraint
+dimension
+edge
+emitter
+editPoint
+facet
+field
+fluid
+follicle
+handle
+hull
+hairSystem
+ikEndEffector
+implicitGeometry
+ikHandle
+imagePlane
+isoparm
+joint
+jointPivot
+lattice
+locator
+latticePoint
+light
+locatorUV
+meshComponents
+meshUVShell
+motionTrailPoint
+motionTrailTangent
+nurbsCurve
+nCloth
+nonlinear
+nParticle
+nParticleShape
+nRigid
+nurbsSurface
+orientationLocator
+polymesh
+polymeshEdge
+polymeshFace
+polymeshFreeEdge
+plane
+particle
+particleShape
+polymeshUV
+polymeshVertex
+polymeshVtxFace
+localRotationAxis
+rigidBody
+rigidConstraint
+rotatePivot
+sculpt
+subdiv
+surfaceEdge
+surfaceFace
+selectHandle
+surfaceKnot
+scalePivot
+springComponent
+surfaceParameterPoint
+spring
+surfaceRange
+stroke
+surfaceUV
+texture
+vertex
+locatorXYZ""".split()
+
 
 class ToolEvent(Event):
     REGISTRY = {}
@@ -100,6 +192,8 @@ class Tool(object):
         self.name = name
         self.context_name = None
         self.repeat = False
+        self.select_mode = None
+        self.select_type = None
 
         def hook_event(name, function):
             event_name = lambda name: self.EVENT_PREFIX + "_" + name
@@ -117,7 +211,7 @@ class Tool(object):
 
         Tool.REGISTRY[self.name] = self
 
-    def create_context(self, contextOptions, repeat= False):
+    def create_context(self, contextOptions, repeat=False):
         """
         Create a context hooked to the events for this instance
         """
@@ -142,6 +236,7 @@ class Tool(object):
         pass
 
     def exit(self, *args, **kwargs):
+        utils.executeDeferred(self.reset_select_mask)
         if self.repeat:
             lazy_reset = lambda: cmds.setToolTo(self.context_name)
             utils.executeDeferred(lazy_reset)
@@ -149,7 +244,6 @@ class Tool(object):
 
     def finish(self, *args, **kwargs):
         pass
-
 
     @classmethod
     def retrieve(cls, name_or_context):
@@ -163,6 +257,35 @@ class Tool(object):
             for k, v in Tool.REGISTRY.items():
                 if v == target:
                     del (Tool.REGISTRY[k])
+
+    def set_select_mode(self, *types):
+        """
+        replace the existing selection mode (object, component etc) with the types supplied.  Cache the existing mode
+        for later restore
+        """
+        self.select_mode = {k: cmds.selectMode(**{'q': 1, k: 1}) for k in ALL_SELECT_MODES}
+        options = {k: k in types for k in ALL_SELECT_MODES}
+        cmds.selectMode(**options)
+
+    def set_select_types(self, *types):
+        """
+        replace the existing selection type (face, vertex, etc) with the types supplied.  Cache the existing types for
+        later restore
+        """
+        self.select_type = {k: cmds.selectType(**{'q': 1, k: 1}) for k in ALL_SELECT_TYPES}
+        options = {k: k in types for k in ALL_SELECT_TYPES}
+        cmds.selectType(**options)
+
+    def reset_select_mask(self):
+        """
+        resets any selection modes set by this tool
+        """
+        if self.select_mode:
+            cmds.selectMode(**self.select_mode)
+            self.select_mode = None
+        if self.select_type:
+            cmds.selectType(**self.select_type)
+            self.select_type = None
 
 
 class SelectionTrackingTool(Tool):
