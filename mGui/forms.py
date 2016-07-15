@@ -41,12 +41,23 @@ class Form(FormLayout):
     A wrapper for FormLayout with convenience methods for attaching controls.
     Use this when you need precise control over form behavior.
 
-    Formbase is entirely manual - it does no automatic layout behavior.
+    Form baseclass  is entirely manual - it does no automatic layout behavior.
 
     """
 
     def __init__(self, key=None, **kwargs):
+
+        margin, spacing = None, None
+        if 'margin' in kwargs:
+            margin = kwargs.pop('margin')
+        if 'spacing' in kwargs:
+            spacing = kwargs.pop('spacing')
         super(Form, self).__init__(key, **kwargs)
+        if margin:
+            self._style['margin'] = margin
+        if spacing:
+            self._style['spacing'] = spacing
+
         self.margin = Bounds(*self._style.get('margin', (0, 0)))
         self.spacing = Bounds(*self._style.get('spacing', (0, 0)))
 
@@ -231,7 +242,9 @@ class FillForm(Form):
 class VerticalForm(Form):
     """
     Lays out children vertically. The first child is attached to the top of
-    the form, all children are attached to the left and right
+    the form, all children are attached to the left and right. Note tha the last
+    child will NOT be offset by the margin, since tha form can be added to indefinitely --
+    if you want a complete margin you should nest this in another form
     """
 
     def layout(self):
@@ -239,7 +252,7 @@ class VerticalForm(Form):
             ctrls = [i for i in physical_controls(self)]
 
             af = self.form_attachments('left', 'right')
-            af.append([ctrls[0], 'top', self.spacing.top])
+            af.append([ctrls[0], 'top', self.margin.top])
             ac = self.form_series('top')
             self.attachForm = af
             self.attachControl = ac
@@ -250,14 +263,16 @@ class VerticalForm(Form):
 class HorizontalForm(Form):
     """
     Lays out children horizontally. The first child is attacked to the left of
-    the form, all children are attached to the top and bottom
+    the form, all children are attached to the top and bottom. Note tha the last
+    child will NOT be offset by the margin, since tha form can be added to indefinitely --
+    if you want a complete margin you should nest this in another form
     """
 
     def layout(self):
         if len(self.controls):
             ctrls = [i for i in physical_controls(self)]
             af = self.form_attachments('top', 'bottom')
-            af.append((ctrls[0], 'left', self.spacing.top))
+            af.append([ctrls[0], 'left', self.margin.top])
             ac = self.form_series('left')
             self.attachForm = af
             self.attachControl = ac
@@ -275,8 +290,8 @@ class VerticalExpandForm(Form):
         if len(self.controls):
             ctrls = [i for i in physical_controls(self)]
             af = self.form_attachments('left', 'right')
-            af.append((ctrls[0], 'top', self.spacing.top))
-            af.append((ctrls[-1], 'bottom', self.spacing.bottom))
+            af.append([ctrls[0], 'top', self.margin.top])
+            af.append([ctrls[-1], 'bottom', self.margin.bottom])
             ac = self.form_series('top')
             self.attachForm = af
             self.attachControl = ac
@@ -293,7 +308,7 @@ class HorizontalExpandForm(Form):
     def layout(self):
         if len(self.controls):
             af = self.form_attachments('top', 'bottom')
-            af.append((self.controls[0], 'left', self.spacing.top))
+            af.append([self.controls[0], 'left', self.margin.top])
             ac = self.form_series('left')
             self.attachForm = af
             self.attachControl = ac
@@ -339,7 +354,7 @@ class VerticalThreePane(Form):
         af = self.form_attachments('left', 'right')
         ap = self.percentage_series('top')
         self.attachForm = af
-        self.attachForm = (self.controls[-1], 'bottom', self.spacing.bottom)
+        self.attachForm = (self.controls[-1], 'bottom', self.margin.bottom)
         self.attachPosition = ap[2:-2]
         self.attachControl = (self.controls[1], 'top', self.spacing.top, self.controls[0])
         self.attachControl = (self.controls[-2], 'bottom', self.spacing.bottom, self.controls[-1])
@@ -357,7 +372,7 @@ class HorizontalThreePane(Form):
         af = self.form_attachments('top', 'bottom')
         ap = self.percentage_series('left')
         self.attachForm = af
-        self.attachForm = (self.controls[-1], 'right', self.spacing.right)
+        self.attachForm = (self.controls[-1], 'right', self.margin.right)
         self.attachPosition = ap[2:-2]
         self.attachControl = (self.controls[1], 'left', self.spacing.left, self.controls[0])
         self.attachControl = (self.controls[-2], 'right', self.spacing.right, self.controls[-1])
@@ -374,8 +389,8 @@ class FooterForm(VerticalForm):
             raise ValueError("FooterForm requires at exactly 2 children")
         af = self.form_attachments('left', 'right')
         self.attachForm = af
-        self.attachForm = (self.controls[0], 'top', self.spacing.top)
-        self.attachForm = (self.controls[-1], 'bottom', self.spacing.bottom)
+        self.attachForm = (self.controls[0], 'top', self.margin.top)
+        self.attachForm = (self.controls[-1], 'bottom', self.margin.bottom)
         self.attachControl = (self.controls[0], 'bottom', self.spacing.bottom, self.controls[1])
         return len(self.controls)
 
@@ -390,8 +405,8 @@ class HeaderForm(VerticalForm):
             raise ValueError("FooterForm requires at exactly 2 children")
         af = self.form_attachments('left', 'right')
         self.attachForm = af
-        self.attachForm = (self.controls[0], 'top', self.spacing.top)
-        self.attachForm = (self.controls[-1], 'bottom', self.spacing.bottom)
+        self.attachForm = (self.controls[0], 'top', self.margin.top)
+        self.attachForm = (self.controls[-1], 'bottom', self.margin.bottom)
         self.attachControl = (self.controls[1], 'top', self.spacing.bottom, self.controls[0])
         return len(self.controls)
 
