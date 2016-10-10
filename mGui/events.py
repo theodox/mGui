@@ -175,12 +175,13 @@ class WeakMethodBound(object):
     hashable ID so that Events can identify multiple references to the same
     method and not duplicate them
     """
-    __slots__ = ('function', 'referent', 'ID')
+    __slots__ = ('function', 'referent', 'ID', '_ref_name')
 
     def __init__(self, f):
 
         self.function = f.im_func
         self.referent = weakref.ref(f.im_self)
+        self._ref_name = f.im_func.__name__
         self.ID = id(f.im_self) ^ id(f.im_func.__name__)
 
     def __call__(self, *arg, **kwarg):
@@ -188,7 +189,7 @@ class WeakMethodBound(object):
         if not ref is False and not ref is None:
             return apply(self.function, (self.referent(),) + arg, kwarg)
         else:
-            raise DeadReferenceError
+            raise DeadReferenceError("Reference to the bound method {0} no longer exists".format(self._ref_name))
 
     def __eq__(self, other):
         if not hasattr(other, 'ID'):
@@ -204,17 +205,18 @@ class WeakMethodFree(object):
     """
     Encapsulates a weak reference to an unbound method
     """
-    __slots__ = ('function', 'ID')
+    __slots__ = ('function', 'ID', '_ref_name')
 
     def __init__(self, f):
         self.function = weakref.ref(f)
         self.ID = id(f)
+        self._ref_name = f.__name__
 
     def __call__(self, *arg, **kwarg):
         if self.function():
             return apply(self.function(), arg, kwarg)
         else:
-            raise DeadReferenceError
+            raise DeadReferenceError("Reference to unbound method {0} no longer exists".format(self._ref_name))
 
     def __eq__(self, other):
         if not hasattr(other, 'ID'): return False
