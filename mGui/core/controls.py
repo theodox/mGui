@@ -783,7 +783,7 @@ class TextScrollList(Control):
 
     @property
     def items(self):
-        return self.allItems
+        return self.allItems or []
 
     @items.setter
     def items(self, items):
