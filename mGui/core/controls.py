@@ -730,8 +730,8 @@ class Text(Control):
 class TextField(Control):
     """Wrapper class for cmds.textField"""
     CMD = cmds.textField
-    _ATTRIBS = ['insertText', 'insertionPosition', 'text', 'editable', 'fileName', 'font']
-    _CALLBACKS = ['alwaysInvokeEnterCommandOnReturn', 'changeCommand', 'enterCommand', 'receiveFocusCommand']
+    _ATTRIBS = ['alwaysInvokeEnterCommandOnReturn', 'insertText', 'insertionPosition', 'text', 'editable', 'fileName', 'font']
+    _CALLBACKS = ['changeCommand', 'enterCommand', 'receiveFocusCommand']
     _BIND_SRC = 'text'
     _BIND_TGT = 'text'
     _BIND_TRIGGER = 'changeCommand'
