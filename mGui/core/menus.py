@@ -41,7 +41,24 @@ class OptionMenu(Nested):
                   'popupMenuArray']
     _CALLBACKS = ['changeCommand', 'dragCallback', 'dropCallback', 'visibleChangeCommand']
     _BIND_SRC = 'value'
+    _BIND_TGT = 'items'
     _BIND_TRIGGER = 'changeCommand'
+
+    @property
+    def items(self):
+        return self.controls
+
+    @items.setter
+    def items(self, value):
+        selected = self.select
+        self.clear()
+        self.controls[:] = [MenuItem(val, parent=self) for val in value]
+        if selected:
+            self.select = selected
+
+    def clear(self):
+        for long_name in self.itemListLong or []:
+            cmds.deleteUI(long_name)
 
 
 class ActiveOptionMenu(OptionMenu):
