@@ -46,13 +46,13 @@ class OptionMenu(Nested):
 
     @property
     def items(self):
-        return self.controls
+        return [i.tag for i in self.controls]
 
     @items.setter
     def items(self, value):
         selected = self.select
         self.clear()
-        self.controls[:] = [MenuItem(val, parent=self) for val in value]
+        self.controls[:] = [MenuItem(val, parent=self, tag=val) for val in value]
         if selected:
             self.select = selected
 
