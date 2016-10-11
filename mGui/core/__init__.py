@@ -322,7 +322,7 @@ class Nested(Control):
         remove <control> from my children
         """
         if control not in self.controls:
-            raise KeyError, "%s is not a child of %s"(control, self)
+            raise KeyError('{0} is not a child of {1}'.format(control, self))
         self.controls.remove(control)
         control.delete(control)
         for key, ctrl in self.named_children.items():
@@ -344,7 +344,7 @@ class Nested(Control):
     def __getattr__(self, item):
         if item in self.named_children:
             return self.named_children[item]
-        raise AttributeError
+        super(Nested, self).__getattribute__(item)
 
     def __iter__(self):
         for sub in self.controls:
