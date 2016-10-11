@@ -38,28 +38,17 @@ The goal is to provide the most consistent and least wordy way of creating simpl
 you can write this:
 
 	     
-	import pymel.core as pm
-	from mGui.gui import *
-	import mGui.observable as obs
-	import mGui.lists as lists
-	from mGui.bindings import bind, BindingContext
-	
-	bound = obs.ViewCollection(pm.PyNode("pCube1"), pm.PyNode("pPlane2"))   
-	
-	with gui.Window('window', title = 'fred') as example_window:
-	    with BindingContext() as bind_ctx:
-	        with VerticalForm('main') as main:
-	            Text(None, label = "The following items don't have vertex colors")
-	            lists.VerticalList('lister' ).Collection < bind() < bound  
-	            with HorizontalStretchForm('buttons'):
-	                Button('refresh', l='Refresh')
-	                Button('close', l='Close')
-	
-	# show the window
-	example_window.show()
-	
-	# add two items to the list...
-	bound.add("top", "persp")
+    bound = ObservableCollection("pCube1", "pPlane1")
+    
+    with BindingWindow(title = 'example window') as test_window:
+        with VerticalForm() as main:
+            Text(label = "The following items don't have vertex colors")
+            list_view = VerticalList()
+            list_view.bind.collection < bind() < bound
+            with HorizontalStretchForm('buttons'):
+                Button('refresh', l='Refresh')
+                Button('close', l='Close')
+    test_window.show()             
 
 And make adjustments like this:
 
