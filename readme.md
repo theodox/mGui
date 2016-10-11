@@ -101,6 +101,8 @@ In order to simplify this process, **mGui.bindings** defines  _Bindings_ - class
      
  will tie the visibility of the cube to the state of the checkbox.
  
+ The module `mGui.lists` provides a set of pre-built collection widgets designed for use with binding. The `VerticalList`, `HorizontalList`, `WrapList` and `ColumnList` will draw items in a scrolling list view for every item in their bound collections. The `itemTemplate` class allows you to create a custom widget display for any incoming data type, so you can create rich UIs with inline controls, multiple lines of data, and customizable styles.
+ 
 ## Forms 
 
 The traditional Maya formLayout command is the most powerful and flexible type of layout. Unfortunately, it's also the most awkward to use. Attaching childrent to a form requires creating long chains of argument which are tough to read and to parse.
