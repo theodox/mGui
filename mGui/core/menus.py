@@ -40,6 +40,25 @@ class OptionMenu(Nested):
     _READ_ONLY = ['fullPathName', 'itemListLong', 'itemListShort', 'isObscured', 'numberOfItems', 'numberOfPopupMenus',
                   'popupMenuArray']
     _CALLBACKS = ['changeCommand', 'dragCallback', 'dropCallback', 'visibleChangeCommand']
+    _BIND_SRC = 'value'
+    _BIND_TGT = 'items'
+    _BIND_TRIGGER = 'changeCommand'
+
+    @property
+    def items(self):
+        return [i.tag for i in self.controls]
+
+    @items.setter
+    def items(self, value):
+        selected = self.select
+        self.clear()
+        self.controls[:] = [MenuItem(val, parent=self, tag=val) for val in value]
+        if selected:
+            self.select = selected
+
+    def clear(self):
+        for long_name in self.itemListLong or []:
+            cmds.deleteUI(long_name)
 
 
 class ActiveOptionMenu(OptionMenu):
@@ -50,7 +69,7 @@ class ActiveOptionMenu(OptionMenu):
 
     """
 
-    def __init__(self, key, *args, **kwargs):
+    def __init__(self, key = None, *args, **kwargs):
         super(ActiveOptionMenu, self).__init__(key, *args, **kwargs)
         self.changeCommand += self.fire_menu_callback
 
@@ -58,7 +77,7 @@ class ActiveOptionMenu(OptionMenu):
         """
         this ensures that the command attached to the selected MenuItem is fired when that menu is selected
         """
-        selected = self.Controls[self.select - 1]
+        selected = self.controls[self.select - 1]
         selected.command()
 
 

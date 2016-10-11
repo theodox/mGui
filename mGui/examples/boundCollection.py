@@ -43,17 +43,18 @@ Key points:
 
 class ExampleTemplate(lists.ItemTemplate):
     def widget(self, item):
-        with forms.HorizontalExpandForm('tmp_%i' % id(item),  width=250,) as root:
-                gui.IconTextButton('delete', style='iconAndTextHorizontal', image='delete', tag=item)
-                with forms.VerticalForm('names'):
-                    gui.NameField(None, object=item, width=250)
-                with forms.VerticalForm('xform'):
-                    gui.AttrFieldGrp('t', label='translate', attribute=item + ".t")
-        return lists.Templated(item, root, request_delete=root.delete.command)
+        with forms.HorizontalExpandForm('tmp_%i' % id(item), width=250, tag = item ) as root:
+            delete_button=  gui.IconTextButton( style='iconAndTextHorizontal', image='delete')
+            with forms.VerticalForm('names') as filler:
+                name_field = gui.NameField(object=item, width=250)
+            with forms.VerticalForm('xform'):
+                gui.AttrFieldGrp('t', label='translate', attribute=item + ".t")
+
+        delete_button.tag = root
+        return lists.Templated(item, root, request_delete=root.delete_button.command)
 
 
 class BoundCollectionWindow(object):
-
     KEEPALIVE = None
     # this is handy for the example, you don't want to do it this way
     # if you really need multiple windows: the single Keepalive will
@@ -62,28 +63,27 @@ class BoundCollectionWindow(object):
     def __init__(self, collection):
 
         # this is the collection of stuff to manage
-        self.Collection = observable.ViewCollection(*collection)
+        self.collection = observable.ViewCollection(*collection)
 
-        with gui.BindingWindow(None, title='bound collection example') as self.window:
+        with gui.BindingWindow(title='bound collection example') as self.window:
             with forms.VerticalExpandForm('main') as main:
-                gui.Separator(None, style='none', height=12)
-                gui.Text(None, label="Here's stuff in my list")
-                gui.Separator(None, style='none', height=12)
+                gui.Separator(style='none', height=12)
+                gui.Text(label="Here's stuff in my list")
+                gui.Separator(style='none', height=12)
 
                 with forms.HorizontalStretchForm('filter') as flt:
                     gui.TextField('filtertext', width=480)
-                    gui.Separator(None, horizontal=False, style='none', width=4)
+                    gui.Separator(horizontal=False, style='none', width=4)
                     with forms.HorizontalExpandForm('display', width=32) as hmm:
-                        gui.Text('shown').bind.label < bind() < self.Collection.bind.ViewCount
-                        gui.Text(None, '/')
-                        gui.Text('total').bind.label < bind() < self.Collection.bind.Count
+                        shown = gui.Text('shown').bind.label < bind() < self.collection.bind.viewCount
+                        gui.Text(label='/')
+                        total = gui.Text('total').bind.label < bind() < self.collection.bind.count
 
-                self.Collection > bind() > lists.VerticalList('itemList', itemTemplate=ExampleTemplate).Collection
+                self.collection > bind() > lists.VerticalList('itemList', itemTemplate=ExampleTemplate).collection
 
-        self.window.main.itemList.NewWidget += self.hook_widget_events
+        self.window.main.itemList.onWidgetCreated += self.hook_widget_events
         flt.filtertext.enterCommand += self.update_filter
         self.KEEPALIVE = self
-
 
     def update_filter(self, *args, **kwargs):
         sender = kwargs['sender']
@@ -91,17 +91,21 @@ class BoundCollectionWindow(object):
             l_string = "lambda x : x %s"
             filter_exp = eval((l_string % sender.text))
 
-            self.Collection.update_filter(filter_exp)
+            self.collection.update_filter(filter_exp)
         except:
-            self.Collection.update_filter(None)
+            self.collection.update_filter(None)
 
     def do_delete(self, *args, **kwargs):
-        self.Collection.remove(kwargs['sender'].Tag)
-        cmds.delete(kwargs['sender'].Tag)
+        template = kwargs['sender'].tag
+        original = template.tag
+        name_field = template.filler.name_field
+        obj = name_field.object
+        cmds.delete(obj)
+        self.collection.remove(original)
 
     def hook_widget_events(self, *args, **kwargs):
         print "I HOOKED", args, kwargs
-        kwargs['item'].Events['request_delete'] += self.do_delete
+        kwargs['item'].events['request_delete'] += self.do_delete
 
     def show(self):
         self.window.show()
@@ -117,7 +121,7 @@ def run():
     try:
         test = BoundCollectionWindow([])
         test.show()
-        test.Collection.add(*cmds.ls(type='transform'))
+        test.collection.add(*cmds.ls(type='transform'))
     except:
         import traceback
         print traceback.format_exc()

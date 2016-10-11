@@ -4,6 +4,7 @@ Created on Mar 1, 2014
 @author: Stephen Theodore
 '''
 import maya.standalone
+
 maya.standalone.initialize()
 import mGui.bindings as bindings
 from unittest import TestCase
@@ -13,8 +14,6 @@ import pymel.core as pm
 
 
 class Test_Accessors(TestCase):
-
-
     def setUp(self):
         bindings.BREAK_ON_BIND_FAILURE = False
         bindings.BREAK_ON_ACCESS_FAILURE = True
@@ -23,33 +22,31 @@ class Test_Accessors(TestCase):
         bindings.BREAK_ON_BIND_FAILURE = False
         bindings.BREAK_ON_ACCESS_FAILURE = True
 
-
     def test_dict_get(self):
-        example = {'hello':'world'}
+        example = {'hello': 'world'}
         ac = bindings.DictAccessor(example, 'hello')
         assert ac.pull() == 'world'
 
     def test_dict_set(self):
-        example = {'hello':'world'}
+        example = {'hello': 'world'}
         ac = bindings.DictAccessor(example, 'hello')
         ac.push('Las Vegas')
         assert example['hello'] == 'Las Vegas'
 
-
     def test_dict_raises(self):
-        example = {'hello':'world'}
+        example = {'hello': 'world'}
         ac = bindings.DictAccessor(example, 'i do not exist')
         bindings.BREAK_ON_ACCESS_FAILURE = True
         self.assertRaises(Exception, ac.pull)
 
     def test_dict_returns_zero_for_no_key(self):
-        example = {'hello':'world'}
+        example = {'hello': 'world'}
         ac = bindings.DictAccessor(example, 'i do not exist')
         bindings.BREAK_ON_ACCESS_FAILURE = False
         assert ac.pull() == 0
 
     def test_dict_set_does_not_raise(self):
-        example = {'hello':'world'}
+        example = {'hello': 'world'}
         ac = bindings.DictAccessor(example, 'i do not exist')
         bindings.BREAK_ON_ACCESS_FAILURE = True
         ac.push(True)
@@ -87,6 +84,7 @@ class Test_Accessors(TestCase):
         class Dummy(object):
             def __init__(self):
                 self._val = 999
+
             @property
             def test_prop(self):
                 return self._val
@@ -126,6 +124,7 @@ class Test_Accessors(TestCase):
         class Dummy(object):
             def __init__(self):
                 self._val = 999
+
             def get_val(self):
                 return self._val
 
@@ -137,6 +136,7 @@ class Test_Accessors(TestCase):
         class Dummy(object):
             def __init__(self):
                 self._val = 999
+
             def get_val(self, doit):
                 if doit == 888:
                     return self._val
@@ -149,6 +149,7 @@ class Test_Accessors(TestCase):
         class Dummy(object):
             def __init__(self):
                 self._val = 999
+
             def get_val(self, **kwargs):
                 if kwargs['doit'] == 888:
                     return self._val
@@ -161,8 +162,10 @@ class Test_Accessors(TestCase):
         class Dummy(object):
             def __init__(self):
                 self._val = 999
+
             def get_val(self):
                 return self._val
+
             def set_val(self, val):
                 self._val = val
 
@@ -171,14 +174,15 @@ class Test_Accessors(TestCase):
         ac.push(888)
         assert sample._val == 888
 
-
     def test_method_accessor_set_args(self):
         class Dummy(object):
             def __init__(self):
                 self._val = 999
+
             def get_val(self, doit):
                 if doit == 888:
                     return self._val
+
             def set_val(self, *args):
                 self._val = args[0]
 
@@ -186,7 +190,6 @@ class Test_Accessors(TestCase):
         ac = bindings.MethodAccessor(sample, 'set_val')
         ac.push(777)
         assert sample._val == 777
-
 
     def test_method_accessor_kwargs_set(self):
 
@@ -199,13 +202,15 @@ class Test_Accessors(TestCase):
 
         sample = Dummy()
         ac = bindings.MethodAccessor(sample, 'set_val')
-        ac.push (val=888)
+        ac.push(val=888)
         assert sample._val == 888
 
     def test_cmds_accessor_get(self):
         cmds.file(new=True, f=True)
-        ac = bindings.CmdsAccessor('front', 'r')
-        assert ac.pull() == [(0, 0, 0)]
+        test_obj, _ = cmds.polyCube()
+        cmds.xform(test_obj, rotation=(10, 10, 10))
+        ac = bindings.CmdsAccessor(test_obj, 'r')
+        assert ac.pull() == [(10, 10, 10)]
 
     def test_cmds_accessor_set(self):
         cmds.file(new=True, f=True)
@@ -215,7 +220,8 @@ class Test_Accessors(TestCase):
 
     def test_py_accessor_get(self):
         cmds.file(new=True, f=True)
-        pynode = pm.PyNode('front')
+        test_obj, _ = cmds.polyCube()
+        pynode = pm.PyNode(test_obj)
         ac = bindings.PyNodeAccessor(pynode, 'rx')
         assert ac.pull() == 0
 
@@ -240,8 +246,8 @@ class Test_Accessors(TestCase):
         ac.push(55)
         assert front.attr('rx').get() == 55
 
-class TestAccessorFactory(TestCase):
 
+class TestAccessorFactory(TestCase):
     def test_find_simple_property(self):
         class Dummy(object):
             def __init__(self):
@@ -253,7 +259,7 @@ class TestAccessorFactory(TestCase):
         assert accessor.pull() == 999
 
     def test_find_mapped_property(self):
-        sample = {'hello':'world'}
+        sample = {'hello': 'world'}
         accessor = bindings.get_accessor(sample, 'hello')
         assert isinstance(accessor, bindings.DictAccessor)
         assert accessor.pull() == 'world'
@@ -269,13 +275,12 @@ class TestAccessorFactory(TestCase):
                     return self.secret
                 else:
                     return -999
+
             def __setitem__(self, key, val):
                 if key == 'test': self.secret = val
 
             def __len__(self):
                 return 1
-
-
 
         example = MapTest()
         accessor = bindings.get_accessor(example, 'test')
@@ -295,7 +300,6 @@ class TestAccessorFactory(TestCase):
     def test_cmds_accessor_excepts_for_nonexistent_attrrib(self):
         cmds.file(new=True, f=True)
         self.assertRaises(bindings.BindingError, lambda: bindings.get_accessor('persp', 'dontexist'))
-
 
     def test_pynode_accessor(self):
         cmds.file(new=True, f=True)
@@ -322,10 +326,8 @@ class TestAccessorFactory(TestCase):
 class TestBindings(TestCase):
     class Example(object):
         def __init__(self, name, val):
-            self.Name = name
-            self.Val = val
-
-
+            self.name = name
+            self.val = val
 
     def setUp(self):
         bindings.BREAK_ON_BIND_FAILURE = False
@@ -338,107 +340,104 @@ class TestBindings(TestCase):
     def test_basic_binding(self):
         ex = self.Example('fred', 'flintstone')
         ex2 = self.Example('barney', 'rubble')
-        tester = bindings.Binding(bindings.get_accessor(ex, 'Name'), bindings.get_accessor(ex2, 'Val'))
+        tester = bindings.Binding(bindings.get_accessor(ex, 'name'), bindings.get_accessor(ex2, 'val'))
         assert tester
 
     def test_basic_binding_update(self):
         ex = self.Example('fred', 'flintstone')
         ex2 = self.Example('barney', 'rubble')
-        tester = bindings.Binding(bindings.get_accessor(ex, 'Name'), bindings.get_accessor(ex2, 'Val'))
+        tester = bindings.Binding(bindings.get_accessor(ex, 'name'), bindings.get_accessor(ex2, 'val'))
         tester()
-        assert ex2.Val == ex.Name
+        assert ex2.val == ex.name
 
     def test_binding_source_order(self):
         ex = self.Example('fred', 'flintstone')
         ex2 = self.Example('barney', 'rubble')
-        tester = bindings.Binding(bindings.get_accessor(ex, 'Name'), bindings.get_accessor(ex2, 'Val'))
-        assert tester.Getter.Target.Name == 'fred'
-        assert tester.Setter.Target.Name == 'barney'
+        tester = bindings.Binding(bindings.get_accessor(ex, 'name'), bindings.get_accessor(ex2, 'val'))
+        assert tester.getter.target.name == 'fred'
+        assert tester.setter.target.name == 'barney'
 
     def test_binding_survives_object_deletion(self):
         ex = self.Example('fred', 'flintstone')
         ex2 = self.Example('barney', 'rubble')
-        tester = bindings.Binding(bindings.get_accessor(ex, 'Name'), bindings.get_accessor(ex2, 'Val'))
-        del(ex)
+        tester = bindings.Binding(bindings.get_accessor(ex, 'name'), bindings.get_accessor(ex2, 'val'))
+        del (ex)
         assert not tester()  # deleted referent = failed binding
-        assert ex2.Val == 'rubble'  # so value is unchanged
+        assert ex2.val == 'rubble'  # so value is unchanged
 
     def test_bindings_except_when_allowed(self):
         ex = self.Example('fred', 'flintstone')
         ex2 = self.Example('barney', 'rubble')
-        tester = bindings.Binding(bindings.get_accessor(ex, 'Name'), bindings.get_accessor(ex2, 'Val'))
+        tester = bindings.Binding(bindings.get_accessor(ex, 'name'), bindings.get_accessor(ex2, 'val'))
         bindings.BREAK_ON_ACCESS_FAILURE = True
         bindings.BREAK_ON_BIND_FAILURE = True
-        del(ex)
+        del (ex)
         self.assertRaises(bindings.BindingError, tester)
-
 
     def test_binding_excepts_on_bad_arguments(self):
         self.assertRaises(bindings.BindingError, lambda: bindings.Binding(None, None))
-                          
 
     def test_invalidate(self):
         ex = self.Example('fred', 'flintstone')
         ex2 = self.Example('barney', 'rubble')
-        tester = bindings.Binding(bindings.get_accessor(ex, 'Name'), bindings.get_accessor(ex2, 'Val'))
+        tester = bindings.Binding(bindings.get_accessor(ex, 'name'), bindings.get_accessor(ex2, 'val'))
         tester.invalidate()
         assert not tester
 
     def test_invalid_binding_fails(self):
         ex = self.Example('fred', 'flintstone')
         ex2 = self.Example('barney', 'rubble')
-        tester = bindings.Binding(bindings.get_accessor(ex, 'Name'), bindings.get_accessor(ex2, 'Val'))
+        tester = bindings.Binding(bindings.get_accessor(ex, 'name'), bindings.get_accessor(ex2, 'val'))
         tester.invalidate()
         assert not tester()
+
 
 class TestBindable(TestCase):
     class Example(bindings.Bindable):
         def __init__(self, name, val):
-            self.Name = name
-            self.Val = val
-
+            self.name = name
+            self.val = val
 
     def test_bindable_bind_to(self):
         ex = self.Example('fred', 'flintstone')
         ex2 = self.Example('barney', 'rubble')
-        test = ex & "Name" > bindings.bind() > (ex2, 'Val')
+        test = ex & "name" > bindings.bind() > (ex2, 'val')
         assert isinstance(test, bindings.Binding)
         assert test
         test()
-        assert ex2.Val == ex.Name
+        assert ex2.val == ex.name
 
     def test_bindable_bind_from(self):
         ex = self.Example('fred', 'flintstone')
         ex2 = self.Example('barney', 'rubble')
-        test = ex & "Name" < bindings.bind() < (ex2, 'Val')
+        test = ex & "name" < bindings.bind() < (ex2, 'val')
         assert isinstance(test, bindings.Binding)
         assert test
         test()
-        assert ex.Name == ex2.Val
+        assert ex.name == ex2.val
 
     def test_bindable_plus(self):
         ex = self.Example('fred', 'flintstone')
-        tester = ex & 'Val'
-        assert tester.Item == ex
-        assert tester.Attribute == 'Val'
+        tester = ex & 'val'
+        assert tester.item == ex
+        assert tester.attribute == 'val'
 
     def test_bind_to_cmds_string(self):
         ex = self.Example('cube', 45)
         cmds.file(new=True, f=True)
         cmds.polyCube()
-        tester = ex & 'Val' > bindings.bind() > ('pCube1', 'tx')
+        tester = ex & 'val' > bindings.bind() > ('pCube1', 'tx')
         tester()
         assert cmds.getAttr('pCube1.tx') == 45
-        tester2 = ex & 'Val' > bindings.bind() > 'pCube1.ty'
+        tester2 = ex & 'val' > bindings.bind() > 'pCube1.ty'
         tester2()
         assert cmds.getAttr('pCube1.ty') == 45
-
 
     def test_bind_to_pyAttr(self):
         ex = self.Example('cube', 45)
         cmds.file(new=True, f=True)
         cube, shape = pm.polyCube()
-        tester = ex & 'Val' > bindings.bind() > cube.tx
+        tester = ex & 'val' > bindings.bind() > cube.tx
         tester()
         assert cmds.getAttr('pCube1.tx') == 45
 
@@ -446,79 +445,77 @@ class TestBindable(TestCase):
         ex = self.Example('cube', 45)
         cmds.file(new=True, f=True)
         cube, shape = pm.polyCube()
-        tester = ex & 'Val' > bindings.bind() > (cube, 'tx')
+        tester = ex & 'val' > bindings.bind() > (cube, 'tx')
         tester()
         assert cmds.getAttr('pCube1.tx') == 45
 
 
 class TestBindableObject(TestCase):
     class Example(bindings.BindableObject):
-        _BIND_SRC = 'Name'
-        _BIND_TGT = 'Val'
+        _BIND_SRC = 'name'
+        _BIND_TGT = 'val'
 
         def __init__(self, name, val):
-            self.Name = name
-            self.Val = val
+            self.name = name
+            self.val = val
 
     def test_default_src(self):
         ex = self.Example('fred', 'flinstone')
-        assert ex.bind_source == 'Name'
+        assert ex.bind_source == 'name'
 
     def test_default_tgt(self):
         ex = self.Example('fred', 'flinstone')
-        assert ex.bind_target == 'Val'
+        assert ex.bind_target == 'val'
 
     def test_default_bindings(self):
         ex1 = self.Example('fred', 'flintstone')
         ex2 = self.Example('barney', 'rubble')
         tester = ex1 > bindings.bind() > ex2
         tester()
-        assert ex2.Val == ex1.Name
+        assert ex2.val == ex1.name
         tester = ex1 < bindings.bind() < ex2
         tester()
-        assert ex1.Val == ex2.Name
+        assert ex1.val == ex2.name
 
     def test_override_default_bindings(self):
         ex1 = self.Example('fred', 'flintstone')
         ex2 = self.Example('barney', 'rubble')
-        tester = ex1 & 'Val' > bindings.bind() > ex2 & 'Name'
+        tester = ex1 & 'val' > bindings.bind() > ex2 & 'name'
         tester()
-        assert ex2.Name == ex1.Val
+        assert ex2.name == ex1.val
 
     def text_mix_default_and_non_default_bindings(self):
-
         ex1 = self.Example('fred', 'flintstone')
-        ex2 = {'pebbles':'bambam'}
+        ex2 = {'pebbles': 'bambam'}
         tester = ex1 > bindings.bind() > ex2 & 'pebbles'
         tester()
         assert ex2['pebbles'] == 'fred'
 
-class Test_BindProxy(TestCase):
 
+class Test_BindProxy(TestCase):
     def test_bindproxy_site(self):
         b = bindings.BindProxy('persp', 'ty')
-        assert b.Item == 'persp'
+        assert b.item == 'persp'
 
     def test_bindproxy_dict(self):
-        b = bindings.BindProxy({'hello':'world'}, 'hello')
-        assert b.Item['hello'] == 'world'
+        b = bindings.BindProxy({'hello': 'world'}, 'hello')
+        assert b.item['hello'] == 'world'
 
     def test_bindproxy_site_nesting(self):
         class Example(bindings.BindableObject):
-            _BIND_SRC = 'Name'
-            _BIND_TGT = 'Val'
+            _BIND_SRC = 'name'
+            _BIND_TGT = 'val'
 
             def __init__(self, name, val):
-                self.Name = name
-                self.Val = val
+                self.name = name
+                self.val = val
 
         ex = Example('fred', 'flintstone')
-        test = bindings.BindProxy(ex, 'Val')
-        assert test.Item is ex
+        test = bindings.BindProxy(ex, 'val')
+        assert test.item is ex
 
 
 class TestBindingCollection(TestCase):
-
     def setUp(self):
         bindings.BREAK_ON_BIND_FAILURE = False
         bindings.BREAK_ON_ACCESS_FAILURE = True
@@ -527,63 +524,62 @@ class TestBindingCollection(TestCase):
         bindings.BREAK_ON_BIND_FAILURE = False
         bindings.BREAK_ON_ACCESS_FAILURE = True
 
-
     class Example(bindings.BindableObject):
-        _BIND_SRC = 'Name'
-        _BIND_TGT = 'Val'
+        _BIND_SRC = 'name'
+        _BIND_TGT = 'val'
 
         def __init__(self, name, val):
-            self.Name = name
-            self.Val = val
+            self.name = name
+            self.val = val
 
     def test_binding_collection_auto_update_defaults_on(self):
         fred = self.Example('fred', 'flintstone')
         barney = self.Example('barney', 'rubble')
         wilma = self.Example('wilma', None)
         bambam = self.Example('bambam', None)
-        guys = {'fred':None, 'barney':None}
+        guys = {'fred': None, 'barney': None}
         with bindings.BindingContext() as ctx:
-            fred & 'Val' > bindings.bind() > wilma  # default target
-            barney & 'Val' > bindings.bind() > bambam & 'Val'
+            fred & 'val' > bindings.bind() > wilma  # default target
+            barney & 'val' > bindings.bind() > bambam & 'val'
             fred > bindings.bind() > (guys, 'fred')  # default sources
             barney > bindings.bind() > (guys, 'barney')
-            
-        assert len(ctx.Bindings) == 4
-        assert wilma.Val == 'flintstone'
-        assert bambam.Val == 'rubble'
-        assert guys == {'fred':'fred', 'barney':'barney'}
+
+        assert len(ctx.bindings) == 4
+        assert wilma.val == 'flintstone'
+        assert bambam.val == 'rubble'
+        assert guys == {'fred': 'fred', 'barney': 'barney'}
 
     def test_binding_collection_auto_update_suppress(self):
         fred = self.Example('fred', 'flintstone')
         barney = self.Example('barney', 'rubble')
         wilma = self.Example('wilma', None)
         bambam = self.Example('bambam', None)
-        guys = {'fred':None, 'barney':None}
+        guys = {'fred': None, 'barney': None}
         with bindings.BindingContext(auto_update=False) as ctx:
-            fred & 'Val' > bindings.bind() > wilma  # default target
-            barney & 'Val' > bindings.bind() > bambam & 'Val'
+            fred & 'val' > bindings.bind() > wilma  # default target
+            barney & 'val' > bindings.bind() > bambam & 'val'
             fred > bindings.bind() > (guys, 'fred')  # default sources
             barney > bindings.bind() > (guys, 'barney')
-        assert len(ctx.Bindings) == 4
-        assert wilma.Val == None
-        assert bambam.Val == None
-        assert guys == {'fred':None, 'barney':None}
+        assert len(ctx.bindings) == 4
+        assert wilma.val == None
+        assert bambam.val == None
+        assert guys == {'fred': None, 'barney': None}
 
     def test_collection_deletes_bad_bindings(self):
         fred = self.Example('fred', 'flintstone')
         barney = self.Example('barney', 'rubble')
         wilma = self.Example('wilma', None)
         bambam = self.Example('bambam', None)
-        guys = {'fred':None, 'barney':None}
+        guys = {'fred': None, 'barney': None}
         with bindings.BindingContext(False) as ctx:
-            fred & 'Val' > bindings.bind() > wilma  # default target
-            barney & 'Val' > bindings.bind() > bambam & 'Val'
+            fred & 'val' > bindings.bind() > wilma  # default target
+            barney & 'val' > bindings.bind() > bambam & 'val'
             fred > bindings.bind() > (guys, 'fred')  # default sources
             barney > bindings.bind() > (guys, 'barney')
-            del(fred)  # delete referent invalidating 2 bindings
+            del (fred)  # delete referent invalidating 2 bindings
         ctx.update()
-        assert len(ctx.Bindings) == 2
-        assert wilma.Val is None
+        assert len(ctx.bindings) == 2
+        assert wilma.val is None
         assert guys['fred'] is None
 
     def test_collection_hierarchy(self):
@@ -591,83 +587,77 @@ class TestBindingCollection(TestCase):
         barney = self.Example('barney', 'rubble')
         wilma = self.Example('wilma', None)
         bambam = self.Example('bambam', None)
-        guys = {'fred':None, 'barney':None}
+        guys = {'fred': None, 'barney': None}
         with bindings.BindingContext(auto_update=False) as outer:
-            _ = fred & 'Val' > bindings.bind() > wilma
+            _ = fred & 'val' > bindings.bind() > wilma
             with bindings.BindingContext(auto_update=False) as middle:
-                _ = barney & 'Val' > bindings.bind() > bambam & 'Val'
+                _ = barney & 'val' > bindings.bind() > bambam & 'val'
                 with bindings.BindingContext(auto_update=False) as ctx:
                     _ = fred > bindings.bind() > (guys, 'fred')  # default sources
                     _ = barney > bindings.bind() > (guys, 'barney')
 
         outer.update()
-        assert wilma.Val == 'flintstone'
-        assert bambam.Val == 'rubble'
-        assert guys == {'fred':'fred', 'barney':'barney'}
+        assert wilma.val == 'flintstone'
+        assert bambam.val == 'rubble'
+        assert guys == {'fred': 'fred', 'barney': 'barney'}
 
     def test_collection_hierarchy_does_not_recurse_automatically(self):
         fred = self.Example('fred', 'flintstone')
         barney = self.Example('barney', 'rubble')
         wilma = self.Example('wilma', None)
         bambam = self.Example('bambam', None)
-        guys = {'fred':None, 'barney':None}
+        guys = {'fred': None, 'barney': None}
         with bindings.BindingContext(auto_update=True) as outer:
-            fred & 'Val' > bindings.bind() > wilma
+            fred & 'val' > bindings.bind() > wilma
             with bindings.BindingContext(auto_update=False) as middle:
-                barney & 'Val' > bindings.bind() > bambam & 'Val'
+                barney & 'val' > bindings.bind() > bambam & 'val'
                 with bindings.BindingContext(auto_update=False) as ctx:
                     fred > bindings.bind() > (guys, 'fred')  # default sources
                     barney > bindings.bind() > (guys, 'barney')
 
-
-        assert wilma.Val == 'flintstone'
-        assert not bambam.Val == 'rubble'
-        assert not guys == {'fred':'fred', 'barney':'barney'}
-
+        assert wilma.val == 'flintstone'
+        assert not bambam.val == 'rubble'
+        assert not guys == {'fred': 'fred', 'barney': 'barney'}
 
     def test_collection_hierarchy_control_recursion(self):
         fred = self.Example('fred', 'flintstone')
         barney = self.Example('barney', 'rubble')
         wilma = self.Example('wilma', None)
         bambam = self.Example('bambam', None)
-        guys = {'fred':None, 'barney':None}
+        guys = {'fred': None, 'barney': None}
         with bindings.BindingContext(auto_update=False) as outer:
-            fred & 'Val' > bindings.bind() > wilma
+            fred & 'val' > bindings.bind() > wilma
             with bindings.BindingContext(auto_update=False) as middle:
-                barney & 'Val' > bindings.bind() > bambam & 'Val'
+                barney & 'val' > bindings.bind() > bambam & 'val'
                 with bindings.BindingContext(auto_update=False) as ctx:
                     fred > bindings.bind() > (guys, 'fred')  # default sources
                     barney > bindings.bind() > (guys, 'barney')
 
         outer.update(False)
         middle.update(False)
-        assert wilma.Val == 'flintstone'
-        assert bambam.Val == 'rubble'
-        assert not guys == {'fred':'fred', 'barney':'barney'}
+        assert wilma.val == 'flintstone'
+        assert bambam.val == 'rubble'
+        assert not guys == {'fred': 'fred', 'barney': 'barney'}
+
 
 class TestTwoWayBinding(TestCase):
-
     class Example(bindings.BindableObject):
-        _BIND_SRC = 'Name'
-        _BIND_TGT = 'Val'
+        _BIND_SRC = 'name'
+        _BIND_TGT = 'val'
 
         def __init__(self, name, val):
-            self.Name = name
-            self.Val = val
+            self.name = name
+            self.val = val
 
     def test_two_way_assignment(self):
         fred = self.Example('fred', 'flintstone')
         barney = self.Example('barney', 'rubble')
 
-        test = fred.bind.Name | bindings.bind() | barney.bind.Val
-        barney.Val = 'new'
+        test = fred.bind.name | bindings.bind() | barney.bind.val
+        barney.val = 'new'
         test()
-        assert fred.Name == barney.Val and barney.Val == 'new'
+        assert fred.name == barney.val and barney.val == 'new'
 
-        test = fred | bindings.bind() | barney
-        fred.Name = 'new'
+        fred.name = 'new2'
         test()
-        assert fred.Name == barney.Val and fred.Name == 'new'
-
-
-
+        assert fred.name == barney.val and fred.name == 'new2'

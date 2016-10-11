@@ -1,10 +1,13 @@
-import maya.cmds as cmds
+from collections import OrderedDict
+import inspect
 
+import maya.cmds as cmds
 from mGui.bindings import BindableObject, BindingContext
 from mGui.styles import Styled
 from mGui.properties import CtlProperty, CallbackProperty
 from mGui.scriptJobs import ScriptJobCallbackProperty
 
+from weakref import ref
 
 """
 # MGui.Core
@@ -75,6 +78,10 @@ class ControlMeta(type):
         for item in _CALLBACKS:
             kwargs[item] = CallbackProperty(item)
 
+        kwargs['parent'] = None
+
+        kwargs['__bases__'] = parents
+
         return super(ControlMeta, mcs).__new__(mcs, name, parents, kwargs)
 
 
@@ -98,37 +105,29 @@ class Control(Styled, BindableObject):
     _READ_ONLY = ['isObscured', 'popupMenuArray', 'numberOfPopupMenus']
     __metaclass__ = ControlMeta
 
-    def __init__(self, key, *args, **kwargs):
+    onDeleted = ScriptJobCallbackProperty('onDeleted', 'uiDeleted')
+
+    def __init__(self, key=None, **kwargs):
+        # apply Styled, and filter out any CSS tags
+        super(Control, self).__init__(kwargs)
+
         # arbitrary tag data. Use with care to avoid memory leaks
-        self.Tag = self._extract_kwarg('tag', kwargs)
+        self.tag = kwargs.pop('tag', None)
 
-        # this applies any keywords in the current style that are part of the Maya gui flags
-        # other flags (like float and margin) are ignored
-        _style = dict((k, v) for k, v in self.Style.items() if k in self._ATTRIBS or k in Control._ATTRIBS)
-        _style.update(kwargs)
+        maya_kwargs = self.format_maya_arguments(**kwargs)
 
-        # if the style dict contains an 'html' keyword, treate it as a
-        # callable which modifies the incoming 'label'
-        if 'css' in _style:
-            css = _style['css']
-            if 'html' in css and 'label' in _style:
-                _style['label'] = css['html'](_style['label'])
-            del _style['css']
+        # widget holds the actual maya gui string
+        self.widget = self.CMD(key, **maya_kwargs)
 
-        if not args:
-            args = (key,)
+        # key is our internal name
+        self.key = self.widget.split("|")[-1]
 
-        self.Widget = self.CMD(*args, **_style)
-        self.Key = key or "__" + self.Widget.split("|")[-1]
+        # Event objects
+        self.callbacks = {}
 
-        """
-        Widget is the gui element in the scene
-        """
-        self.Callbacks = {}
-        """
-        A dictionary of Event objects
-        """
+        # add us to the current layout under our own key name
         Layout.add_current(self)
+        self.onDeleted += self.forget
 
     def register_callback(self, callbackName, event):
         """
@@ -136,19 +135,19 @@ class Control(Styled, BindableObject):
         gui widget's callback function
         """
         kwargs = {'e': True, callbackName: event}
-        self.CMD(self.Widget, **kwargs)
+        self.CMD(self.widget, **kwargs)
 
     def __nonzero__(self):
         return self.exists
 
     def __repr__(self):
         if self:
-            return self.Widget
+            return self.widget
         else:
             return "<deleted UI element %s>" % self.__class__
 
     def __str__(self):
-        return self.Widget
+        return self.widget
 
     def __iter__(self):
         yield self
@@ -156,17 +155,16 @@ class Control(Styled, BindableObject):
     @classmethod
     def wrap(cls, control_name, key=None):
 
-        def _spoof_create(*args, **kwargs):
+        def _spoof_create(*_, **__):
             return control_name
 
         try:
             cache_CMD = cls.CMD
             cls.CMD = _spoof_create
-            key = key or control_name
-            return cls(key, control_name)
+            return cls(key=control_name)
+
         finally:
             cls.CMD = cache_CMD
-
 
     @classmethod
     def from_existing(cls, key, widget):
@@ -174,25 +172,25 @@ class Control(Styled, BindableObject):
         Create an instance of <cls> from an existing widgets
         """
 
-        def fake_init(self, *args, **kwargs):
+        def fake_init(self, *_, **__):
             return widget
 
         _cmd = cls.CMD
+
         try:
             cls.CMD = fake_init
             return cls(key)
+
         finally:
             cls.CMD = _cmd
 
-    def _extract_kwarg(self, key, kwarg, default = None):
-        '''
-        gets the value for <key> from dictionary <kwarg> and returns it. If the key is present in <kwarg> it will be
-        removed. If a default is supplied it will be returned when the key is not present
-        '''
-        result = kwarg.get(key, default)
-        if key in kwarg:
-            del kwarg[key]
-        return result
+    def forget(self, *args, **kwargs):
+        self.callbacks.clear()
+        self.tag = None
+
+    @classmethod
+    def delete(cls, instance):
+        cmds.deleteUI(instance.widget)
 
 
 class Nested(Control):
@@ -207,13 +205,11 @@ class Nested(Control):
     """
     ACTIVE_LAYOUT = None
 
-    Deleted = ScriptJobCallbackProperty('Deleted', 'uiDeleted')
-
-    def __init__(self, key, *args, **kwargs):
-        self.Controls = []
+    def __init__(self, key=None, **kwargs):
+        self.controls = []
+        self.named_children = OrderedDict()
         self.ignore_exceptions = False
-        super(Nested, self).__init__(key, *args, **kwargs)
-        self.Deleted += self.forget
+        super(Nested, self).__init__(key, **kwargs)
 
     def __enter__(self):
         self.__cache_layout = Nested.ACTIVE_LAYOUT
@@ -223,54 +219,90 @@ class Nested(Control):
     def __exit__(self, typ, value, tb):
         # by default, allow inner exceptions to propagate up
         # you can turn this off in production by
-        # setting ignore_exceptionts to true
+        # setting ignore_exceptions to true
         # if this is suppresed you should expect misleading
         # error messages if child controls error out; parent controls
         # may get fewer controls than they expect, but the real
         # problem is in the suppressed exception
         if typ and not self.ignore_exceptions:
             return False
-        self.layout()
+
+        # look into the local namespace for Control-derived
+        # objects with named vars. If they are children of the context manager
+        # that is closing, add them with variable name as a key
+        # this supports a more natural, keyless idiom (see 'add')
+
+        owning_scope = inspect.currentframe().f_back
+        if owning_scope.f_locals.get('mGui_expand_stack'):
+            owning_scope = owning_scope.f_back
+        for key, value in owning_scope.f_locals.items():
+            if value in self:
+                self.add(value, key)
+
+        # restore the layout level
         Nested.ACTIVE_LAYOUT = self.__cache_layout
         self.__cache_layout = None
-        abs_parent, sep, _ = self.Widget.rpartition("|")
-        if abs_parent == '': abs_parent = _
-        cmds.setParent(abs_parent)
+        self.layout()
 
+        # restore gui parenting
+        abs_parent, sep, _ = self.widget.rpartition("|")
+        if abs_parent:
+            cmds.setParent(abs_parent)
 
     def layout(self):
         """
         this is called at the end of a context, it can be used to (for example) perform attachments
         in a formLayout.  Override in derived classes for different behaviors.
         """
-        return len(self.Controls)
+        return len(self.controls)
 
-    def add(self, control):
+    def add(self, control, key=None):
         """
-        Add the supplied control (an mGui object) to the Controls list in this item.  If the control has a unique key,
-        add the key to this object's __dict__.  This allows dot notation access:
+        Add the supplied control (an mGui object) to the both the Controls list  and the _named_children dictionary
+        in this item.  If the control has a unique key.
+
+        named_children allows for dot notation access:
 
             with gui.ColumnLayout('items') as items:
-                gui.Button('first', label = 'a button')
-                gui.Button('second', label = 'another button')
+                first = gui.Button(label = 'a button')
+                second = gui.Button( label = 'another button')
 
             print items.first.label
             # a button
 
-        The Controls field contains all of the *physical* widgets under this object (layouts, controls, etc).
+        named_children will contain a reference to the key name (the optional first argument) of any mGui control. It
+        will also close over any local variable names in a layout context.  Thus
+
+            with Window() as outer:
+                with ColumnLayout() as column:
+                    Button('first')
+                    second = Button()
+
+        produces  both
+
+            outer.column.first
+
+        and
+
+            outer.column.second
+
+        the first one via explicit naming and the second via closure.
+
+        Controls contains all of the *physical* widgets under this object (layouts, controls, etc).
         Non-physical entities -- such as a RadioButtonCollection -- are available with dot notation but *not*
         in the Controls field. This allows the layout() functions in various layouts to rely on the presence of
         controls that can be manipulated.
         """
 
-        path_difference = control.Widget[len(self.Widget):].count('|') - 1
-        if not path_difference and hasattr(control, 'visible'):
-            self.Controls.append(control)
+        # @ this is a change in behavior from mGui 1
+        # we now overwrite existing children instead of excepting
+        # we also DON'T explicitly check to ensure that <control> is a kind of this widget
+        control_key = key or control.key
+        self.named_children[control_key] = control
+        if control not in self.controls:
+            self.controls.append(control)
 
-        if control.Key and not control.Key[0] == "_":
-            if control.Key in self.__dict__:
-                raise RuntimeError('Children of a layout must have unique IDs')
-            self.__dict__[control.Key] = control
+        control.parent = ref(self)
 
     def replace(self, key, control):
         """
@@ -278,49 +310,83 @@ class Nested(Control):
 
         @note this will only work if the existing item has a key
         """
-        original = self.__dict__[key]
-        original_idx = self.Controls.index(original)
-        self.Controls.insert(original_idx, control)
-        self.__dict__[key] = control
-        self.Controls.remove(original)
-        cmds.deleteUI(original)
+        original = self.named_children.get(key)
+        if original:
+            self.controls.remove(original)
+            Control.delete(original)
+        self.add(control, key)
         self.layout()
 
     def remove(self, control):
-        self.Controls.remove(control)
-        k = [k for k, v in self.__dict__.items() if v == control]
-        if k:
-            del self.__dict__[k[0]]
+        """
+        remove <control> from my children
+        """
+        if control not in self.controls:
+            raise KeyError('{0} is not a child of {1}'.format(control, self))
+        self.controls.remove(control)
+        control.delete(control)
+        for key, ctrl in self.named_children.items():
+            if ctrl == control:
+                self.named_children.pop(key)
 
     def clear(self):
-        delenda = [i for i in self.Controls]
+        delenda = (i for i in self.controls)
         for d in delenda:
             self.remove(d)
+        self.named_children.clear()
+
+    def __setattr__(self, key, value):
+        if isinstance(value, Control) and not key.startswith("_"):
+            self.add(value, key=key)
+        else:
+            super(Nested, self).__setattr__(key, value)
+
+    def __getattr__(self, item):
+        if item in self.named_children:
+            return self.named_children[item]
+        super(Nested, self).__getattribute__(item)
 
     def __iter__(self):
-        for item in self.Controls:
-            for sub in item:
-                yield sub
+        for sub in self.controls:
+            yield sub
         yield self
+
+    def __contains__(self, item):
+        return item in self.controls
+
+    def recurse(self):
+        for item in self.controls:
+            if hasattr(item, 'recurse'):
+                for grandchild in item.recurse():
+                    yield grandchild
+            yield item
 
     # note: both of these explicitly use Nested instead of cls
     # so that there is only one global layout stack...
 
     @classmethod
     def add_current(cls, control):
-        if Nested.ACTIVE_LAYOUT is not None:
+        active = Nested.current()
+        if active:
             Nested.ACTIVE_LAYOUT.add(control)
 
     @classmethod
     def current(cls):
-        return Nested.ACTIVE_LAYOUT
+        """
+        return the active layout if it exists
+        """
+        if Nested.ACTIVE_LAYOUT:
+            return Nested.ACTIVE_LAYOUT
 
-    @classmethod
-    def forget(cls, *args, **kwargs):
-        if Nested.ACTIVE_LAYOUT is not None:
-            sender = kwargs.get('sender', None)
-            if sender in Nested.ACTIVE_LAYOUT:
-               Nested.ACTIVE_LAYOUT.remove(sender)
+    def forget(self, *args, **kwargs):
+        super(Nested, self).forget()
+        if self.controls:
+            self.controls = []
+        if self.named_children:
+            self.named_children = {}
+        if Nested.ACTIVE_LAYOUT == self:
+            Nested.ACTIVE_LAYOUT = None
+
 
 # IMPORTANT NOTE
 # this intentionally duplicates redundant property names from Control.
@@ -364,20 +430,17 @@ class Window(Nested):
     _CALLBACKS = ["minimizeCommand", "restoreCommand"]
     _READ_ONLY = ["numberOfMenus", "menuArray", "menuBar", "retain"]
 
-    def __init__(self, key, *args, **kwargs):
-        super(Window, self).__init__(key, *args, **kwargs)
+    def __init__(self, key=None, **kwargs):
+        super(Window, self).__init__(key, **kwargs)
         Window.ACTIVE_WINDOWS.append(self)
-        self.Deleted += self.forget
 
-    @classmethod
-    def forget(cls, *args, **kwargs):
-        if Window.ACTIVE_WINDOWS is not None:
-            sender = kwargs.get('sender', None)
-            if sender in Window.ACTIVE_WINDOWS:
-               Window.ACTIVE_WINDOWS.remove(sender)
+    def forget(self, *args, **kwargs):
+        super(Window, self).forget()
+        if self in Window.ACTIVE_WINDOWS:
+            Window.ACTIVE_WINDOWS.remove(self)
 
     def show(self):
-        cmds.showWindow(self.Widget)
+        cmds.showWindow(self.widget)
 
     def hide(self):
         self.visible = False
@@ -389,14 +452,13 @@ class Window(Nested):
         return None
 
 
-
 class BindingWindow(Window):
     """
     A Window with a built in BindingContext
     """
 
-    def __init__(self, key, *args, **kwargs):
-        super(BindingWindow, self).__init__(key, *args, **kwargs)
+    def __init__(self, key=None, **kwargs):
+        super(BindingWindow, self).__init__(key, **kwargs)
         self.bindingContext = BindingContext()
 
     def __enter__(self):
@@ -404,9 +466,13 @@ class BindingWindow(Window):
         return super(BindingWindow, self).__enter__()
 
     def __exit__(self, typ, value, traceback):
-        super(BindingWindow, self).__exit__(typ, value, traceback)
         self.bindingContext.__exit__(None, None, None)
+        mGui_expand_stack = True
+        super(BindingWindow, self).__exit__(typ, value, traceback)
 
     def update_bindings(self):
         self.bindingContext.update(True)
 
+    def forget(self, *args, **kwargs):
+        super(BindingWindow, self).forget()
+        self.bindingContext = None

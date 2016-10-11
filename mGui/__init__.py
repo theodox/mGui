@@ -7,7 +7,7 @@ A library for making Maya GUI programming less icky.
 TLDR: You are free to use this as you like, provided you preserve the copyright
 information. This copryight covers all of the modules in the mGui project
 
-Copyright (c) 2014 Steve Theodore
+Copyright (c) 2014-2016 Steve Theodore
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), to deal

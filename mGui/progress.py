@@ -36,7 +36,6 @@ class ProgressBar(Control):
     _CALLBACKS = ['dragCallback', 'dropCallback', 'visibleChangeCommand']
     _READ_ONLY = ['isObscured', 'popupMenuArray', 'numberOfPopupMenus', 'isMainProgressBar']
 
-
     def start(self):
         """
         start progress bar
@@ -48,7 +47,6 @@ class ProgressBar(Control):
         Stop and reset the progress bar
         """
         self.endProgress = 1
-
 
     def update(self, increment=1):
         """
@@ -87,15 +85,14 @@ class MainProgressBar(ProgressBar):
     start, end, and update can optionally include status messages
     """
 
-    def __init__(self, *args, **kwargs):
+    def __init__(self):
 
-        def fake_init(self, *args, **kwargs):
+        def fake_init(self, *_, **__):
             return mel.eval('$tmp = $gMainProgressBar')
 
         self.CMD = fake_init
-        super(MainProgressBar, self).__init__('gMainProgressBar', args, **kwargs)
+        super(MainProgressBar, self).__init__()
         self.CMD = cmds.progressBar
-
 
     def start(self, status=None, interruptable=False):
         super(MainProgressBar, self).start()

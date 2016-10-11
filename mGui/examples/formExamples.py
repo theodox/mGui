@@ -46,10 +46,10 @@ def example_FillForm():
     import mGui.examples.formExamples as formExamples
     formExamples.example_HorizontalThreePane()
     """
-    with gui.Window(None, title="Example") as window:
-        with forms.FillForm(None, width=320) as main:
+    with gui.Window( title="Example") as window:
+        with forms.FillForm( width=320) as main:
             for item in commands2:
-                gui.Button(None, label=str(item['label'])).command += item['command']
+                gui.Button( label=str(item['label'])).command += item['command']
 
     cmds.showWindow(window)
 
@@ -61,14 +61,14 @@ def example_FooterForm():
     import mGui.examples.formExamples as formExamples
     formExamples.example_HorizontalThreePane()
     """
-    with gui.Window(None, title="Example") as window:
-        with forms.FooterForm(None, width=320) as main:
+    with gui.Window( title="Example") as window:
+        with forms.FooterForm( width=320) as main:
             i = 0
             for item in commands2:
                 i = i+1
                 if i > 1:
                     break
-                gui.Button(None, label=str(item['label'])).command += item['command']
+                gui.Button( label=str(item['label'])).command += item['command']
 
     cmds.showWindow(window)
 
@@ -80,14 +80,14 @@ def example_HeaderForm():
     import mGui.examples.formExamples as formExamples
     formExamples.example_HorizontalThreePane()
     """
-    with gui.Window(None, title="Example") as window:
-        with forms.HeaderForm(None, width=320) as main:
+    with gui.Window( title="Example") as window:
+        with forms.HeaderForm( width=320) as main:
             i = 0
             for item in commands2:
                 i = i+1
                 if i > 2:
                     break
-                gui.Button(None, label=str(item['label'])).command += item['command']
+                gui.Button( label=str(item['label'])).command += item['command']
 
     cmds.showWindow(window)
 
@@ -98,10 +98,10 @@ def example_HorizontalExpandForm():
     import mGui.examples.formExamples as formExamples
     formExamples.example_HorizontalExpandForm()
     """
-    with gui.Window(None, title="Example") as window:
-        with forms.HorizontalExpandForm(None, width=320) as main:
+    with gui.Window( title="Example") as window:
+        with forms.HorizontalExpandForm( width=320) as main:
             for item in commands2:
-                gui.Button(None, label=str(item['label'])).command += item['command']
+                gui.Button( label=str(item['label'])).command += item['command']
 
     cmds.showWindow(window)
 
@@ -112,10 +112,10 @@ def example_HorizontalForm():
     import mGui.examples.formExamples as formExamples
     formExamples.example_HorizontalForm()
     """
-    with gui.Window(None, title="Example") as window:
-        with forms.HorizontalForm(None, width=320) as main:
+    with gui.Window( title="Example") as window:
+        with forms.HorizontalForm( width=320) as main:
             for item in commands2:
-                gui.Button(None, label=str(item['label'])).command += item['command']
+                gui.Button( label=str(item['label'])).command += item['command']
 
     cmds.showWindow(window)
 
@@ -126,10 +126,10 @@ def example_HorizontalStretchForm():
     import mGui.examples.formExamples as formExamples
     formExamples.example_HorizontalStretchForm()
     """
-    with gui.Window(None, title="Example", height=400) as window:
-        with forms.HorizontalStretchForm(None, width=320) as main:
+    with gui.Window( title="Example", height=400) as window:
+        with forms.HorizontalStretchForm( width=320) as main:
             for item in commands2:
-                gui.Button(None, label=str(item['label'])).command += item['command']
+                gui.Button( label=str(item['label'])).command += item['command']
 
     cmds.showWindow(window)
 
@@ -141,14 +141,14 @@ def example_HorizontalThreePane():
     import mGui.examples.formExamples as formExamples
     formExamples.example_HorizontalThreePane()
     """
-    with gui.Window(None, title="Example") as window:
+    with gui.Window( title="Example") as window:
         with forms.HorizontalThreePane(None, width=320) as main:
             i = 0
             for item in commands2:
                 i = i+1
                 if i > 3:
                     break
-                gui.Button(None, label=str(item['label'])).command += item['command']
+                gui.Button( label=str(item['label'])).command += item['command']
 
     cmds.showWindow(window)
 
@@ -159,10 +159,10 @@ def example_VerticalExpandForm():
     import mGui.examples.formExamples as formExamples
     formExamples.example_VerticalExpandForm()
     """
-    with gui.Window(None, title="Example") as window:
-        with forms.VerticalExpandForm(None, width=320) as main:
+    with gui.Window( title="Example") as window:
+        with forms.VerticalExpandForm( width=320) as main:
             for item in commands2:
-                gui.Button(None, label=str(item['label'])).command += item['command']
+                gui.Button( label=str(item['label'])).command += item['command']
 
     cmds.showWindow(window)
 
@@ -173,10 +173,10 @@ def example_VerticalForm():
     import mGui.examples.formExamples as formExamples
     formExamples.example_VerticalForm()
     """
-    with gui.Window(None, title="Example", resizeToFitChildren=True) as window:
-        with forms.VerticalForm(None, width=320) as main:
+    with gui.Window( title="Example", resizeToFitChildren=True) as window:
+        with forms.VerticalForm( width=320) as main:
             for item in commands2:
-                gui.Button(None, label=str(item['label'])).command += item['command']
+                gui.Button( label=str(item['label'])).command += item['command']
     cmds.showWindow(window)
 
 
@@ -186,10 +186,10 @@ def example_VerticalStretchForm():
     import mGui.examples.formExamples as formExamples
     formExamples.example_VerticalStretchForm()
     """
-    with gui.Window(None, title="Example", height=400) as window:
-        with forms.VerticalStretchForm(None, width=320) as main:
+    with gui.Window( title="Example", height=400) as window:
+        with forms.VerticalStretchForm( width=320) as main:
             for item in commands2:
-                gui.Button(None, label=str(item['label'])).command += item['command']
+                gui.Button( label=str(item['label'])).command += item['command']
 
     cmds.showWindow(window)
 
@@ -201,13 +201,13 @@ def example_VerticalThreePane():
     import mGui.examples.formExamples as formExamples
     formExamples.example_HorizontalThreePane()
     """
-    with gui.Window(None, title="Example") as window:
+    with gui.Window( title="Example") as window:
         with forms.VerticalThreePane(None, width=320) as main:
             i = 0
             for item in commands2:
                 i = i+1
                 if i > 3:
                     break
-                gui.Button(None, label=str(item['label'])).command += item['command']
+                gui.Button( label=str(item['label'])).command += item['command']
 
     cmds.showWindow(window)

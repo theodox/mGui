@@ -74,8 +74,8 @@ class Event(object):
     def __init__(self, **data):
         self._Handlers = set()
         '''Set list of handlers callables. Use a set to avoid multiple calls on one handler'''
-        self.Data = data
-        self.Data['event'] = self
+        self.data = data
+        self.data['event'] = self
 
     def _add_handler(self, handler):
         """
@@ -101,7 +101,7 @@ class Event(object):
         returns the me
         """
         md = {}
-        md.update(self.Data)
+        md.update(self.data)
         md.update(kwargs)
         return md
 
@@ -118,7 +118,7 @@ class Event(object):
                 delenda.append(handler)
         self._Handlers = self._Handlers.difference(set(delenda))
 
-    def _handler_Count(self):
+    def _handler_count(self):
         """
         Returns the count of the _Handlers field
         """
@@ -128,10 +128,12 @@ class Event(object):
     # doing it this way allows you to override more neatly
     # in derived classes
     __call__ = _fire
-    __len__ = _handler_Count
+    __len__ = _handler_count
     __iadd__ = _add_handler
     __isub__ = _remove_handler
 
+    def __del__(self):
+        print 'event expired'
 
 class MayaEvent(Event):
     """
@@ -173,20 +175,21 @@ class WeakMethodBound(object):
     hashable ID so that Events can identify multiple references to the same
     method and not duplicate them
     """
-    __slots__ = ('function', 'referent', 'ID')
+    __slots__ = ('function', 'referent', 'ID', '_ref_name')
 
     def __init__(self, f):
 
         self.function = f.im_func
         self.referent = weakref.ref(f.im_self)
+        self._ref_name = f.im_func.__name__
         self.ID = id(f.im_self) ^ id(f.im_func.__name__)
 
-    def __call__(self, *arg, **kwarg):
+    def __call__(self, *args, **kwargs):
         ref = self.referent()
         if not ref is False and not ref is None:
-            return apply(self.function, (self.referent(),) + arg, kwarg)
+            return apply(self.function, (self.referent(),) + args, kwargs)
         else:
-            raise DeadReferenceError
+            raise DeadReferenceError("Reference to the bound method {0} no longer exists".format(self._ref_name))
 
     def __eq__(self, other):
         if not hasattr(other, 'ID'):
@@ -197,21 +200,23 @@ class WeakMethodBound(object):
         return self.ID
 
 
+
 class WeakMethodFree(object):
     """
     Encapsulates a weak reference to an unbound method
     """
-    __slots__ = ('function', 'ID')
+    __slots__ = ('function', 'ID', '_ref_name')
 
     def __init__(self, f):
         self.function = weakref.ref(f)
         self.ID = id(f)
+        self._ref_name = f.__name__
 
-    def __call__(self, *arg, **kwarg):
+    def __call__(self, *args, **kwargs):
         if self.function():
-            return apply(self.function(), arg, kwarg)
+            return apply(self.function(), args, kwargs)
         else:
-            raise DeadReferenceError
+            raise DeadReferenceError("Reference to unbound method {0} no longer exists".format(self._ref_name))
 
     def __eq__(self, other):
         if not hasattr(other, 'ID'): return False
@@ -237,6 +242,9 @@ def event_handler(fn):
     """
     decorator for making event handlers out of functions with no arguments
     """
+
+    if  inspect.getargspec(fn).varargs and  inspect.getargspec(fn).keywords:
+        return fn
 
     @wraps(fn)
     def wrapper(*_, **__):

@@ -1,7 +1,6 @@
 #mGui 
 ###A module for simplifying Maya GUI coding
 
-
 # important note
 There are some important changes on the horizon for mGui. Check out the [remove-keys](https://github.com/theodox/mGui/tree/remove_keys) branch to see what's up...!
 
