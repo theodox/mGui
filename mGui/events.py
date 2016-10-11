@@ -118,7 +118,7 @@ class Event(object):
                 delenda.append(handler)
         self._Handlers = self._Handlers.difference(set(delenda))
 
-    def _handler_Count(self):
+    def _handler_count(self):
         """
         Returns the count of the _Handlers field
         """
@@ -128,7 +128,7 @@ class Event(object):
     # doing it this way allows you to override more neatly
     # in derived classes
     __call__ = _fire
-    __len__ = _handler_Count
+    __len__ = _handler_count
     __iadd__ = _add_handler
     __isub__ = _remove_handler
 
@@ -183,10 +183,10 @@ class WeakMethodBound(object):
         self.referent = weakref.ref(f.im_self)
         self.ID = id(f.im_self) ^ id(f.im_func.__name__)
 
-    def __call__(self, *arg, **kwarg):
+    def __call__(self, *args, **kwargs):
         ref = self.referent()
         if not ref is False and not ref is None:
-            return apply(self.function, (self.referent(),) + arg, kwarg)
+            return apply(self.function, (self.referent(),) + args, kwargs)
         else:
             raise DeadReferenceError
 
@@ -210,9 +210,9 @@ class WeakMethodFree(object):
         self.function = weakref.ref(f)
         self.ID = id(f)
 
-    def __call__(self, *arg, **kwarg):
+    def __call__(self, *args, **kwargs):
         if self.function():
-            return apply(self.function(), arg, kwarg)
+            return apply(self.function(), args, kwargs)
         else:
             raise DeadReferenceError
 
