@@ -69,8 +69,9 @@ class CommandInfo(object):
             
         attribs.sort()
         # note this deliberately excludes short names of callbacks!
-        callbacks = [c for c in attribs if 'Command' in c or 'Callback' in c] 
-        attribs = list(set(attribs) - set(callbacks))
+        callback_exceptions = { 'alwaysInvokeEnterCommandOnReturn' }
+        callbacks = { c for c in attribs if 'Command' in c or 'Callback' in c }  - callback_exceptions
+        attribs = list(set(attribs) - callbacks)
         quoted = lambda p : "'%s'" % p
         attrib_names = map (quoted, attribs)
         code.write('    _ATTRIBS = [%s]\n' %','.join(attrib_names))
