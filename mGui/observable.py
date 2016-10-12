@@ -119,6 +119,8 @@ class ObservableCollection(MutableSequence, BindableObject):
 
 
 class ImmediateObservableCollection(ObservableCollection):
+
+
     def __init__(self, *items):
         self._internal_collection = [i for i in items]
         self.onCollectionChanged = Event(collection=self)
@@ -237,6 +239,9 @@ class BoundCollection(Sequence, BindableObject):
 
 
 class ImmediateBoundCollection(BoundCollection):
+
+    _BIND_TGT = 'set_collection'
+
     def __init__(self):
         self._internal_collection = ()
         self.onCollectionChanged = Event()  # these are MayaEvents so they are thread safe... we hope
