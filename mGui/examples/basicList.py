@@ -1,10 +1,7 @@
-from mGui.gui import *
-from mGui.forms import *
-from mGui.lists import *
-from mGui.observable import *
-from mGui.bindings import *
 import random
-
+from mGui import gui, forms, lists
+from mGui.observable import ViewCollection
+from mGui.bindings import bind
 
 
 def basic_list_binding():
@@ -17,34 +14,31 @@ def basic_list_binding():
     to keep callback functions alive without creating a full class.
     '''
 
-    with BindingWindow(title = 'example window') as test_window:
-    
+    with gui.BindingWindow(title='example window') as test_window:
+
         bound = ViewCollection('pPlane1', 'pCube2')
-        with VerticalThreePane() as main:
-            Text(label = "The following items don't have vertex colors")
-            list_view = VerticalList(synchronous = True)
+        with forms.VerticalThreePane() as main:
+            gui.Text(label="The following items don't have vertex colors")
+            list_view = lists.VerticalList(synchronous=True)
             bound > bind() > list_view.collection
-            with HorizontalStretchForm('buttons'):
-                more = Button('more!')
-                close = Button('close')
+            with forms.HorizontalStretchForm('buttons'):
+                more = gui.Button('more!')
+                close = gui.Button('close')
 
     # use closures to capture the UI names without a full class
     def close_window(*_, **__):
         cmds.deleteUI(test_window)
-        
+
     def show_more(*_, **__):
-        r = random.choice(("pPlane", "pCube", "pSphere")) + str(random.randint(2,20))
+        r = random.choice(("pPlane", "pCube", "pSphere")) + str(random.randint(2, 20))
         bound.append(r)
 
-    # these keep the functions above from dropping out of scope
-    test_window.close_window = close_window
-    test_window.more = show_more
-
     # bind the functions to the handlers
-    more += test_window.more
-    close += test_window.close_window
+    more *= show_more
+    close *= close_window
 
     return test_window
-    
-the_window = basic_list_binding()
-the_window.show()
+
+if __name__ == '__main__':
+    the_window = basic_list_binding()
+    the_window.show()
