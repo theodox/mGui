@@ -10,6 +10,7 @@ import weakref
 import maya.utils
 from functools import partial, wraps
 import inspect
+from collections import defaultdict
 
 
 class Event(object):
@@ -72,8 +73,9 @@ class Event(object):
     """
 
     def __init__(self, **data):
-        self._Handlers = set()
-        '''Set list of handlers callables. Use a set to avoid multiple calls on one handler'''
+        # Set list of handlers callables. Use a set to avoid multiple calls on one handler
+        self._handlers = set()
+        self._sender = data.get('sender')
         self.data = data
         self.data['event'] = self
 
@@ -84,7 +86,7 @@ class Event(object):
         if not callable(handler):
             raise ValueError("%s is not callable", handler)
 
-        self._Handlers.add(get_weak_reference(handler))
+        self._handlers.add(get_weak_reference(handler))
         return self
 
     def _remove_handler(self, handler):
@@ -92,13 +94,13 @@ class Event(object):
         Remove a handler. Ignores handlers that are not present.
         """
         wr = get_weak_reference(handler)
-        delenda = [h for h in self._Handlers if h == wr]
-        self._Handlers = self._Handlers.difference(set(delenda))
+        delenda = [h for h in self._handlers if h == wr]
+        self._handlers = self._handlers.difference(set(delenda))
         return self
 
     def metadata(self, kwargs):
         """
-        returns the me
+        returns the event data merged with the call-site data.
         """
         md = {}
         md.update(self.data)
@@ -111,18 +113,26 @@ class Event(object):
         """
 
         delenda = []
-        for handler in self._Handlers:
+        for handler in self._handlers:
             try:
                 handler(*args, **self.metadata(kwargs))
             except DeadReferenceError:
                 delenda.append(handler)
-        self._Handlers = self._Handlers.difference(set(delenda))
+        self._handlers = self._handlers.difference(set(delenda))
 
     def _handler_count(self):
         """
-        Returns the count of the _Handlers field
+        Returns the count of the _handlers field
         """
-        return len([i for i in self._Handlers])
+        return len([i for i in self._handlers])
+
+    def _stash_handler(self, handler):
+        self._sender.static[self._sender.key].add(handler)
+        return self._add_handler(handler)
+
+    def _unstash_handler(self, handler):
+        self._sender.static[self._sender.key].discard(handler)
+        return self._remove_handler(handler)
 
     # hook up the instance methods to the base methods
     # doing it this way allows you to override more neatly
@@ -131,6 +141,8 @@ class Event(object):
     __len__ = _handler_count
     __iadd__ = _add_handler
     __isub__ = _remove_handler
+    __imul__ = _stash_handler
+    __idiv__ = _unstash_handler
 
     def __del__(self):
         print 'event expired'
@@ -146,12 +158,12 @@ class MayaEvent(Event):
         """
 
         delenda = []
-        for handler in self._Handlers:
+        for handler in self._handlers:
             try:
                 maya.utils.executeDeferred(partial(handler, *args, **self.metadata(kwargs)))
             except DeadReferenceError:
                 delenda.append(handler)
-        self._Handlers = self._Handlers.difference(set(delenda))
+        self._handlers = self._handlers.difference(set(delenda))
 
     __call__ = _fire
 

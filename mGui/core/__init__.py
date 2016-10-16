@@ -1,4 +1,4 @@
-from collections import OrderedDict
+from collections import OrderedDict, defaultdict
 import inspect
 
 import maya.cmds as cmds
@@ -124,6 +124,7 @@ class Control(Styled, BindableObject):
 
         # Event objects
         self.callbacks = {}
+        self.static = defaultdict(set)
 
         # add us to the current layout under our own key name
         Layout.add_current(self)
@@ -186,6 +187,7 @@ class Control(Styled, BindableObject):
 
     def forget(self, *args, **kwargs):
         self.callbacks.clear()
+        self.static.clear()
         self.tag = None
 
     @classmethod
