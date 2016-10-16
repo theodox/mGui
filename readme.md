@@ -1,10 +1,6 @@
 #mGui 
 ###A module for simplifying Maya GUI coding
 
-# important note
-There are some important changes on the horizon for mGui. Check out the [remove-keys](https://github.com/theodox/mGui/tree/remove_keys) branch to see what's up...!
-
-
 ## Basics
 mGui is a python module for simplifying GUI creation using Maya's built-in gui widgets. As such it is not a replacement for something more sophisticated, like PyQT or PySide - it's a way to make simple UI more quickly and reliably (and without the need for distributing any DLLs in older versions of Maya).
 
@@ -38,28 +34,17 @@ The goal is to provide the most consistent and least wordy way of creating simpl
 you can write this:
 
 	     
-	import pymel.core as pm
-	from mGui.gui import *
-	import mGui.observable as obs
-	import mGui.lists as lists
-	from mGui.bindings import bind, BindingContext
-	
-	bound = obs.ViewCollection(pm.PyNode("pCube1"), pm.PyNode("pPlane2"))   
-	
-	with gui.Window('window', title = 'fred') as example_window:
-	    with BindingContext() as bind_ctx:
-	        with VerticalForm('main') as main:
-	            Text(None, label = "The following items don't have vertex colors")
-	            lists.VerticalList('lister' ).Collection < bind() < bound  
-	            with HorizontalStretchForm('buttons'):
-	                Button('refresh', l='Refresh')
-	                Button('close', l='Close')
-	
-	# show the window
-	example_window.show()
-	
-	# add two items to the list...
-	bound.add("top", "persp")
+    bound = ObservableCollection("pCube1", "pPlane1")
+    
+    with BindingWindow(title = 'example window') as test_window:
+        with VerticalForm() as main:
+            Text(label = "The following items don't have vertex colors")
+            list_view = VerticalList()
+            list_view.bind.collection < bind() < bound
+            with HorizontalStretchForm('buttons'):
+                Button('refresh', l='Refresh')
+                Button('close', l='Close')
+    test_window.show()             
 
 And make adjustments like this:
 
@@ -111,6 +96,8 @@ In order to simplify this process, **mGui.bindings** defines  _Bindings_ - class
      CheckBox('vis').bind.value > bind() > 'pCube1.visibility' 
      
  will tie the visibility of the cube to the state of the checkbox.
+ 
+ The module `mGui.lists` provides a set of pre-built collection widgets designed for use with binding. The `VerticalList`, `HorizontalList`, `WrapList` and `ColumnList` will draw items in a scrolling list view for every item in their bound collections. The `itemTemplate` class allows you to create a custom widget display for any incoming data type, so you can create rich UIs with inline controls, multiple lines of data, and customizable styles.
  
 ## Forms 
 

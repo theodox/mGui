@@ -1,5 +1,6 @@
 import mGui.gui as gui
 import mGui.stylesheets as stylesheets
+import mGui.forms as forms
 from mGui.bindings import BindProxy, BindingContext, bind, Bindable
 
 
@@ -43,12 +44,12 @@ class ExampleWindow(Bindable):
                              stylesheets.defaults(),
                              columnWidth3=(64, 96, 32), minValue=0, maxValue=1, backgroundColor=(1, 1, 1)):
             with gui.BindingWindow(title='simple example', width=512) as self.window:
-                with gui.HorizontalStretchForm(width=512) as main:
-                    with gui.VerticalForm(width=256) as sliders:
+                with forms.HorizontalStretchForm(width=512) as main:
+                    with forms.VerticalForm(width=256) as sliders:
                         gui.FloatSliderButtonGrp('red', label='red', tag=0)
                         gui.FloatSliderButtonGrp('green', label='green', tag=1)
                         gui.FloatSliderButtonGrp('blue', label='blue', tag=2)
-                    with gui.FillForm(width=256) as swatch:
+                    with forms.FillForm(width=256) as swatch:
                         gui.Canvas('canvas').bind.rgbValue < bind() < self.bind.color
                         gui.Text('display').bind.label < bind(pretty) < self.bind.color
 
