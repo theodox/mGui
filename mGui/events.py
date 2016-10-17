@@ -210,7 +210,7 @@ class WeakMethodFree(object):
     def __init__(self, f):
         self.function = weakref.ref(f)
         self.ID = id(f)
-        self._ref_name = f.__name__
+        self._ref_name = getattr(f, '__name__', 'unnamed callable')
 
     def __call__(self, *args, **kwargs):
         if self.function():
