@@ -6,7 +6,6 @@ from mGui.bindings import *
 from mGui.observable import ViewCollection
 from mGui.qt.QTextField import QTextField
 from mGui.scriptJobs import Idle
-from ul_profile import do_cprofile
 import time
 import inspect
 from functools import  partial
