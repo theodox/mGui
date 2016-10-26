@@ -88,7 +88,7 @@ class MainProgressBar(ProgressBar):
     def __init__(self):
 
         def fake_init(self, *_, **__):
-            return mel.eval('$tmp = $gMainProgressBar')
+            return mel.eval('$__mGui_tmp_gMainProgressBar = $gMainProgressBar')
 
         self.CMD = fake_init
         super(MainProgressBar, self).__init__()
