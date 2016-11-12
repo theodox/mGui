@@ -5,7 +5,7 @@ Created on Mar 14, 2014
 '''
 from mGui.bindings import BindableObject, bind
 from mGui.observable import ObservableCollection, ViewCollection, ImmediateObservableCollection
-from unittest import TestCase
+from unittest import TestCase, main
 
 
 class TestTarget(BindableObject):
@@ -56,11 +56,21 @@ class Test_ObservableCollection(TestCase):
 
     def test_base_binding_sort(self):
         t = TestTarget()
+        c = ImmediateObservableCollection(1, 2, 3, 4, 10, 5, 6, 7, 8, 9)
+        t < bind() < c
+        c.update_bindings()
+        c.sort()
+        assert t.values == (1, 2, 3, 4, 5, 6, 7, 8, 9, 10)
+        c.sort(reverse=True)
+        assert t.values == (10, 9, 8, 7, 6, 5, 4, 3, 2, 1)
+
+    def test_base_binding_reverse(self):
+        t = TestTarget()
         c = ImmediateObservableCollection(1, 2, 3, 4, 5, 6, 7, 8, 9, 10)
         t < bind() < c
         c.update_bindings()
         assert t.values == (1, 2, 3, 4, 5, 6, 7, 8, 9, 10)
-        c.sort(reverse=True)
+        c.reverse()
         assert t.values == (10, 9, 8, 7, 6, 5, 4, 3, 2, 1)
 
     def test_iter(self):
@@ -162,11 +172,21 @@ class TestViewCollection(TestCase):
 
     def test_base_binding_sort(self):
         t = TestTarget()
+        c = ViewCollection(1, 2, 3, 4, 10, 5, 6, 7, 8, 9)
+        t < bind() < c
+        c.update_bindings()
+        c.sort()
+        assert t.values == (1, 2, 3, 4, 5, 6, 7, 8, 9, 10)
+        c.sort(reverse=True)
+        assert t.values == (10, 9, 8, 7, 6, 5, 4, 3, 2, 1)
+
+    def test_base_binding_reverse(self):
+        t = TestTarget()
         c = ViewCollection(1, 2, 3, 4, 5, 6, 7, 8, 9, 10)
         t < bind() < c
         c.update_bindings()
         assert t.values == (1, 2, 3, 4, 5, 6, 7, 8, 9, 10)
-        c.sort(reverse=True)
+        c.reverse()
         assert t.values == (10, 9, 8, 7, 6, 5, 4, 3, 2, 1)
 
     def test_iter(self):
@@ -183,3 +203,7 @@ class TestViewCollection(TestCase):
         assert t.values == (1, 2, 3, 4, 5, 6, 7, 8, 9, 10)
         c.update_filter(lambda x: x % 2 == 0)
         assert t.values == (2, 4, 6, 8, 10)
+
+
+if __name__ == '__main__':
+    main()
