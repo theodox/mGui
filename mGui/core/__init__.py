@@ -477,17 +477,5 @@ class BindingWindow(Window):
         super(BindingWindow, self).forget()
         self.bindingContext = None
 
-class ModalWindow(BindingWindow):
 
-    def show(self):
-        from maya.OpenMayaUI import MQtUtil
-        from shiboken import wrapInstance
-        from PySide.QtGui import QWidget
-        from PySide import QtCore
-    
-        ptr = MQtUtil.findWindow(self.widget)
-        qt_obj = wrapInstance(long(ptr), QWidget)
-        qt_obj.setWindowModality(QtCore.Qt.WindowModality.WindowModal)
-        qt_obj.show()
-
-__all__ = ['Window', 'BindingWindow', 'ModalWindow', 'Layout', 'Control', 'ControlMeta']
+__all__ = ['Window', 'BindingWindow', 'Layout', 'Control', 'ControlMeta']
