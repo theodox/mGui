@@ -1,13 +1,20 @@
 __author__ = 'Steve'
+import time
+
 from maya.OpenMayaUI import MQtUtil
-from shiboken import wrapInstance
-from PySide.QtGui import QTextEdit
-from PySide import QtCore
+
+try:
+    from shiboken import wrapInstance
+    from PySide.QtGui import QTextEdit
+    from PySide import QtCore
+except ImportError:
+    from shiboken2 import wrapInstance
+    from PySide2.QtWidgets import QTextEdit
+    from PySide2 import QtCore
 
 from mGui.core.controls import TextField
 from mGui.events import Event
 from mGui.scriptJobs import Idle
-import time
 
 
 def hook_text_changed_event(maya_text_field, event):

@@ -3,9 +3,14 @@ from ..core import BindingWindow
 
 from maya.OpenMayaUI import MQtUtil
 
-from shiboken import wrapInstance
-from PySide.QtGui import QWidget
-from PySide import QtCore
+try:
+    from shiboken import wrapInstance
+    from PySide.QtGui import QWidget
+    from PySide import QtCore
+except ImportError:
+    from shiboken2 import wrapInstance
+    from PySide2.QtWidgets import QWidget
+    from PySide2 import QtCore
 
 class ModalWindow(BindingWindow):
 
