@@ -27,6 +27,7 @@ import itertools
 
 import maya.cmds as cmds
 
+from mGui.core import Nested
 from mGui.core.layouts import FormLayout
 from mGui.styles import Bounds
 
@@ -217,6 +218,15 @@ class LayoutDialogForm(Form):
         self.CMD = self.fake_create
         super(LayoutDialogForm, self).__init__(key=None)
         self.CMD = cmds.formLayout
+
+    def __enter__(self):
+        Nested._modal_context = True
+        return super(LayoutDialogForm, self).__enter__()
+
+    def __exit__(self, typ, value, tb):
+        Nested._modal_context = False
+        return super(LayoutDialogForm, self).__exit__(typ, value, tb)
+
 
     @staticmethod
     def fake_create(*args, **kwargs):

@@ -122,6 +122,9 @@ class Control(Styled, BindableObject):
         # key is our internal name
         self.key = self.widget.split("|")[-1]
 
+        # Used to track if the control was created in a modal context.
+        self._is_modal = False
+
         # Event objects
         self.callbacks = {}
 
@@ -209,6 +212,7 @@ class Nested(Control):
         self.controls = []
         self.named_children = OrderedDict()
         self.ignore_exceptions = False
+        self._modal_context = False
         super(Nested, self).__init__(key, **kwargs)
 
     def __enter__(self):
@@ -368,6 +372,8 @@ class Nested(Control):
     def add_current(cls, control):
         active = Nested.current()
         if active:
+            if Nested._modal_context:
+                control._is_modal = True
             Nested.ACTIVE_LAYOUT.add(control)
 
     @classmethod
