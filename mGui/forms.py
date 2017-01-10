@@ -217,14 +217,13 @@ class LayoutDialogForm(Form):
     def __init__(self, key=None):
         self.CMD = self.fake_create
         super(LayoutDialogForm, self).__init__(key=None)
+        self.modal = True
         self.CMD = cmds.formLayout
 
     def __enter__(self):
-        Nested._modal_context = True
         return super(LayoutDialogForm, self).__enter__()
 
     def __exit__(self, typ, value, tb):
-        Nested._modal_context = False
         return super(LayoutDialogForm, self).__exit__(typ, value, tb)
 
 

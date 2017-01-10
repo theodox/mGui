@@ -123,6 +123,7 @@ class Control(Styled, BindableObject):
         self.key = self.widget.split("|")[-1]
 
         # Used to track if the control was created in a modal context.
+        # Note that unlike Nested.modal, this is a 'private' field
         self._is_modal = False
 
         # Event objects
@@ -132,12 +133,12 @@ class Control(Styled, BindableObject):
         Layout.add_current(self)
         self.onDeleted += self.forget
 
-    def register_callback(self, callbackName, event):
+    def register_callback(self, callback_name, event):
         """
-        when a callback property is first accessed this creates an Event for the specified callback and hooks it to the
-        gui widget's callback function
+        when a callback property is first accessed this creates an Event named <callback_name> for the specified
+        callback and hooks it to the gui widget's callback function
         """
-        kwargs = {'e': True, callbackName: event}
+        kwargs = {'e': True, callback_name: event}
         self.CMD(self.widget, **kwargs)
 
     def __nonzero__(self):
@@ -208,15 +209,18 @@ class Nested(Control):
     """
     ACTIVE_LAYOUT = None
 
+
     def __init__(self, key=None, **kwargs):
         self.controls = []
         self.named_children = OrderedDict()
         self.ignore_exceptions = False
-        self._modal_context = False
+        self.modal = False
         super(Nested, self).__init__(key, **kwargs)
 
     def __enter__(self):
         self.__cache_layout = Nested.ACTIVE_LAYOUT
+        if self.__cache_layout is not None:
+            self.modal = self.modal or self.__cache_layout.modal
         Nested.ACTIVE_LAYOUT = self
         return self
 
@@ -372,8 +376,6 @@ class Nested(Control):
     def add_current(cls, control):
         active = Nested.current()
         if active:
-            if Nested._modal_context:
-                control._is_modal = True
             Nested.ACTIVE_LAYOUT.add(control)
 
     @classmethod

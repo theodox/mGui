@@ -64,7 +64,7 @@ class CallbackProperty(object):
         # @note: don't use simple truth test here! No-handler event evals to false,
         # so manually assigned events are overwritten!
         if cb is None:
-            if obj._is_modal:
+            if obj.parent().modal:
                 obj.callbacks[self.key] = Event(sender=weakref.proxy(obj))
             else:
                 obj.callbacks[self.key] = MayaEvent(sender=weakref.proxy(obj))
