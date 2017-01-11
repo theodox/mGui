@@ -1,12 +1,11 @@
-from collections import OrderedDict
-import inspect
-
 import maya.cmds as cmds
+
+import inspect
+from collections import OrderedDict
 from mGui.bindings import BindableObject, BindingContext
-from mGui.styles import Styled
 from mGui.properties import CtlProperty, CallbackProperty
 from mGui.scriptJobs import ScriptJobCallbackProperty
-
+from mGui.styles import Styled
 from weakref import ref
 
 """
@@ -74,11 +73,10 @@ class ControlMeta(type):
             kwargs[item] = CtlProperty(item, maya_cmd, writeable=False)
         for item in _ATTRIBS:
             # parent is overidden in the Control class
-            if item not in ('parent', ):
+            if item not in ('parent',):
                 kwargs[item] = CtlProperty(item, maya_cmd)
         for item in _CALLBACKS:
             kwargs[item] = CallbackProperty(item)
-
 
         kwargs['__bases__'] = parents
 
@@ -122,20 +120,16 @@ class Control(Styled, BindableObject):
         # key is our internal name
         self.key = self.widget.split("|")[-1]
 
-        # Used to track if the control was created in a modal context.
-        # Note that unlike Nested.modal, this is a 'private' field
-        self._is_modal = False
-
         # Event objects
         self.callbacks = {}
+
+        # once we've been added to a layout this holds a weak reference to our parent
+        self._parent = None
 
         # add us to the current layout under our own key name
         Layout.add_current(self)
         self.onDeleted += self.forget
 
-        # a weak reference to our parent, will be added when
-        # this widget is added to a control
-        self._parent = None
 
     def register_callback(self, callback_name, event):
         """
@@ -213,6 +207,7 @@ class Control(Styled, BindableObject):
             return None
         return self._parent()
 
+
 class Nested(Control):
     """
     Base class for all the nested context-manager classes which automatically parent themselves
@@ -224,7 +219,6 @@ class Nested(Control):
 
     """
     ACTIVE_LAYOUT = None
-
 
     def __init__(self, key=None, **kwargs):
         self.controls = []
@@ -414,7 +408,7 @@ class Nested(Control):
 
 # IMPORTANT NOTE
 # this intentionally duplicates redundant property names from Control.
-# That forces the metaclass to re-define the CtlProperties using cmds.layout
+# That forces the metaclass to F-define the CtlProperties using cmds.layout
 # instead of cmds.control. In Maya 2014, using cmds.control to query a layout fails,
 # even for flags they have in common
 
