@@ -36,6 +36,7 @@ class CallbackProxy(object):
         self.caller = caller
         self.argspec = inspect.getargspec(func)
         self.KEEPALIVE.append(self)
+        self.__name__ = func.__name__
 
     def __call__(self, *args, **kwargs):
         no_kw = self.argspec.keywords is None
