@@ -122,6 +122,10 @@ class Control(Styled, BindableObject):
 
         # Event objects
         self.callbacks = {}
+        
+        # a weak reference to our parent, will be added when
+        # this widget is added to a control
+        self._parent = None
 
         # once we've been added to a layout this holds a weak reference to our parent
         self._parent = None
