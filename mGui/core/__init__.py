@@ -128,14 +128,15 @@ class Control(Styled, BindableObject):
 
         # Event objects
         self.callbacks = {}
+        
+        # a weak reference to our parent, will be added when
+        # this widget is added to a control
+        self._parent = None
 
         # add us to the current layout under our own key name
         Layout.add_current(self)
         self.onDeleted += self.forget
 
-        # a weak reference to our parent, will be added when
-        # this widget is added to a control
-        self._parent = None
 
     def register_callback(self, callback_name, event):
         """
