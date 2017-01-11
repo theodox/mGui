@@ -64,7 +64,7 @@ class CallbackProperty(object):
         # @note: don't use simple truth test here! No-handler event evals to false,
         # so manually assigned events are overwritten!
         if cb is None:
-            if obj.parent().modal:
+            if obj.parent and obj.parent.modal:
                 obj.callbacks[self.key] = Event(sender=weakref.proxy(obj))
             else:
                 obj.callbacks[self.key] = MayaEvent(sender=weakref.proxy(obj))
@@ -115,3 +115,5 @@ class LateBoundProperty(object):
     def __set__(self, instance, val):
         self.__create_backstore(instance)
         setattr(instance, self._name, val)
+
+

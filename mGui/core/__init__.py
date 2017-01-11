@@ -67,18 +67,18 @@ class ControlMeta(type):
         _READ_ONLY = kwargs.get('_READ_ONLY', [])
         _ATTRIBS = kwargs.get('_ATTRIBS', [])
         _CALLBACKS = kwargs.get('_CALLBACKS', [])
-
         if not kwargs.get('CMD'):
             maya_cmd = parents[0].CMD
 
         for item in _READ_ONLY:
             kwargs[item] = CtlProperty(item, maya_cmd, writeable=False)
         for item in _ATTRIBS:
-            kwargs[item] = CtlProperty(item, maya_cmd)
+            # parent is overidden in the Control class
+            if item not in ('parent', ):
+                kwargs[item] = CtlProperty(item, maya_cmd)
         for item in _CALLBACKS:
             kwargs[item] = CallbackProperty(item)
 
-        kwargs['parent'] = None
 
         kwargs['__bases__'] = parents
 
@@ -132,6 +132,10 @@ class Control(Styled, BindableObject):
         # add us to the current layout under our own key name
         Layout.add_current(self)
         self.onDeleted += self.forget
+
+        # a weak reference to our parent, will be added when
+        # this widget is added to a control
+        self._parent = None
 
     def register_callback(self, callback_name, event):
         """
@@ -196,6 +200,18 @@ class Control(Styled, BindableObject):
     def delete(cls, instance):
         cmds.deleteUI(instance.widget)
 
+    @property
+    def parent(self):
+        """
+        the mGui parent of this object.  This will be None if:
+            * this object has no parent (eg, a top level window)
+            * this object's parent has fallen out of scope
+            * this layout context for this object has not yet closed.
+
+        """
+        if self._parent is None:
+            return None
+        return self._parent()
 
 class Nested(Control):
     """
@@ -310,7 +326,7 @@ class Nested(Control):
         if control not in self.controls:
             self.controls.append(control)
 
-        control.parent = ref(self)
+        control._parent = ref(self)
 
     def replace(self, key, control):
         """
