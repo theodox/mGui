@@ -59,3 +59,5 @@ def derive(widget):
         result.controls.append(derive(k))
 
     return result
+
+__all__ = [item.__name__ for item in __lookup.values()]

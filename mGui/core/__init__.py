@@ -263,9 +263,7 @@ class Nested(Control):
         self.layout()
 
         # restore gui parenting
-        abs_parent, sep, _ = self.widget.rpartition("|")
-        if abs_parent:
-            cmds.setParent(abs_parent)
+        cmds.setParent(Nested.ACTIVE_LAYOUT)
 
     def layout(self):
         """
@@ -404,6 +402,13 @@ class Nested(Control):
             self.named_children = {}
         if Nested.ACTIVE_LAYOUT == self:
             Nested.ACTIVE_LAYOUT = None
+
+    def as_parent(self):
+        try:
+            cmds.setParent(self)
+        except RuntimeError as e:
+            cmds.setParent(self, menu=True)
+        return self
 
 
 # IMPORTANT NOTE
