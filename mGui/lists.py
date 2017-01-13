@@ -103,6 +103,10 @@ class FormList(object):
         for item in self.collection:
             yield item
 
+    @property
+    def inner_list(self):
+        return self.named_children['inner_list']
+
 
 class VerticalList(forms.FillForm, FormList):
     """
