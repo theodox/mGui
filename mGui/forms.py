@@ -27,6 +27,7 @@ import itertools
 
 import maya.cmds as cmds
 
+from mGui.core import Nested
 from mGui.core.layouts import FormLayout
 from mGui.styles import Bounds
 
@@ -216,7 +217,15 @@ class LayoutDialogForm(Form):
     def __init__(self, key=None):
         self.CMD = self.fake_create
         super(LayoutDialogForm, self).__init__(key=None)
+        self.modal = True
         self.CMD = cmds.formLayout
+
+    def __enter__(self):
+        return super(LayoutDialogForm, self).__enter__()
+
+    def __exit__(self, typ, value, tb):
+        return super(LayoutDialogForm, self).__exit__(typ, value, tb)
+
 
     @staticmethod
     def fake_create(*args, **kwargs):
@@ -307,8 +316,10 @@ class HorizontalExpandForm(Form):
 
     def layout(self):
         if len(self.controls):
+            ctrls = [i for i in physical_controls(self)]
             af = self.form_attachments('top', 'bottom')
-            af.append([self.controls[0], 'left', self.margin.top])
+            af.append([ctrls[0], 'left', self.margin.left])
+            af.append([ctrls[-1], 'right', self.margin.right])
             ac = self.form_series('left')
             self.attachForm = af
             self.attachControl = ac

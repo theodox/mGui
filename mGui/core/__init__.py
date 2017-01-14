@@ -1,12 +1,11 @@
-from collections import OrderedDict
-import inspect
-
 import maya.cmds as cmds
+
+import inspect
+from collections import OrderedDict
 from mGui.bindings import BindableObject, BindingContext
-from mGui.styles import Styled
 from mGui.properties import CtlProperty, CallbackProperty
 from mGui.scriptJobs import ScriptJobCallbackProperty
-
+from mGui.styles import Styled
 from weakref import ref
 
 """
@@ -67,18 +66,17 @@ class ControlMeta(type):
         _READ_ONLY = kwargs.get('_READ_ONLY', [])
         _ATTRIBS = kwargs.get('_ATTRIBS', [])
         _CALLBACKS = kwargs.get('_CALLBACKS', [])
-
         if not kwargs.get('CMD'):
             maya_cmd = parents[0].CMD
 
         for item in _READ_ONLY:
             kwargs[item] = CtlProperty(item, maya_cmd, writeable=False)
         for item in _ATTRIBS:
-            kwargs[item] = CtlProperty(item, maya_cmd)
+            # parent is overidden in the Control class
+            if item not in ('parent',):
+                kwargs[item] = CtlProperty(item, maya_cmd)
         for item in _CALLBACKS:
             kwargs[item] = CallbackProperty(item)
-
-        kwargs['parent'] = None
 
         kwargs['__bases__'] = parents
 
@@ -125,16 +123,20 @@ class Control(Styled, BindableObject):
         # Event objects
         self.callbacks = {}
 
+        # a weak reference to our parent, will be added when
+        # this widget is added to a control
+        self._parent = None
+
         # add us to the current layout under our own key name
         Layout.add_current(self)
         self.onDeleted += self.forget
 
-    def register_callback(self, callbackName, event):
+    def register_callback(self, callback_name, event):
         """
-        when a callback property is first accessed this creates an Event for the specified callback and hooks it to the
-        gui widget's callback function
+        when a callback property is first accessed this creates an Event named <callback_name> for the specified
+        callback and hooks it to the gui widget's callback function
         """
-        kwargs = {'e': True, callbackName: event}
+        kwargs = {'e': True, callback_name: event}
         self.CMD(self.widget, **kwargs)
 
     def __nonzero__(self):
@@ -192,6 +194,19 @@ class Control(Styled, BindableObject):
     def delete(cls, instance):
         cmds.deleteUI(instance.widget)
 
+    @property
+    def parent(self):
+        """
+        the mGui parent of this object.  This will be None if:
+            * this object has no parent (eg, a top level window)
+            * this object's parent has fallen out of scope
+            * this layout context for this object has not yet closed.
+
+        """
+        if self._parent is None:
+            return None
+        return self._parent()
+
 
 class Nested(Control):
     """
@@ -209,10 +224,13 @@ class Nested(Control):
         self.controls = []
         self.named_children = OrderedDict()
         self.ignore_exceptions = False
+        self.modal = False
         super(Nested, self).__init__(key, **kwargs)
 
     def __enter__(self):
         self.__cache_layout = Nested.ACTIVE_LAYOUT
+        if self.__cache_layout is not None:
+            self.modal = self.modal or self.__cache_layout.modal
         Nested.ACTIVE_LAYOUT = self
         return self
 
@@ -300,7 +318,7 @@ class Nested(Control):
         if control not in self.controls:
             self.controls.append(control)
 
-        control.parent = ref(self)
+        control._parent = ref(self)
 
     def replace(self, key, control):
         """
@@ -395,7 +413,7 @@ class Nested(Control):
 
 # IMPORTANT NOTE
 # this intentionally duplicates redundant property names from Control.
-# That forces the metaclass to re-define the CtlProperties using cmds.layout
+# That forces the metaclass to F-define the CtlProperties using cmds.layout
 # instead of cmds.control. In Maya 2014, using cmds.control to query a layout fails,
 # even for flags they have in common
 
