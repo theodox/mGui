@@ -1,7 +1,5 @@
-import mGui.gui as gui
-import mGui.stylesheets as stylesheets
-import mGui.forms as forms
-from mGui.bindings import BindProxy, BindingContext, bind, Bindable
+from mGui import gui, forms, stylesheets
+from mGui.bindings import bind, Bindable
 
 
 class ExampleWindow(Bindable):
@@ -46,12 +44,14 @@ class ExampleWindow(Bindable):
             with gui.BindingWindow(title='simple example', width=512) as self.window:
                 with forms.HorizontalStretchForm(width=512) as main:
                     with forms.VerticalForm(width=256) as sliders:
-                        gui.FloatSliderButtonGrp('red', label='red', tag=0)
-                        gui.FloatSliderButtonGrp('green', label='green', tag=1)
-                        gui.FloatSliderButtonGrp('blue', label='blue', tag=2)
+                        red = gui.FloatSliderButtonGrp(label='red', tag=0)
+                        green = gui.FloatSliderButtonGrp(label='green', tag=1)
+                        blue = gui.FloatSliderButtonGrp(label='blue', tag=2)
                     with forms.FillForm(width=256) as swatch:
-                        gui.Canvas('canvas').bind.rgbValue < bind() < self.bind.color
-                        gui.Text('display').bind.label < bind(pretty) < self.bind.color
+                        canvas = gui.Canvas()
+                        canvas.bind.rgbValue < bind() < self.bind.color
+                        display = gui.Text()
+                        display.bind.label < bind(pretty) < self.bind.color
 
             for grp in sliders.controls:
                 grp.changeCommand += self.update_color
@@ -59,7 +59,7 @@ class ExampleWindow(Bindable):
 
     def update_color(self, *args, **kwargs):
         self.color[kwargs['sender'].tag] = kwargs['sender'].value
-        self.window.bindingContext.update()
+        self.window.update_bindings()
 
     def average(self, *args, **kwargs):
         kwargs['sender'].value = sum(self.color) / 3
@@ -68,6 +68,6 @@ class ExampleWindow(Bindable):
     def show(self):
         self.window.show()
 
-
-e = ExampleWindow()
-e.show()
+if __name__ == '__main__':
+    e = ExampleWindow()
+    e.show()
