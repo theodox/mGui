@@ -40,12 +40,20 @@ Key points:
 
 class ExampleTemplate(lists.ItemTemplate):
     def widget(self, item):
-        with forms.HorizontalExpandForm(width=250, tag=item) as root:
-            delete_button = gui.IconTextButton(style='iconAndTextHorizontal', image='delete')
-            with forms.VerticalForm() as filler:
-                name_field = gui.NameField(object=item, width=250)
-            with forms.VerticalForm() as xform:
-                transform_group = gui.AttrFieldGrp(label='translate', attribute=item + ".t")
+        with forms.HorizontalExpandForm( tag=item) as root:
+            delete_button = gui.IconTextButton(width=48, style='iconOnly', image='deleteShader')
+            name_field = gui.NameField(object=item, width = 256)
+            gui.Separator(style = 'none', width = 16)
+
+            tx = gui.FloatField(width = 48, pre = 2)
+            ty = gui.FloatField(width = 48, pre = 2)
+            tz = gui.FloatField(width = 48, pre = 2)
+            gui.Separator(style = 'none', width = 16)
+
+            # using 'connectControl' here is a good alternative to binding
+            cmds.connectControl(tx, item + ".tx")
+            cmds.connectControl(ty, item + ".ty")
+            cmds.connectControl(tz, item + ".tz")
 
         delete_button.tag = root
         return lists.Templated(item, root, request_delete=delete_button.command)
@@ -62,22 +70,28 @@ class BoundCollectionWindow(object):
         # this is the collection of stuff to manage
         self.collection = observable.ViewCollection(*collection)
 
-        with gui.BindingWindow(title='bound collection example') as self.window:
-            with forms.VerticalExpandForm() as main:
-                gui.Separator(style='none', height=12)
-                gui.Text(label="Here's stuff in my list")
-                gui.Separator(style='none', height=12)
+        with gui.BindingWindow(title='bound collection example', height = 512, width=512) as self.window:
+            with forms.VerticalExpandForm(margin = (16,), spacing = (8,12)) as main:
+                gui.Text(label="Type a filter and [enter] to limit the list")
 
-                with forms.HorizontalStretchForm() as flt:
-                    filter_text = gui.TextField(width=480)
+                with forms.HorizontalExpandForm(width = 512, ) as flt:
+                    filter_text = gui.TextField(width=400)
                     filter_text.alwaysInvokeEnterCommandOnReturn = True
                     gui.Separator(horizontal=False, style='none', width=4)
-                    with forms.HorizontalExpandForm('display', width=32) as hmm:
-                        shown = gui.Text()
+                    with forms.HorizontalExpandForm( width=100) as display:
+                        gui.Text("showing")
+                        shown = gui.Text(width = 24)
                         shown.bind.label < bind() < self.collection.bind.viewCount
                         gui.Text(label='/')
-                        total = gui.Text()
+                        total = gui.Text(width=24)
                         total.bind.label < bind() < self.collection.bind.count
+
+                with forms.HorizontalExpandForm() as labels:
+                    gui.Separator(style=None, width=48)
+                    gui.Text ("item", width = 256, align='center')
+                    gui.Separator(style=None, width=16)
+                    gui.Text("translation", width = 128, align = 'center')
+                    gui.Separator(style=None, width=16)
 
                 item_list = lists.VerticalList(itemTemplate=ExampleTemplate)
                 self.collection > bind() > item_list.collection
@@ -94,7 +108,7 @@ class BoundCollectionWindow(object):
             self.collection.update_filter(filter_exp)
         else:
             self.collection.update_filter(None)
-
+        cmds.setFocus(self.window.main.flt.filter_text)
 
     def do_delete(self, *args, **kwargs):
         template = kwargs['sender'].tag
