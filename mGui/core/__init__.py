@@ -69,11 +69,12 @@ class ControlMeta(type):
         if not kwargs.get('CMD'):
             maya_cmd = parents[0].CMD
 
+        _overridden = ('parent','popupMenuArray')
         for item in _READ_ONLY:
-            kwargs[item] = CtlProperty(item, maya_cmd, writeable=False)
+            if item not in _overridden:
+                kwargs[item] = CtlProperty(item, maya_cmd, writeable=False)
         for item in _ATTRIBS:
-            # parent is overidden in the Control class
-            if item not in ('parent',):
+            if item not in _overridden:
                 kwargs[item] = CtlProperty(item, maya_cmd)
         for item in _CALLBACKS:
             kwargs[item] = CallbackProperty(item)
@@ -206,6 +207,12 @@ class Control(Styled, BindableObject):
         if self._parent is None:
             return None
         return self._parent()
+
+    @property
+    def popupMenuArray(self):
+        # Not a fan of this creating a circular import, but haven't worked out an alternative yet.
+        from .menus import PopupMenu
+        return [PopupMenu.wrap(self.fullPathName + '|' + menu) for menu in self.CMD(self, q=True, popupMenuArray=True) or []]
 
 
 class Nested(Control):
