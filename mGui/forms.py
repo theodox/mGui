@@ -316,8 +316,10 @@ class HorizontalExpandForm(Form):
 
     def layout(self):
         if len(self.controls):
+            ctrls = [i for i in physical_controls(self)]
             af = self.form_attachments('top', 'bottom')
-            af.append([self.controls[0], 'left', self.margin.top])
+            af.append([ctrls[0], 'left', self.margin.left])
+            af.append([ctrls[-1], 'right', self.margin.right])
             ac = self.form_series('left')
             self.attachForm = af
             self.attachControl = ac

@@ -34,13 +34,14 @@ them automatically when it closes; this makes sure that all the UI elements get 
 at creation time.
 
 """
-import os
 import sys
-import itertools
+
+import maya.cmds as cmds
+
+import os
 import subprocess
 import webbrowser as wb
-import maya.cmds as cmds
-from mGui import gui, lists, observable, forms
+from mGui import gui, lists, forms
 from mGui.bindings import bind, BindingContext
 
 
@@ -141,7 +142,7 @@ class ModuleTemplate(lists.ItemTemplate):
 
     def widget(self, item):
         with BindingContext() as bc:
-            with forms.HorizontalExpandForm(height=60) as root:
+            with forms.HorizontalExpandForm(height=60, margin=(12, 0), backgroundColor=(.2, .2, .2)) as root:
                 with forms.VerticalExpandForm(width=60) as cbf:
                     enabled = gui.CheckBox(label='', tag=item, value=item.enabled)
                     enabled.bind.value > bind() > (item, 'enabled')
@@ -152,7 +153,7 @@ class ModuleTemplate(lists.ItemTemplate):
                         display_name.bind.label < bind() < (item, 'name')
                         path = gui.Text(font='smallObliqueLabelFont')
                         path.bind.label < bind() < (item, 'path')
-                with gui.GridLayout(width=140, numberOfColumns=2) as btns:
+                with gui.GridLayout(width=200, numberOfColumns=2) as btns:
                     edit = gui.Button(label='Edit', tag=item)
                     show = gui.Button(label='Show', tag=item)
         enabled.changeCommand += self.update_status
@@ -192,7 +193,7 @@ class ModuleManagerDialog(object):
     def _layout(self):
         with forms.LayoutDialogForm() as base:
             with BindingContext() as bc:
-                with forms.VerticalThreePane(width=512) as main:
+                with forms.VerticalThreePane(width=512, margin=(4, 4), spacing=(0, 8)) as main:
                     with forms.VerticalForm() as header:
                         gui.Text(label='Installed Modules')
 
@@ -225,6 +226,7 @@ class ModuleManagerDialog(object):
     def show(self):
         self._manager.refresh()
         cmds.layoutDialog(ui=self._layout, title='Module editor')
+
 
 if __name__ == '__main__':
     m = ModuleManagerDialog()
