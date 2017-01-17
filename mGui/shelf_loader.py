@@ -54,14 +54,14 @@ class ShelfButtonProxy(yaml.YAMLObject):
         for ctrl in parent.controls:
             # docTag actually gets serialized, and doesn't have a practical use
             # which makes it perfect for a sentinel
-            if ctrl.docTag == self.docTag:
+            if ctrl.docTag == (self.docTag or self.key):
                 break
         else:
             with parent.as_parent():
                 ctrl = self.proxy(self.key)
 
         ctrl.annotation = self.annotation
-        ctrl.docTag = self.docTag
+        ctrl.docTag = (self.docTag or self.key)
         ctrl.image = self.image
         ctrl.label = self.label
         ctrl.sourceType = self.sourceType
