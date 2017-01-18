@@ -68,7 +68,7 @@ class ShelfButtonProxy(yaml.YAMLObject):
 
         ctrl.annotation = self.annotation
         ctrl.docTag = (self.docTag or self.key)
-        ctrl.image = self.image
+        ctrl.image = os.path.expandvars(self.image)
         ctrl.label = self.label
         ctrl.sourceType = self.sourceType
         ctrl.command = self.command
