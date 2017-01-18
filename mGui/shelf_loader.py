@@ -16,6 +16,12 @@ class ShelfLayoutProxy(yaml.YAMLObject):
         if parent is None:
             parent = gui.derive(self.parent)
 
+        # initializes all the shelves
+        current_tab = parent.selectTab
+        for child in parent.childArray:
+            parent.selectTab = child
+        parent.selectTab = current_tab
+
         for shelf in parent.controls:
             if shelf.key == self.key:
                 break
