@@ -6,6 +6,7 @@ from mGui.core.controls import TextField
 from mGui.events import Event
 from mGui.scriptJobs import Idle
 from mGui.qt._compat import as_qt_object, QtCore
+from mGui.qt.properties import QtSignalPropety
 
 
 class InputBuffer(object):
@@ -47,14 +48,14 @@ class QTextField(TextField):
     can emit events on every text change
     """
 
+    textChanged = QtSignalPropety('textChanged')
+
     def __init__(self, key=None, **kwargs):
         interval = kwargs.pop('interval', .25)
         super(QTextField, self).__init__(key, **kwargs)
-        self.textChanged = Event()
+
         self.textBufferChanged = None
         self._qt_wrapper = as_qt_object(self.widget)
-        self._qt_wrapper.textChanged.connect(self.textChanged)
-        self.textChanged.data['qWidget'] = self._qt_wrapper
         self.buffer = None
         self.keypress = Event()
 
@@ -86,3 +87,6 @@ class QTextField(TextField):
             self.textBufferChanged = Event(**{'sender': self})
             self.buffer = InputBuffer(self, self.textBufferChanged)
             self.textChanged += self.buffer.handle
+
+    
+    
