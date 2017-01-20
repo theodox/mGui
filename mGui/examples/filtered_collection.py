@@ -3,6 +3,8 @@ import re
 import time
 import inspect
 
+from maya import cmds
+
 from mGui import gui, forms, lists
 from mGui.bindings import bind
 from mGui.observable import ViewCollection
@@ -14,16 +16,19 @@ This example illustrates the optional QTextField object, which (unlike a regular
 will fire events on every key pres.
 
 This example DOES NOT WORK in Maya 2017 or later due to the QT5 update.
-""""
+"""
 
 _items = gui.__all__ + forms.__all__ + lists.__all__
 
 items = ViewCollection(*_items)
 
+
 class InputBuffer(object):
+
     '''
     accumulate inputs until a certain amount of time passes
     '''
+
     def __init__(self, parent, fn, interval=1):
         self.last = time.time()
         self.interval = interval
