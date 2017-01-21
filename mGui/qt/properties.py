@@ -2,7 +2,7 @@ from mGui.events import Event, MayaEvent
 from mGui.qt._compat import as_qt_object
 import weakref
 
-class QtSignalPropety(object):
+class QtSignalProperty(object):
     """
     Property descriptor for Qt Signals.  When accessed, returns the appropriate
     Event object from a Control-derived class's Callback dictionary.
