@@ -37,10 +37,16 @@ def _pyside_as_qt_object(widget):
 
 
 def _pyqt4_as_qt_object(widget):
-    from PyQt4.QtGui import QWidget
     from sip import wrapinstance
+    # Seting to api2 to better align with PySide behavior.
+    sip.setapi('QDate', 2)
+    sip.setapi('QDateTime', 2)
     sip.setapi('QString', 2)
+    sip.setapi('QtextStream', 2)
+    sip.setapi('Qtime', 2)
+    sip.setapi('QUrl', 2)
     sip.setapi('QVariant', 2)
+    from PyQt4.QtGui import QWidget
     ptr = _find_widget_ptr(widget)
     return wrapinstance(long(ptr), QWidget)
 
@@ -51,6 +57,8 @@ def _pyqt5_as_qt_object(widget):
     ptr = _find_widget_ptr(widget)
     return wrapinstance(long(ptr), QWidget)
 
+# Imports favor PySide over PyQt, and Qt5 over Qt4.
+# as this is the most future forward set of options currently.
 try:
     from PySide2 import QtCore, QtGui, QtWidgets
 except ImportError:
@@ -75,4 +83,8 @@ except ImportError:
 else:
     as_qt_object = _pyside2_as_qt_object
 
-__all__ = ['QtCore', 'QtGui', 'as_qt_object']
+
+def main_window():
+    return as_qt_object('MayaWindow')
+
+__all__ = ['QtCore', 'QtGui', 'QtWidgets', 'main_window', 'as_qt_object']
