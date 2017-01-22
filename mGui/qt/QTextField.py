@@ -31,7 +31,7 @@ class InputBuffer(object):
     def update(self, *_, **__):
         if time.time() - self.last < self.interval:
             return
-        
+
         if self.buffer:
             previous = self.previous_value
             self.previous_value = self.buffer[-1]
@@ -87,6 +87,3 @@ class QTextField(TextField):
             self.textBufferChanged = Event(**{'sender': self})
             self.buffer = InputBuffer(self, self.textBufferChanged)
             self.textChanged += self.buffer.handle
-
-    
-    
