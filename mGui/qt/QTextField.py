@@ -6,7 +6,7 @@ from mGui.core.controls import TextField
 from mGui.events import Event
 from mGui.scriptJobs import Idle
 from mGui.qt._compat import as_qt_object, QtCore
-from mGui.qt.properties import QtSignalProperty
+from mGui.qt._properties import QtSignalProperty
 
 
 class InputBuffer(object):

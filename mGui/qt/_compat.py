@@ -1,3 +1,10 @@
+"""
+Internal module for providing a consistent interface for the various Qt Bindings.
+The basic goal is allow mGui to just treat Qt elements as if we were writing against PySid2.
+But we provide fallbacks to other bindings.
+
+"""
+
 from maya.OpenMayaUI import MQtUtil
 
 
@@ -38,7 +45,7 @@ def _pyside_as_qt_object(widget):
 
 def _pyqt4_as_qt_object(widget):
     from sip import wrapinstance
-    # Seting to api2 to better align with PySide behavior.
+    # Seting to api level 2 to better align with PySide behavior.
     sip.setapi('QDate', 2)
     sip.setapi('QDateTime', 2)
     sip.setapi('QString', 2)

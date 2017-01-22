@@ -1,3 +1,8 @@
+"""
+Defines a descriptor object for binding Qt Signals to mGui objects.
+
+"""
+
 from mGui.events import Event, MayaEvent
 from mGui.qt._compat import as_qt_object
 import weakref
