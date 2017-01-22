@@ -6,45 +6,48 @@ This example shows a cleaned up version of traditional Maya GUI using context ma
 Note: buttons are non-functional; this just shows layout style
 """
 
+def main():
+    with gui.Window(title="Ugly version") as main_window:
+        with gui.ColumnLayout(width=256) as main:
+            with gui.FrameLayout(label="buttons column") as t_buttons:
+                with gui.ColumnLayout() as col:
+                    mk_sphere = gui.Button(label="Make Sphere")
+                    mk_cone = gui.Button(label="Make Cone")
+                    mk_cube = gui.Button(label="Make Cube")
 
-window = gui.Window('main window', title="Ugly version")
-with gui.ColumnLayout('gui', width=256) as main:
-    with gui.FrameLayout("t_buttons", label="buttons column"):
-        with gui.ColumnLayout("col"):
-            gui.Button('mkSphere', label="Make Sphere")
-            gui.Button('mkCone', label="Make Cone")
-            gui.Button('mkCube', label="Make Cube")
+            with gui.FrameLayout(label="buttons row") as r_buttons:
+                with gui.RowLayout(numberOfColumns=3) as row:
+                    mk_sphere = gui.Button(label="Make Sphere")
+                    mk_cone = gui.Button(label="Make Cone")
+                    mk_cube = gui.Button(label="Make Cube")
 
-    with gui.FrameLayout("r_buttons", label="buttons row"):
-        with gui.RowLayout ("row", numberOfColumns=3):
-            gui.Button('mkSphere', label="Make Sphere")
-            gui.Button('mkCone', label="Make Cone")
-            gui.Button('mkCube', label="Make Cube")
+            with gui.FrameLayout(label="buttons grid") as g_buttons:
+                with gui.GridLayout(numberOfColumns=2) as grid:
+                    mk_sphere = gui.Button(label="Make Sphere")
+                    mk_cone = gui.Button(label="Make Cone")
+                    mk_cube = gui.Button(label="Make Cube")
+                    mk_circle = gui.Button(label="Make Circle")
 
-    with gui.FrameLayout("g_buttons", label="buttons grid"):
-        with gui.GridLayout("grid", numberOfColumns=2):
-            gui.Button('mkSphere', label="Make Sphere")
-            gui.Button('mkCone', label="Make Cone")
-            gui.Button('mkCube', label="Make Cube")
-            gui.Button('mkCircle', label="Make Circle")
+    # using the iterability of the layout to set widths
 
-# using the iterability of the layout to set widths
+    for item in main.t_buttons:
+        item.width = 256
 
-for item in main.t_buttons:
+    for item in main.r_buttons.row:
+        item.width = 85
+
+    # last 'item' is the row itself...
     item.width = 256
+    item.columnWidth3 = (85, 85, 85)
 
-for item in main.r_buttons.row:
-    item.width = 85
+    for item in main.g_buttons.grid:
+        item.width = 128
 
-# last 'item' is the row itself...
-item.width = 256
-item.columnWidth3 = (85, 85, 85)
+    # last item is the grid...
+    item.width = 256
+    item.cellWidth = 128
+    return main_window
 
-for item in main.g_buttons.grid:
-    item.width = 128
-
-# last item is the grid...
-item.width = 256
-item.cellWidth = 128
-
-cmds.showWindow(window)
+if __name__ == '__main__':
+    main_window = main()
+    main_window.show()

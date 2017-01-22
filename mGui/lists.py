@@ -103,6 +103,10 @@ class FormList(object):
         for item in self.collection:
             yield item
 
+    @property
+    def inner_list(self):
+        return self.named_children['inner_list']
+
 
 class VerticalList(forms.FillForm, FormList):
     """
@@ -212,3 +216,5 @@ class ItemTemplate(object):
 
     def __call__(self, item):
         return self.widget(item)
+
+__all__ = ['FormList', 'VerticalList', 'HorizontalList', 'ColumnList', 'WrapList', 'Templated', 'ItemTemplate', ]
