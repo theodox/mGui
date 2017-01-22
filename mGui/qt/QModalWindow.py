@@ -1,13 +1,18 @@
+"""
+Modal Window is a version of the Window class that blocks all input to other windows.
+However it does not block code execution, so it does not behave like a standard dialog.
 
+
+"""
 from maya import cmds
 from mGui.core import BindingWindow
 from mGui.qt._compat import as_qt_object, QtCore
 
 
-class ModalWindow(BindingWindow):
+class QModalWindow(BindingWindow):
 
     def __init__(self, *args, **kwargs):
-        super(ModalWindow, self).__init__(*args, **kwargs)
+        super(QModalWindow, self).__init__(*args, **kwargs)
         self._qt_obj = as_qt_object(self)
         self._qt_obj.setWindowModality(
             QtCore.Qt.WindowModality.ApplicationModal)
@@ -16,7 +21,7 @@ class ModalWindow(BindingWindow):
         self._qt_obj.show()
 
     def forget(self, *args, **kwargs):
-        super(ModalWindow, self).forget()
+        super(QModalWindow, self).forget()
         self._qt_obj = None
 
     def hide(self):
@@ -28,4 +33,4 @@ class ModalWindow(BindingWindow):
 
     def __exit__(self, typ, value, traceback):
         mGui_expand_stack = True
-        super(ModalWindow, self).__exit__(typ, value, traceback)
+        super(QModalWindow, self).__exit__(typ, value, traceback)
