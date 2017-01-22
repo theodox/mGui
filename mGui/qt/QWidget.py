@@ -1,26 +1,16 @@
 
-from ..core import BindingWindow
-
 from maya import cmds
-from maya.OpenMayaUI import MQtUtil
+from mGui.core import BindingWindow
+from mGui.qt._compat import as_qt_object, QtCore
 
-try:
-    from shiboken import wrapInstance
-    from PySide.QtGui import QWidget, QDialog
-    from PySide import QtCore
-except ImportError:
-    from shiboken2 import wrapInstance
-    from PySide2.QtWidgets import QWidget, QDialog
-    from PySide2 import QtCore
 
 class ModalWindow(BindingWindow):
 
     def __init__(self, *args, **kwargs):
         super(ModalWindow, self).__init__(*args, **kwargs)
-        ptr = MQtUtil.findWindow(self.widget)
-        self._qt_obj = wrapInstance(long(ptr), QWidget)
-        self._qt_obj.setWindowModality(QtCore.Qt.WindowModality.ApplicationModal)
-        
+        self._qt_obj = as_qt_object(self)
+        self._qt_obj.setWindowModality(
+            QtCore.Qt.WindowModality.ApplicationModal)
 
     def show(self):
         self._qt_obj.show()
