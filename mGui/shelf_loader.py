@@ -93,7 +93,7 @@ class MenuItemProxy(yaml.YAMLObject):
     sourceType = ''
 
     def instantiate(self, parent=None):
-        popup = parent.popupMenuArray[0]
+        popup = gui.PopupMenu.wrap(parent.fullPathName + "|" + parent.popupMenuArray[0])
         for item in popup.itemArray:
             # widget gets recreated by Maya, but the key is used as the label.
             if item.label == self.key:
