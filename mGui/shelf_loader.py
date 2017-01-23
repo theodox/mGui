@@ -1,16 +1,22 @@
 import os
-import yaml
 from maya import cmds
 from mGui import gui
 
-class ShelfLayoutProxy(yaml.YAMLObject):
-    yaml_tag = '!MShelfLayout'
+class BaseLoader(object):
+    def __init__(self, data_dict):
+        self.__dict__.update(data_dict)
+
+class ShelfLayoutProxy(BaseLoader):
     proxy = gui.ShelfLayout
 
     # Shelf Defaults
     parent = 'ShelfLayout'
     key = 'ShelfProxy'
     controls = tuple()
+
+    def __init__(self, data_dict):
+        super(ShelfLayoutProxy, self).__init__(data_dict)
+        self.controls = [ShelfButtonProxy(ctrl) for ctrl in self.controls]
 
     def instantiate(self, parent=None):
         if parent is None:
@@ -36,8 +42,7 @@ class ShelfLayoutProxy(yaml.YAMLObject):
             ctrl.instantiate(shelf)
 
 
-class ShelfButtonProxy(yaml.YAMLObject):
-    yaml_tag = '!MShelfButton'
+class ShelfButtonProxy(BaseLoader):
     proxy = gui.ShelfButton
 
     # Button Defaults
@@ -56,6 +61,10 @@ class ShelfButtonProxy(yaml.YAMLObject):
     menuItems = tuple()
     font = 'plainLabelFont'
 
+    def __init__(self, data_dict):
+        super(ShelfButtonProxy, self).__init__(data_dict)
+        self.menuItems = [MenuItemProxy(item) for item in self.menuItems]
+
     def instantiate(self, parent=None):
         for ctrl in parent.controls:
             # docTag actually gets serialized, and doesn't have a practical use
@@ -71,11 +80,13 @@ class ShelfButtonProxy(yaml.YAMLObject):
         ctrl.image = os.path.expandvars(self.image)
         ctrl.label = self.label
         ctrl.sourceType = self.sourceType
+        # TODO: convert array of strings to multi-line command
         ctrl.command = self.command
         ctrl.imageOverlayLabel = self.imageOverlayLabel
         ctrl.overlayLabelColor = self.overlayLabelColor
         ctrl.overlayLabelBackColor = self.overlayLabelBackColor
         ctrl.enableBackground = self.enableBackground
+        # TODO: convert array of strings to multi-line command
         ctrl.doubleClickCommand = self.doubleClickCommand
         ctrl.font = self.font
 
@@ -83,8 +94,7 @@ class ShelfButtonProxy(yaml.YAMLObject):
             item.instantiate(ctrl)
 
 
-class MenuItemProxy(yaml.YAMLObject):
-    yaml_tag = '!MMenuItem'
+class MenuItemProxy(BaseLoader):
     proxy = gui.MenuItem
 
     # MenuItem Defaults
@@ -103,11 +113,12 @@ class MenuItemProxy(yaml.YAMLObject):
                 item = self.proxy(self.key)
 
         item.sourceType = self.sourceType
+        # TODO: convert array of strings to multi-line command
         item.command = self.command
 
 
-def load_shelf(shelf_string):
-    shelf = yaml.load(shelf_string)
+def load_shelf(shelf_dict):
+    shelf = ShelfLayoutProxy(shelf_dict)
     shelf.instantiate()
 
 
