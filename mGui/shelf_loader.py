@@ -1,13 +1,23 @@
+"""
+mGui.shelf_loader
+
+Allows loading of shelves defined in python dictionaries.
+
+"""
 import os
 from maya import cmds
 from mGui import gui
 
+
 def _process_command(cmd):
     return cmd if isinstance(cmd, basestring) else '\n'.join(cmd)
 
+
 class BaseLoader(object):
+
     def __init__(self, data_dict):
         self.__dict__.update(data_dict)
+
 
 class ShelfLayoutProxy(BaseLoader):
     proxy = gui.ShelfLayout
@@ -120,5 +130,3 @@ class MenuItemProxy(BaseLoader):
 def load_shelf(shelf_dict):
     shelf = ShelfLayoutProxy(shelf_dict)
     shelf.instantiate()
-
-
