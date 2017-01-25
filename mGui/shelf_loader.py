@@ -2,6 +2,9 @@ import os
 from maya import cmds
 from mGui import gui
 
+def _process_command(cmd):
+    return cmd if isinstance(cmd, basestring) else '\n'.join(cmd)
+
 class BaseLoader(object):
     def __init__(self, data_dict):
         self.__dict__.update(data_dict)
@@ -80,14 +83,12 @@ class ShelfButtonProxy(BaseLoader):
         ctrl.image = os.path.expandvars(self.image)
         ctrl.label = self.label
         ctrl.sourceType = self.sourceType
-        # TODO: convert array of strings to multi-line command
-        ctrl.command = self.command
+        ctrl.command = _process_command(self.command)
         ctrl.imageOverlayLabel = self.imageOverlayLabel
         ctrl.overlayLabelColor = self.overlayLabelColor
         ctrl.overlayLabelBackColor = self.overlayLabelBackColor
         ctrl.enableBackground = self.enableBackground
-        # TODO: convert array of strings to multi-line command
-        ctrl.doubleClickCommand = self.doubleClickCommand
+        ctrl.doubleClickCommand = _process_command(self.doubleClickCommand)
         ctrl.font = self.font
 
         for item in self.menuItems:
@@ -113,8 +114,7 @@ class MenuItemProxy(BaseLoader):
                 item = self.proxy(self.key)
 
         item.sourceType = self.sourceType
-        # TODO: convert array of strings to multi-line command
-        item.command = self.command
+        item.command = _process_command(self.command)
 
 
 def load_shelf(shelf_dict):
