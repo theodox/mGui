@@ -4,7 +4,7 @@ Defines scriptJob based classes which allow binding to conditions or selection s
 
 from mGui.scriptJobs import SelectionChanged, SomethingSelected, ScriptJobC
 from mGui.bindings import BindableObject
-from mGui.core import  Layout, Window
+from mGui.core import Layout, Window
 import maya.cmds as cmds
 
 
@@ -53,7 +53,6 @@ class ConditionWatcher(BindableObject):
         self.condition_changed.start(**_get_active_ui(parent))
         self._forward_update()
 
-
     def _forward_update(self, *args, **kwargs):
         self.update_bindings()
 
@@ -95,7 +94,6 @@ class SelectionWatcher(ConditionWatcher):
         :param itemTypes: an option list of string node type names
         """
         super(SelectionWatcher, self).__init__(SomethingSelected(None), parent)
-
 
     @property
     def is_selected(self):
@@ -161,10 +159,19 @@ class SelectionListWatcher(BindableObject):
 
     @property
     def is_selected(self):
-        return self.selection_size > 0
+        return any(self.selected_items)
 
     @property
     def selection_size(self):
         return len(self.selected_items)
 
+    @property
+    def hilited(self):
+        if self.filter:
+            return cmds.ls(hl=True, l=True, type=self.filter) or []
+        else:
+            return cmds.ls(hl=True, l=True) or []
 
+    @property
+    def is_hilited(self):
+        return any(self.hilited)
