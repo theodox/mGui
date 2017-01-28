@@ -36,6 +36,28 @@ class MenuItem(Control):
     _CALLBACKS = ['command', 'dragDoubleClickCommand', 'dragMenuCommand', 'postMenuCommand', 'postMenuCommandOnce']
 
 
+class SubMenuItem(Nested):
+    CMD = cmds.menuItem
+    _ATTRIBS = ["altModifier", "annotation", "allowOptionBoxes", "boldFont", "checkBox", "collection",
+                "commandModifier", "ctrlModifier", "divider", "data", "defineTemplate", "docTag", "echoCommand",
+                "enableCommandRepeat", "enable", "exists", "familyImage", "image", "insertAfter", "imageOverlayLabel",
+                "italicized", "keyEquivalent", "label", "mnemonic", "optionBox", "optionBoxIcon", "optionModifier",
+                "parent", "radioButton", "radialPosition", "shiftModifier", "sourceType", "tearOff",
+                "useTemplate", "version"]
+    _READ_ONLY = ['isCheckBox', 'isOptionBox', 'isRadioButton']
+    _CALLBACKS = ['command', 'dragDoubleClickCommand', 'dragMenuCommand', 'postMenuCommand', 'postMenuCommandOnce']
+    
+    def __init__(self, key=None, *args, **kwargs):
+        kwargs['subMenu'] = True
+        super(SubMenuItem, self).__init__(key, *args, **kwargs)
+
+    def __exit__(self, typ, value, tb):
+        mGui_expand_stack = True
+        try:
+            super(SubMenuItem, self).__exit__(typ, value, tb)
+        except RuntimeError:
+            cmds.setParent(Nested.ACTIVE_LAYOUT, menu=True)
+
 class OptionMenu(Nested):
     CMD = cmds.optionMenu
     _ATTRIBS = ['alwaysCallChangeCommand', 'annotation', 'backgroundColor', 'docTag', 'enableBackground', 'exists',
