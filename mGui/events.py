@@ -81,8 +81,15 @@ class Event(object):
         """
         Add a handler callable. Raises a ValueError if the argument is not callable
         """
+        stash = None
+        if isinstance(handler, tuple):
+            handler, stash = handler
+
         if not callable(handler):
             raise ValueError("%s is not callable", handler)
+
+        if stash is not None:
+            setattr(stash, '_sh_' + handler.__name__, handler)
 
         self._handlers.add(get_weak_reference(handler))
         return self
@@ -91,24 +98,18 @@ class Event(object):
         """
         Remove a handler. Ignores handlers that are not present.
         """
-        wr = get_weak_reference(handler)
-        delenda = [h for h in self._handlers if h == wr]
-        self._handlers = self._handlers.difference(set(delenda))
-        return self
+        stash = None
+        if isinstance(handler, tuple):
+            handler, stash = handler
 
-    def _stash_handler(self, handler_stash):
-        handler, stash = handler_stash
-        setattr(stash, '_sh_' + handler.__name__, handler)
-        self._add_handler(handler)
-        return self
-
-    def _unstash_handler(self, handler_stash):
-        handler, stash = handler_stash
         try:
             delattr(stash, '_sh_' + handler.__name__)
         except AttributeError:
             pass
-        self._remove_handler(handler)
+
+        wr = get_weak_reference(handler)
+        delenda = [h for h in self._handlers if h == wr]
+        self._handlers = self._handlers.difference(set(delenda))
         return self
 
     def metadata(self, kwargs):
@@ -146,8 +147,6 @@ class Event(object):
     __len__ = _handler_count
     __iadd__ = _add_handler
     __isub__ = _remove_handler
-    __imul__ = _stash_handler
-    __idiv__ = _unstash_handler
 
     def __del__(self):
         print 'event expired'
