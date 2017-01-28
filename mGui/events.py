@@ -72,7 +72,7 @@ class Event(object):
     """
 
     def __init__(self, **data):
-        self._Handlers = set()
+        self._handlers = set()
         '''Set list of handlers callables. Use a set to avoid multiple calls on one handler'''
         self.data = data
         self.data['event'] = self
@@ -84,7 +84,7 @@ class Event(object):
         if not callable(handler):
             raise ValueError("%s is not callable", handler)
 
-        self._Handlers.add(get_weak_reference(handler))
+        self._handlers.add(get_weak_reference(handler))
         return self
 
     def _remove_handler(self, handler):
@@ -92,8 +92,23 @@ class Event(object):
         Remove a handler. Ignores handlers that are not present.
         """
         wr = get_weak_reference(handler)
-        delenda = [h for h in self._Handlers if h == wr]
-        self._Handlers = self._Handlers.difference(set(delenda))
+        delenda = [h for h in self._handlers if h == wr]
+        self._handlers = self._handlers.difference(set(delenda))
+        return self
+
+    def _stash_handler(self, handler_stash):
+        handler, stash = handler_stash
+        setattr(stash, '_sh_' + handler.__name__, handler)
+        self._add_handler(handler)
+        return self
+
+    def _unstash_handler(self, handler_stash):
+        handler, stash = handler_stash
+        try:
+            delattr(stash, '_sh_' + handler.__name__)
+        except AttributeError:
+            pass
+        self._remove_handler(handler)
         return self
 
     def metadata(self, kwargs):
@@ -111,18 +126,18 @@ class Event(object):
         """
 
         delenda = []
-        for handler in self._Handlers:
+        for handler in self._handlers:
             try:
                 handler(*args, **self.metadata(kwargs))
             except DeadReferenceError:
                 delenda.append(handler)
-        self._Handlers = self._Handlers.difference(set(delenda))
+        self._handlers = self._handlers.difference(set(delenda))
 
     def _handler_count(self):
         """
-        Returns the count of the _Handlers field
+        Returns the count of the _handlers field
         """
-        return len([i for i in self._Handlers])
+        return len([i for i in self._handlers])
 
     # hook up the instance methods to the base methods
     # doing it this way allows you to override more neatly
@@ -131,9 +146,12 @@ class Event(object):
     __len__ = _handler_count
     __iadd__ = _add_handler
     __isub__ = _remove_handler
+    __imul__ = _stash_handler
+    __idiv__ = _unstash_handler
 
     def __del__(self):
         print 'event expired'
+
 
 class MayaEvent(Event):
     """
@@ -146,12 +164,12 @@ class MayaEvent(Event):
         """
 
         delenda = []
-        for handler in self._Handlers:
+        for handler in self._handlers:
             try:
                 maya.utils.executeDeferred(partial(handler, *args, **self.metadata(kwargs)))
             except DeadReferenceError:
                 delenda.append(handler)
-        self._Handlers = self._Handlers.difference(set(delenda))
+        self._handlers = self._handlers.difference(set(delenda))
 
     __call__ = _fire
 
@@ -200,7 +218,6 @@ class WeakMethodBound(object):
         return self.ID
 
 
-
 class WeakMethodFree(object):
     """
     Encapsulates a weak reference to an unbound method
@@ -219,7 +236,8 @@ class WeakMethodFree(object):
             raise DeadReferenceError("Reference to unbound method {0} no longer exists".format(self._ref_name))
 
     def __eq__(self, other):
-        if not hasattr(other, 'ID'): return False
+        if not hasattr(other, 'ID'):
+            return False
         return self.ID == other.ID
 
     def __hash__(self):
@@ -243,7 +261,7 @@ def event_handler(fn):
     decorator for making event handlers out of functions with no arguments
     """
 
-    if  inspect.getargspec(fn).varargs and  inspect.getargspec(fn).keywords:
+    if inspect.getargspec(fn).varargs and inspect.getargspec(fn).keywords:
         return fn
 
     @wraps(fn)
