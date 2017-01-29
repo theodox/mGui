@@ -93,12 +93,14 @@ class ShelfButtonProxy(BaseLoader):
         ctrl.image = os.path.expandvars(self.image)
         ctrl.label = self.label
         ctrl.sourceType = self.sourceType
-        ctrl.command = _process_command(self.command)
+        if self.command:
+            ctrl.command = _process_command(self.command)
         ctrl.imageOverlayLabel = self.imageOverlayLabel
         ctrl.overlayLabelColor = self.overlayLabelColor
         ctrl.overlayLabelBackColor = self.overlayLabelBackColor
         ctrl.enableBackground = self.enableBackground
-        ctrl.doubleClickCommand = _process_command(self.doubleClickCommand)
+        if self.doubleClickCommand:
+            ctrl.doubleClickCommand = _process_command(self.doubleClickCommand)
         ctrl.font = self.font
 
         for item in self.menuItems:
@@ -124,7 +126,8 @@ class MenuItemProxy(BaseLoader):
                 item = self.proxy(self.key)
 
         item.sourceType = self.sourceType
-        item.command = _process_command(self.command)
+        if self.command:
+            item.command = _process_command(self.command)
 
 
 def load_shelf(shelf_dict):
