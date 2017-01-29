@@ -123,6 +123,7 @@ class TestEvents(unittest.TestCase):
         test -= handle
         sample_data.remove("OK")
         test()
+        assert 'OK' not in sample_data
 
     def test_bound_derefencing(self):
         sample_data = []
@@ -138,6 +139,23 @@ class TestEvents(unittest.TestCase):
         assert not "OK" in self.bound_tester.DATA
 
     def test_stash(self):
+        sample_data = []
+
+        def handle(*args, **kwargs):
+            sample_data.append('OK')
+
+        class Stash(object):
+            pass
+        
+        stash = Stash()
+
+        test = events.Event()
+        test += handle, stash
+        del handle
+        test()
+        assert 'OK' in sample_data
+
+    def test_stash_derefencing(self):
         sample_data = []
 
         def handle(*args, **kwargs):
