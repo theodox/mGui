@@ -9,12 +9,12 @@ from mGui.observable import ViewCollection
 from mGui.qt.QTextField import QTextField
 from mGui.scriptJobs import Idle
 
-""""
+"""
 This example illustrates the optional QTextField object, which (unlike a regular Maya text field)
 will fire events on every key pres.
 
 This example DOES NOT WORK in Maya 2017 or later due to the QT5 update.
-""""
+"""
 
 _items = gui.__all__ + forms.__all__ + lists.__all__
 
