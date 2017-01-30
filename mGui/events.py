@@ -40,6 +40,22 @@ class Event(object):
         > test = None
         > x()
 
+    a hard reference to a handler can be stored on another object when binding to the event, this can be used
+    for when handlers are defined inside another functions scope. For example:
+        
+        > x = Event()
+        > def test(*args, **kwargs):
+        >   print 'hello world'
+        > class Stash(object):
+        >   pass
+        > stash = Stash()
+        > x += test, stash
+        > del test
+        > x()
+        hello world
+        > del stash
+        > x()
+
     Handlers must exhibit the *args, **kwargs signature.  It's the handler's job
     to decide what to do with them but they will be passed.
 
