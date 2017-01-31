@@ -11,7 +11,7 @@ from mGui.observable import ViewCollection
 from mGui.qt.QTextField import QTextField
 from mGui.scriptJobs import Idle
 
-""""
+"""
 This example illustrates the optional QTextField object, which (unlike a regular Maya text field)
 will fire events on every key pres.
 
