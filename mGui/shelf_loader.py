@@ -39,6 +39,7 @@ class ShelfLayoutProxy(BaseLoader):
         current_tab = parent.selectTab
         for child in parent.childArray:
             parent.selectTab = child
+
         parent.selectTab = current_tab
 
         for shelf in parent.controls:
@@ -50,9 +51,14 @@ class ShelfLayoutProxy(BaseLoader):
                 # Needed so that we don't throw a weird maya error until the next restart.
                 # Pulled this from the shelf editor mel script.
                 cmds.optionVar(stringValue=('shelfName{}'.format(parent.numberOfChildren), self.key))
+                cmds.optionVar(intValue=('shelfLoad{}'.format(parent.numberOfChildren), True))
+                cmds.optionVar(stringValue=('shelfFile{}'.format(parent.numberOfChildren), ''))
 
         for ctrl in self.controls:
             ctrl.instantiate(shelf)
+
+        cmds.saveAllShelves(parent)
+
 
 
 class ShelfButtonProxy(BaseLoader):
