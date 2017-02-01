@@ -40,6 +40,22 @@ class Event(object):
         > test = None
         > x()
 
+    a hard reference to a handler can be stored on another object when binding to the event, this can be used
+    for when handlers are defined inside another functions scope. For example:
+        
+        > x = Event()
+        > def test(*args, **kwargs):
+        >   print 'hello world'
+        > class Stash(object):
+        >   pass
+        > stash = Stash()
+        > x += test, stash
+        > del test
+        > x()
+        hello world
+        > del stash
+        > x()
+
     Handlers must exhibit the *args, **kwargs signature.  It's the handler's job
     to decide what to do with them but they will be passed.
 
@@ -72,7 +88,7 @@ class Event(object):
     """
 
     def __init__(self, **data):
-        self._Handlers = set()
+        self._handlers = set()
         '''Set list of handlers callables. Use a set to avoid multiple calls on one handler'''
         self.data = data
         self.data['event'] = self
@@ -81,19 +97,35 @@ class Event(object):
         """
         Add a handler callable. Raises a ValueError if the argument is not callable
         """
+        stash = None
+        if isinstance(handler, tuple):
+            handler, stash = handler
+
         if not callable(handler):
             raise ValueError("%s is not callable", handler)
 
-        self._Handlers.add(get_weak_reference(handler))
+        if stash is not None:
+            setattr(stash, '_sh_{}'.format(id(handler)))
+
+        self._handlers.add(get_weak_reference(handler))
         return self
 
     def _remove_handler(self, handler):
         """
         Remove a handler. Ignores handlers that are not present.
         """
+        stash = None
+        if isinstance(handler, tuple):
+            handler, stash = handler
+
+        try:
+            delattr(stash, '_sh_{}'.format(id(handler)))
+        except AttributeError:
+            pass
+
         wr = get_weak_reference(handler)
-        delenda = [h for h in self._Handlers if h == wr]
-        self._Handlers = self._Handlers.difference(set(delenda))
+        delenda = [h for h in self._handlers if h == wr]
+        self._handlers = self._handlers.difference(set(delenda))
         return self
 
     def metadata(self, kwargs):
@@ -111,18 +143,18 @@ class Event(object):
         """
 
         delenda = []
-        for handler in self._Handlers:
+        for handler in self._handlers:
             try:
                 handler(*args, **self.metadata(kwargs))
             except DeadReferenceError:
                 delenda.append(handler)
-        self._Handlers = self._Handlers.difference(set(delenda))
+        self._handlers = self._handlers.difference(set(delenda))
 
     def _handler_count(self):
         """
-        Returns the count of the _Handlers field
+        Returns the count of the _handlers field
         """
-        return len([i for i in self._Handlers])
+        return len([i for i in self._handlers])
 
     # hook up the instance methods to the base methods
     # doing it this way allows you to override more neatly
@@ -135,6 +167,7 @@ class Event(object):
     def __del__(self):
         print 'event expired'
 
+
 class MayaEvent(Event):
     """
     Subclass of event that uses Maya.utils.executeDeferred.
@@ -146,12 +179,12 @@ class MayaEvent(Event):
         """
 
         delenda = []
-        for handler in self._Handlers:
+        for handler in self._handlers:
             try:
                 maya.utils.executeDeferred(partial(handler, *args, **self.metadata(kwargs)))
             except DeadReferenceError:
                 delenda.append(handler)
-        self._Handlers = self._Handlers.difference(set(delenda))
+        self._handlers = self._handlers.difference(set(delenda))
 
     __call__ = _fire
 
@@ -200,7 +233,6 @@ class WeakMethodBound(object):
         return self.ID
 
 
-
 class WeakMethodFree(object):
     """
     Encapsulates a weak reference to an unbound method
@@ -219,7 +251,8 @@ class WeakMethodFree(object):
             raise DeadReferenceError("Reference to unbound method {0} no longer exists".format(self._ref_name))
 
     def __eq__(self, other):
-        if not hasattr(other, 'ID'): return False
+        if not hasattr(other, 'ID'):
+            return False
         return self.ID == other.ID
 
     def __hash__(self):
@@ -243,7 +276,7 @@ def event_handler(fn):
     decorator for making event handlers out of functions with no arguments
     """
 
-    if  inspect.getargspec(fn).varargs and  inspect.getargspec(fn).keywords:
+    if inspect.getargspec(fn).varargs and inspect.getargspec(fn).keywords:
         return fn
 
     @wraps(fn)
