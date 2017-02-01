@@ -32,13 +32,9 @@ def basic_list_binding():
         r = random.choice(("pPlane", "pCube", "pSphere")) + str(random.randint(2, 20))
         bound.append(r)
 
-    # these keep the functions above from dropping out of scope
-    test_window.close_window = close_window
-    test_window.more = show_more
-
     # bind the functions to the handlers
-    close.command += test_window.close_window
-    more.command += test_window.more
+    close.command += close_window, test_window
+    more.command += show_more, test_window
 
     return test_window
 
