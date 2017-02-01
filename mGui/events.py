@@ -105,7 +105,7 @@ class Event(object):
             raise ValueError("%s is not callable", handler)
 
         if stash is not None:
-            setattr(stash, '_sh_' + handler.__name__, handler)
+            setattr(stash, '_sh_{}'.format(id(handler)))
 
         self._handlers.add(get_weak_reference(handler))
         return self
@@ -119,7 +119,7 @@ class Event(object):
             handler, stash = handler
 
         try:
-            delattr(stash, '_sh_' + handler.__name__)
+            delattr(stash, '_sh_{}'.format(id(handler)))
         except AttributeError:
             pass
 
