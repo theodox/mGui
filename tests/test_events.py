@@ -161,6 +161,7 @@ class TestEvents(unittest.TestCase):
         def handle(*args, **kwargs):
             sample_data.append('OK')
 
+        handle_id = id(handle)
         class Stash(object):
             pass
         
@@ -171,7 +172,7 @@ class TestEvents(unittest.TestCase):
         del handle
         test()
         assert 'OK' in sample_data
-        handle = stash._sh_handle
+        handle = getattr(stash, '_sh_{}'.format(handle_id))
         sample_data = []
         test -= handle, stash
         test()
