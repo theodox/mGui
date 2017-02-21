@@ -51,19 +51,26 @@ class SceneMessageEvent(events.Event):
 
     def __init__(self, **data):
         self._run_once = False
+        self._parent = None
         super(SceneMessageEvent, self).__init__(**data)
         self._callback_id = None
         self.data['event'] = weakref.proxy(self)
 
     def _fire(self, *args, **kwargs):
+        # If we've got a parent, but it no longer exists, kill the event before firing.
+        if self._parent is not None and not self._parent:
+            self.kill()
+            return
+
         super(SceneMessageEvent, self)._fire(*args, **kwargs)
         if self._run_once and self.running():
             self.kill()
 
     __call__ = _fire
 
-    def start(self, runOnce=False):
+    def start(self, runOnce=False, parent=None):
         self._run_once = runOnce
+        self._parent = parent
         if self._callback_id is None and self.message_type is not None:
             self._callback_id = self.add_callback(self.message_type, weakref.proxy(self))
 
@@ -283,6 +290,11 @@ class SceneMessageCheckEvent(SceneMessageEvent):
         """
         Call all handlers.  Any decayed references will be purged.
         """
+        # If we've got a parent, but it no longer exists, kill the event before firing.
+        if self._parent is not None and not self._parent:
+            self.kill()
+            return
+
         results = []
         delenda = []
         for handler in self._handlers:
