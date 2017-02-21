@@ -53,6 +53,7 @@ class SceneMessageEvent(events.Event):
         self._run_once = False
         super(SceneMessageEvent, self).__init__(**data)
         self._callback_id = None
+        self.data['event'] = weakref.proxy(self)
 
     def _fire(self, *args, **kwargs):
         super(SceneMessageEvent, self)._fire(*args, **kwargs)
@@ -64,7 +65,7 @@ class SceneMessageEvent(events.Event):
     def start(self, runOnce=False):
         self._run_once = runOnce
         if self._callback_id is None and self.message_type is not None:
-            self._callback_id = self.add_callback(self.message_type, self)
+            self._callback_id = self.add_callback(self.message_type, weakref.proxy(self))
 
     def kill(self):
         if self._callback_id is not None:
@@ -72,6 +73,9 @@ class SceneMessageEvent(events.Event):
 
     def running(self):
         return self._callback_id is not None
+
+    def __del__(self):
+        self.kill()
 
 
 class AfterCreateReference(SceneMessageEvent):
