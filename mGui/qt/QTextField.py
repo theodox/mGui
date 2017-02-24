@@ -87,3 +87,13 @@ class QTextField(TextField):
             self.textBufferChanged = Event(**{'sender': self})
             self.buffer = InputBuffer(self, self.textBufferChanged)
             self.textChanged += self.buffer.handle
+
+
+class QPasswordField(TextField):
+
+    def __init__(self, key=None, **kwargs):
+        super(QPasswordField, self).__init__(key, **kwargs)
+
+        self._qt_wrapper = as_qt_object(self.widget)
+        self._qt_wrapper.setEchoMode(self._qt_wrapper.EchoMode.Password)
+        

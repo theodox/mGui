@@ -1,6 +1,6 @@
 """
 Internal module for providing a consistent interface for the various Qt Bindings.
-The basic goal is allow mGui to just treat Qt elements as if we were writing against PySid2.
+The basic goal is allow mGui to just treat Qt elements as if we were writing against PySide2.
 But we provide fallbacks to other bindings.
 
 """
@@ -64,6 +64,27 @@ def _pyqt5_as_qt_object(widget):
     ptr = _find_widget_ptr(widget)
     return wrapinstance(long(ptr), QWidget)
 
+def _pyside2_load_ui(fyle):
+    from PySide2.QtUiTools import QUiLoader
+    loader = QUiLoader()
+    return loader.load(fyle)
+
+def _pyside_load_ui(fyle):
+    from PySide.QtUiTools import QUiLoader
+    loader = QUiLoader()
+    return loader.load(fyle)
+
+
+def _pyqt5_load_ui(fyle):
+    from PyQt5 import uic
+    return uic.loadUi(fyle)
+
+def _pyqt4_load_ui(fyle):
+    from PyQt4 import uic
+    return uic.loadUi(fyle)
+    
+
+
 # Imports favor PySide over PyQt, and Qt5 over Qt4.
 # as this is the most future forward set of options currently.
 try:
@@ -83,15 +104,19 @@ except ImportError:
                 pass
             else:
                 as_qt_object = _pyqt4_as_qt_object
+                load_ui = _pyqt4_load_ui
         else:
             as_qt_object = _pyqt5_as_qt_object
+            load_ui = _pyqt5_as_qt_object
     else:
         as_qt_object = _pyside_as_qt_object
+        load_ui = _pyside_load_ui
 else:
     as_qt_object = _pyside2_as_qt_object
+    load_ui = _pyside2_load_ui
 
 
 def main_window():
     return as_qt_object('MayaWindow')
 
-__all__ = ['QtCore', 'QtGui', 'QtWidgets', 'main_window', 'as_qt_object']
+__all__ = ['QtCore', 'QtGui', 'QtWidgets', 'main_window', 'as_qt_object', 'load_ui']
