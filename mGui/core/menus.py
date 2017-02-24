@@ -12,7 +12,7 @@ class Menu(Nested):
     _ATTRIBS = ['allowOptionBoxes', 'deleteAllItems', 'defineTemplate', 'docTag', 'enable', 'enableBackground',
                 'exists', 'familyImage', 'helpMenu', 'label', 'mnemonic', 'parent', 'useTemplate', 'visible']
     _CALLBACKS = ['postMenuCommand', 'postMenuCommandOnce']
-    _READ_ONLY = ['itemArray', 'numberOfItems']
+    _READ_ONLY = ['numberOfItems']
 
     @classmethod
     def from_existing(cls, widget):
@@ -20,6 +20,9 @@ class Menu(Nested):
         result = super(Menu, cls).from_existing(key, widget)
         return result
 
+    @property
+    def itemArray(self):
+        return [MenuItem.wrap(self.fullPathName + '|' + item) for item in self.CMD(self.widget, itemArray=True, q=True) or []]
 
 class MenuItem(Control):
     CMD = cmds.menuItem
@@ -86,5 +89,9 @@ class PopupMenu(Nested):
     _ATTRIBS = ['altModifier', 'allowOptionBoxes', 'button', 'ctrlModifier', 'deleteAllItems', 'defineTemplate',
                 'exists', 'markingMenu', 'parent', 'shiftModifier', 'useTemplate', 'visible']
     _CALLBACKS = ['postMenuCommand', 'postMenuCommandOnce']
-    _READ_ONLY = ['itemArray', 'numberOfItems']
+    _READ_ONLY = ['numberOfItems']
+
+    @property
+    def itemArray(self):
+        return [MenuItem.wrap(self.fullPathName + '|' + item) for item in self.CMD(self.widget, itemArray=True, q=True) or []]
 

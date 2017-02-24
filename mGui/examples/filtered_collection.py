@@ -3,6 +3,8 @@ import re
 import time
 import inspect
 
+from maya import cmds
+
 from mGui import gui, forms, lists
 from mGui.bindings import bind
 from mGui.observable import ViewCollection
