@@ -69,7 +69,7 @@ class CommandInfo(object):
             
         attribs.sort()
         # note this deliberately excludes short names of callbacks!
-        callback_exceptions = { 'alwaysInvokeEnterCommandOnReturn' }
+        callback_exceptions = { 'alwaysInvokeEnterCommandOnReturn', 'postMenuCommandOnce' }
         callbacks = { c for c in attribs if 'Command' in c or 'Callback' in c }  - callback_exceptions
         attribs = list(set(attribs) - callbacks)
         quoted = lambda p : "'%s'" % p

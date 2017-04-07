@@ -10,8 +10,9 @@ from mGui.core import Nested, Control, cmds
 class Menu(Nested):
     CMD = cmds.menu
     _ATTRIBS = ['allowOptionBoxes', 'deleteAllItems', 'defineTemplate', 'docTag', 'enable', 'enableBackground',
-                'exists', 'familyImage', 'helpMenu', 'label', 'mnemonic', 'parent', 'useTemplate', 'visible']
-    _CALLBACKS = ['postMenuCommand', 'postMenuCommandOnce']
+                'exists', 'familyImage', 'helpMenu', 'label', 'mnemonic', 'parent', 'useTemplate', 'visible',
+                'postMenuCommandOnce']
+    _CALLBACKS = ['postMenuCommand']
     _READ_ONLY = ['numberOfItems']
 
     @classmethod
@@ -31,9 +32,9 @@ class MenuItem(Control):
                 "enableCommandRepeat", "enable", "exists", "familyImage", "image", "insertAfter", "imageOverlayLabel",
                 "italicized", "keyEquivalent", "label", "mnemonic", "optionBox", "optionBoxIcon", "optionModifier",
                 "parent", "radioButton", "radialPosition", "shiftModifier", "subMenu", "sourceType", "tearOff",
-                "useTemplate", "version"]
+                "useTemplate", "version", 'postMenuCommandOnce']
     _READ_ONLY = ['isCheckBox', 'isOptionBox', 'isRadioButton']
-    _CALLBACKS = ['command', 'dragDoubleClickCommand', 'dragMenuCommand', 'postMenuCommand', 'postMenuCommandOnce']
+    _CALLBACKS = ['command', 'dragDoubleClickCommand', 'dragMenuCommand', 'postMenuCommand']
 
 
 class OptionMenu(Nested):
@@ -87,8 +88,8 @@ class ActiveOptionMenu(OptionMenu):
 class PopupMenu(Nested):
     CMD = cmds.popupMenu
     _ATTRIBS = ['altModifier', 'allowOptionBoxes', 'button', 'ctrlModifier', 'deleteAllItems', 'defineTemplate',
-                'exists', 'markingMenu', 'parent', 'shiftModifier', 'useTemplate', 'visible']
-    _CALLBACKS = ['postMenuCommand', 'postMenuCommandOnce']
+                'exists', 'markingMenu', 'parent', 'shiftModifier', 'useTemplate', 'visible', 'postMenuCommandOnce']
+    _CALLBACKS = ['postMenuCommand']
     _READ_ONLY = ['numberOfItems']
 
     @property
