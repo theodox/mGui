@@ -42,6 +42,7 @@ class QtSignalProperty(object):
 
     def __set__(self, obj, value):
         if obj.callbacks[self._key] != value:
-            obj.callbacks[self._key] = value
             qt_object = as_qt_object(obj)
+            getattr(qt_object, self._key).disconnect(obj.callbacks[self._key])
+            obj.callbacks[self._key] = value
             getattr(qt_object, self._key).connect(value)
