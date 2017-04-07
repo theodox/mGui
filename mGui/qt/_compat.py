@@ -20,6 +20,8 @@ def _pyside2_as_qt_object(widget):
     from PySide2.QtWidgets import QWidget
     from PySide2 import QtWidgets
     from shiboken2 import wrapInstance
+    if hasattr(widget, '__qt_object__'):
+        return widget.__qt_object__
     ptr = _find_widget_ptr(widget)
     qobject = wrapInstance(long(ptr), QObject)
     meta = qobject.metaObject()
@@ -34,6 +36,8 @@ def _pyside_as_qt_object(widget):
     from PySide.QtGui import QWidget
     from PySide import QtGui
     from shiboken import wrapInstance
+    if hasattr(widget, '__qt_object__'):
+        return widget.__qt_object__
     ptr = _find_widget_ptr(widget)
     qobject = wrapInstance(long(ptr), QObject)
     meta = qobject.metaObject()
@@ -54,6 +58,8 @@ def _pyqt4_as_qt_object(widget):
     sip.setapi('QUrl', 2)
     sip.setapi('QVariant', 2)
     from PyQt4.QtGui import QWidget
+    if hasattr(widget, '__qt_object__'):
+        return widget.__qt_object__
     ptr = _find_widget_ptr(widget)
     return wrapinstance(long(ptr), QWidget)
 
@@ -61,28 +67,32 @@ def _pyqt4_as_qt_object(widget):
 def _pyqt5_as_qt_object(widget):
     from PyQt5.QtWidgets import QWidget
     from sip import wrapinstance
+    if hasattr(widget, '__qt_object__'):
+        return widget.__qt_object__
     ptr = _find_widget_ptr(widget)
     return wrapinstance(long(ptr), QWidget)
 
-def _pyside2_load_ui(fyle):
+
+def _pyside2_load_ui(fyle, parent=None):
     from PySide2.QtUiTools import QUiLoader
     loader = QUiLoader()
-    return loader.load(fyle)
+    return loader.load(fyle, parent)
 
-def _pyside_load_ui(fyle):
+
+def _pyside_load_ui(fyle, parent=None):
     from PySide.QtUiTools import QUiLoader
     loader = QUiLoader()
-    return loader.load(fyle)
+    return loader.load(fyle, parent)
 
 
-def _pyqt5_load_ui(fyle):
+def _pyqt5_load_ui(fyle, parent=None):
     from PyQt5 import uic
-    return uic.loadUi(fyle)
+    return uic.loadUi(fyle, parent)
 
-def _pyqt4_load_ui(fyle):
+
+def _pyqt4_load_ui(fyle, parent=None):
     from PyQt4 import uic
-    return uic.loadUi(fyle)
-    
+    return uic.loadUi(fyle, parent)
 
 
 # Imports favor PySide over PyQt, and Qt5 over Qt4.
