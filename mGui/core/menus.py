@@ -25,6 +25,7 @@ class Menu(Nested):
     def itemArray(self):
         return [MenuItem.wrap(self.fullPathName + '|' + item) for item in self.CMD(self.widget, itemArray=True, q=True) or []]
 
+
 class MenuItem(Control):
     CMD = cmds.menuItem
     _ATTRIBS = ["altModifier", "annotation", "allowOptionBoxes", "boldFont", "checkBox", "collection",
@@ -73,7 +74,7 @@ class ActiveOptionMenu(OptionMenu):
 
     """
 
-    def __init__(self, key = None, *args, **kwargs):
+    def __init__(self, key=None, *args, **kwargs):
         super(ActiveOptionMenu, self).__init__(key, *args, **kwargs)
         self.changeCommand += self.fire_menu_callback
 
@@ -96,3 +97,6 @@ class PopupMenu(Nested):
     def itemArray(self):
         return [MenuItem.wrap(self.fullPathName + '|' + item) for item in self.CMD(self.widget, itemArray=True, q=True) or []]
 
+    def _preserve_callbacks(self, query_cmd=None):
+        # popupMenu doesn't let you query the postMenuCommand flag, you have to use menu instead.
+        super(PopupMenu, self)._preserve_callbacks(cmds.menu)

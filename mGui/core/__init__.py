@@ -161,13 +161,20 @@ class Control(Styled, BindableObject):
         def _spoof_create(*_, **__):
             return control_name
 
-        try:
-            cache_CMD = cls.CMD
-            cls.CMD = _spoof_create
-            return cls(key=control_name)
+        cache_CMD = cls.CMD
+        cls.CMD = _spoof_create
+        wrapped = cls(key=control_name)
+        cls.CMD = cache_CMD
+        wrapped._preserve_callbacks()
+        return wrapped
 
-        finally:
-            cls.CMD = cache_CMD
+
+    def _preserve_callbacks(self, query_cmd=None):
+        query_cmd = query_cmd or self.CMD
+        for cb in self._CALLBACKS:
+            cb_val = query_cmd(self, **{'q': True, cb: True})
+            if cb_val:
+                self.callbacks[cb] = cb_val
 
     @classmethod
     def from_existing(cls, key, widget):
