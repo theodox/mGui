@@ -25,6 +25,27 @@ class Menu(Nested):
     def itemArray(self):
         return [MenuItem.wrap(self.fullPathName + '|' + item) for item in self.CMD(self.widget, itemArray=True, q=True) or []]
 
+
+class SubMenu(Menu):
+    CMD = cmds.menu
+
+    def __init__(self, key=None, **kwargs):
+        # When creating a submenu, we use the menuItem command, however it returns a menu.
+        # So we shadow the class attribute during initialization
+        self.CMD = cmds.menuItem
+        kwargs['subMenu'] = True
+        super(SubMenuItem, self).__init__(key, **kwargs)
+        # And remove the shadow once we've finished.
+        del self.CMD
+
+    def __exit__(self, typ, value, tb):
+        mGui_expand_stack = True
+        try:
+            super(SubMenuItem, self).__exit__(typ, value, tb)
+        except RuntimeError:
+            cmds.setParent(Nested.ACTIVE_LAYOUT, menu=True)
+
+
 class MenuItem(Control):
     CMD = cmds.menuItem
     _ATTRIBS = ["altModifier", "annotation", "allowOptionBoxes", "boldFont", "checkBox", "collection",
@@ -36,6 +57,12 @@ class MenuItem(Control):
     _READ_ONLY = ['isCheckBox', 'isOptionBox', 'isRadioButton']
     _CALLBACKS = ['command', 'dragDoubleClickCommand', 'dragMenuCommand', 'postMenuCommand']
 
+
+class MenuDivider(MenuItem):
+
+    def __init__(self, key=None, **kwargs):
+        kwargs['divider'] = True
+        super(MenuDivider, self).__init__(key, **kwargs)
 
 class OptionMenu(Nested):
     CMD = cmds.optionMenu
@@ -73,7 +100,7 @@ class ActiveOptionMenu(OptionMenu):
 
     """
 
-    def __init__(self, key = None, *args, **kwargs):
+    def __init__(self, key=None, *args, **kwargs):
         super(ActiveOptionMenu, self).__init__(key, *args, **kwargs)
         self.changeCommand += self.fire_menu_callback
 
@@ -95,4 +122,3 @@ class PopupMenu(Nested):
     @property
     def itemArray(self):
         return [MenuItem.wrap(self.fullPathName + '|' + item) for item in self.CMD(self.widget, itemArray=True, q=True) or []]
-
