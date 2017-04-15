@@ -85,6 +85,8 @@ class ShelfButtonProxy(BaseLoader):
         self.menuItems = [MenuItemProxy(item) for item in self.menuItems]
 
     def instantiate(self, parent=None):
+        if not parent.controls:
+            parent.controls[:] = [self.proxy.wrap(child) for child in parent.childArray]
         for ctrl in parent.controls:
             # docTag actually gets serialized, and doesn't have a practical use
             # which makes it perfect for a sentinel
