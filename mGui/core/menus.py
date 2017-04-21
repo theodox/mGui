@@ -34,14 +34,14 @@ class SubMenu(Menu):
         # So we shadow the class attribute during initialization
         self.CMD = cmds.menuItem
         kwargs['subMenu'] = True
-        super(SubMenuItem, self).__init__(key, **kwargs)
+        super(SubMenu, self).__init__(key, **kwargs)
         # And remove the shadow once we've finished.
         del self.CMD
 
     def __exit__(self, typ, value, tb):
         mGui_expand_stack = True
         try:
-            super(SubMenuItem, self).__exit__(typ, value, tb)
+            super(SubMenu, self).__exit__(typ, value, tb)
         except RuntimeError:
             cmds.setParent(Nested.ACTIVE_LAYOUT, menu=True)
 
@@ -63,6 +63,34 @@ class MenuDivider(MenuItem):
     def __init__(self, key=None, **kwargs):
         kwargs['divider'] = True
         super(MenuDivider, self).__init__(key, **kwargs)
+
+
+class RadioMenuItemCollection(Control):
+    CMD = cmds.radioMenuItemCollection
+    _READ_ONLY = ['exists', 'defineTemplate', 'gl', 'parent', 'useTemplate']
+
+    def __enter__(self):
+        return self
+
+    def __exit__(self, typ, value, tb):
+        mGui_expand_stack = True
+        # This closes out the collection, usually we'd do a setParent, but that doesn't seem to apply here.
+        self.CMD()
+        return False
+
+
+class RadioMenuItem(MenuItem):
+
+    def __init__(self, key=None, **kwargs):
+        kwargs['radioButton'] = kwargs.get('radioButton', kwargs.get('rb', False))
+        super(RadioMenuItem, self).__init__(key, **kwargs)
+
+class CheckBoxMenuItem(MenuItem):
+
+    def __init__(self, key=None, **kwargs):
+        kwargs['checkBox'] = kwargs.get('checkBox', kwargs.get('cb', False))
+        super(CheckBoxMenuItem, self).__init__(key, **kwargs)
+
 
 class OptionMenu(Nested):
     CMD = cmds.optionMenu
