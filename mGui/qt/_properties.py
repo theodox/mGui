@@ -33,7 +33,7 @@ class QtSignalProperty(object):
 
         cb = obj.callbacks.get(self._key, None)
         if cb is None:
-            if obj.parent and obj.parent.modal:
+            if obj.modal or obj.parent and obj.parent.modal:
                 cb = obj.callbacks[self._key] = Event(sender=weakref.proxy(obj), qWidget=qt_object)
             else:
                 cb = obj.callbacks[self._key] = MayaEvent(sender=weakref.proxy(obj), qWidget=qt_object)
