@@ -50,12 +50,13 @@ class BaseDialog(MayaQWidgetBaseMixin, QtWidgets.QDialog):
         if evt.isAccepted():
             self.closeEventTriggered.emit()
 
+
 class DialogWindow(BindingWindow):
 
     """
     Integrates the QtWidgets.QDialog class with mGui.
     Should behave exactly like a BindingWindow with a few extra features.
-    
+
     >>> from mGui import gui, forms
     >>> from mGui.qt.QDialog import DialogWindow
     >>> 
@@ -86,7 +87,7 @@ class DialogWindow(BindingWindow):
 
 
     """
-    
+
     closeEventTriggered = QtSignalProperty('closeEventTriggered')
     windowStateChanged = QtSignalProperty('windowStateChanged')
 
@@ -104,8 +105,13 @@ class DialogWindow(BindingWindow):
 
     def __init__(self, key=None, **kwargs):
         self.__qt_object__ = BaseDialog()
+
         if key is not None:
             self.__qt_object__.setObjectName(key)
+
+        retain = kwargs.pop('retain', kwargs.pop('ret', False))
+        if not retain:
+            self.__qt_object__.setAttribute(QtCore.Qt.WA_DeleteOnClose)
 
         kwargs['title'] = kwargs.pop('title', kwargs.pop('t', self.__qt_object__.objectName()))
         kwargs['e'] = kwargs['edit'] = True
@@ -114,20 +120,18 @@ class DialogWindow(BindingWindow):
     def show(self):
         self.__qt_object__.show()
 
-    def forget(self, *args, **kwargs):
-        super(DialogWindow, self).forget()
-        self.bindingContext = None
-        try:
-            self.__qt_object__.deleteLater()
-        except RuntimeError as e:
-            pass
-
     def hide(self):
         self.__qt_object__.hide()
 
+    def accept(self, *args, **kwargs):
+        return self.__qt_object__.accept()
+
+    def reject(self, *args, **kwargs):
+        return self.__qt_object__.reject()
+
 
 class ModalDialogWindow(DialogWindow):
-    
+
     """
     Dialog that blocks user input to the rest of system.
 
@@ -160,18 +164,10 @@ class ModalDialogWindow(DialogWindow):
     >>> win.show()
     """
 
-
     def __init__(self, key=None, **kwargs):
         super(ModalDialogWindow, self).__init__(key, **kwargs)
         self.modal = True
 
-
     def show(self, *args, **kwargs):
         return self.__qt_object__.exec_()
 
-
-    def accept(self, *args, **kwargs):
-        return self.__qt_object__.accept()
-
-    def reject(self, *args, **kwargs):
-        return self.__qt_object__.reject()
