@@ -1,16 +1,14 @@
-import weakref
 from itertools import count
 
 from maya import cmds
-from maya.app.general.mayaMixin import MayaQWidgetBaseMixin, MayaQDockWidget
 
 from mGui.core import BindingWindow
-from mGui.events import MayaEvent, Event
 from mGui.qt._compat import QtWidgets, QtCore, as_qt_object
 from mGui.qt._properties import QtSignalProperty
+from mGui.qt._mixins import QWidgetBaseMixin
 
 
-class BaseDialog(MayaQWidgetBaseMixin, QtWidgets.QDialog):
+class BaseDialog(QWidgetBaseMixin, QtWidgets.QDialog):
 
     """
     Simple wrapper around QtWidgets.QDialog.
@@ -28,12 +26,6 @@ class BaseDialog(MayaQWidgetBaseMixin, QtWidgets.QDialog):
                 self.setObjectName(name)
                 break
         cmds.setParent(self)
-
-    def __str__(self):
-        return self.objectName().encode('utf-8')
-
-    def __unicode__(self):
-        return self.objectName()
 
     def resizeEvent(self, event):
         super(BaseDialog, self).resizeEvent(event)
