@@ -25,7 +25,7 @@ class ProgressBar(Control):
         for item in progbar.iter(range(0,100)):
             print item
     """
-    CMD = cmds.progressBar
+    CMD = getattr(cmds, 'progressBar', NotImplemented)
 
     _ATTRIBS = ['annotation', 'backgroundColor', 'beginProgress', 'defineTemplate', 'docTag', 'enable',
                 'enableBackground', 'endProgress', 'exists', 'fullPathName', 'height', 'isCancelled',
@@ -92,7 +92,7 @@ class MainProgressBar(ProgressBar):
 
         self.CMD = fake_init
         super(MainProgressBar, self).__init__()
-        self.CMD = cmds.progressBar
+        self.CMD = getattr(cmds, 'progressBar', NotImplemented)
 
     def start(self, status=None, interruptable=False):
         super(MainProgressBar, self).start()

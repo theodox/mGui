@@ -29,7 +29,7 @@ cmds.control = control_mock
 # 
 # import mGui.styles as styles
 # class MockStyled(object):
-#    CMD = cmds.control
+#    CMD = getattr(cmds, 'control', NotImplemented)
 # 
 # styles.Styled = MockStyled
 # ===============================================================================
@@ -141,7 +141,7 @@ class test_CtlProperty(TestCase):
     '''
 
     class Example(object):
-        CMD = cmds.control
+        CMD = getattr(cmds, 'control', NotImplemented)
 
         def __init__(self, *args, **kwargs):
             self.widget = 'path|to|widget'

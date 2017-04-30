@@ -11,28 +11,28 @@ from mGui.core import Layout
 
 class ColumnLayout(Layout):
     """Wrapper class for cmds.columnLayout"""
-    CMD = cmds.columnLayout
+    CMD = getattr(cmds, 'columnLayout', NotImplemented)
     _ATTRIBS = ['backgroundColor', 'columnAlign', 'columnOffset', 'rowSpacing', 'columnWidth', 'columnAttach', 'adjustableColumn']
     _CALLBACKS = []
 
 
 class DockControl(Layout):
     """Wrapper class for cmds.dockControl"""
-    CMD = cmds.dockControl
+    CMD = getattr(cmds, 'dockControl', NotImplemented)
     _ATTRIBS = ['backgroundColor', 'raise', 'area', 'label', 'content', 'allowedArea', 'floating', 'enablePopupOption']
     _CALLBACKS = ['floatChangeCommand']
 
 
 class FlowLayout(Layout):
     """Wrapper class for cmds.flowLayout"""
-    CMD = cmds.flowLayout
+    CMD = getattr(cmds, 'flowLayout', NotImplemented)
     _ATTRIBS = ['backgroundColor', 'columnSpacing', 'wrap', 'vertical']
     _CALLBACKS = []
 
 
 class FormLayout(Layout):
     """Wrapper class for cmds.formLayout"""
-    CMD = cmds.formLayout
+    CMD = getattr(cmds, 'formLayout', NotImplemented)
     _ATTRIBS = ['backgroundColor', 'attachNone', 'attachControl', 'attachOppositeForm', 'attachForm', 'attachPosition',
                 'attachOppositeControl', 'numberOfDivisions']
     _CALLBACKS = []
@@ -40,7 +40,7 @@ class FormLayout(Layout):
 
 class FrameLayout(Layout):
     """Wrapper class for cmds.frameLayout"""
-    CMD = cmds.frameLayout
+    CMD = getattr(cmds, 'frameLayout', NotImplemented)
     _ATTRIBS = ['backgroundColor', 'marginHeight', 'labelWidth', 'collapse', 'labelIndent', 'collapsable', 'borderVisible', 'label',
                 'marginWidth', 'borderStyle', 'font', 'labelVisible', 'labelAlign']
     _CALLBACKS = ['collapseCommand', 'expandCommand', 'preCollapseCommand', 'preExpandCommand']
@@ -48,7 +48,7 @@ class FrameLayout(Layout):
 
 class GridLayout(Layout):
     """Wrapper class for cmds.gridLayout"""
-    CMD = cmds.gridLayout
+    CMD = getattr(cmds, 'gridLayout', NotImplemented)
     _ATTRIBS = ['backgroundColor', 'cellWidth', 'columnsResizable', 'gridOrder', 'numberOfColumns', 'cellWidthHeight', 'numberOfRows',
                 'numberOfRowsColumns', 'autoGrow', 'position', 'allowEmptyCells', 'cellHeight']
     _CALLBACKS = []
@@ -56,14 +56,14 @@ class GridLayout(Layout):
 
 class MenuBarLayout(Layout):
     """Wrapper class for cmds.menuBarLayout"""
-    CMD = cmds.menuBarLayout
+    CMD = getattr(cmds, 'menuBarLayout', NotImplemented)
     _ATTRIBS = ['menuBarVisible', 'menuArray', 'menuIndex', 'numberOfMenus']
     _CALLBACKS = []
 
 
 class PaneLayout(Layout):
     """Wrapper class for cmds.paneLayout"""
-    CMD = cmds.paneLayout
+    CMD = getattr(cmds, 'paneLayout', NotImplemented)
     _ATTRIBS = ['backgroundColor', 'pane3', 'pane2', 'pane1', 'activeFrameThickness', 'pane4', 'numberOfVisiblePanes', 'configuration',
                 'activePaneIndex', 'paneSize', 'setPane', 'activePane', 'separatorThickness', 'staticWidthPane',
                 'paneUnderPointer', 'staticHeightPane']
@@ -72,7 +72,7 @@ class PaneLayout(Layout):
 
 class RowColumnLayout(Layout):
     """Wrapper class for cmds.rowColumnLayout"""
-    CMD = cmds.rowColumnLayout
+    CMD = getattr(cmds, 'rowColumnLayout', NotImplemented)
     _ATTRIBS = ['backgroundColor', 'columnAlign', 'columnOffset', 'rowHeight', 'rowSpacing', 'columnWidth', 'numberOfColumns',
                 'columnAttach', 'numberOfRows', 'columnSpacing', 'rowAlign', 'rowOffset', 'rowAttach']
     _CALLBACKS = []
@@ -80,7 +80,7 @@ class RowColumnLayout(Layout):
 
 class RowLayout(Layout):
     """Wrapper class for cmds.rowLayout"""
-    CMD = cmds.rowLayout
+    CMD = getattr(cmds, 'rowLayout', NotImplemented)
     _ATTRIBS = ['backgroundColor', 'rowAttach', 'columnAttach', 'columnWidth2', 'columnWidth3', 'columnWidth1', 'columnWidth6',
                 'columnWidth4', 'columnWidth5', 'columnAlign6', 'columnAlign5', 'columnAlign4', 'columnAlign3',
                 'columnAlign2', 'columnAlign1', 'numberOfColumns', 'adjustableColumn', 'columnAlign',
@@ -93,7 +93,7 @@ class RowLayout(Layout):
 
 class ScrollLayout(Layout):
     """Wrapper class for cmds.scrollLayout"""
-    CMD = cmds.scrollLayout
+    CMD = getattr(cmds, 'scrollLayout', NotImplemented)
     _ATTRIBS = ['backgroundColor', 'verticalScrollBarThickness', 'scrollAreaWidth', 'scrollPage', 'scrollAreaHeight', 'childResizable',
                 'horizontalScrollBarThickness', 'scrollByPixel', 'scrollAreaValue', 'minChildWidth']
     _CALLBACKS = ['resizeCommand']
@@ -101,14 +101,14 @@ class ScrollLayout(Layout):
 
 class ShelfLayout(Layout):
     """Wrapper class for cmds.shelfLayout"""
-    CMD = cmds.shelfLayout
+    CMD = getattr(cmds, 'shelfLayout', NotImplemented)
     _ATTRIBS = ['cellWidth', 'style', 'cellHeight', 'cellWidthHeight', 'position']
     _CALLBACKS = []
 
 
 class ShelfTabLayout(Layout):
     """Wrapper class for cmds.shelfTabLayout"""
-    CMD = cmds.shelfTabLayout
+    CMD = getattr(cmds, 'shelfTabLayout', NotImplemented)
     _ATTRIBS = ['verticalScrollBarThickness', 'scrollable', 'tabsVisible', 'image', 'imageVisible', 'selectTabIndex',
                 'tabLabelIndex', 'childResizable', 'horizontalScrollBarThickness', 'tabLabel', 'innerMarginHeight',
                 'selectTab', 'moveTab', 'innerMarginWidth', 'minChildWidth']
@@ -117,7 +117,7 @@ class ShelfTabLayout(Layout):
 
 class TabLayout(Layout):
     """Wrapper class for cmds.tabLayout"""
-    CMD = cmds.tabLayout
+    CMD = getattr(cmds, 'tabLayout', NotImplemented)
     _ATTRIBS = ['backgroundColor', 'verticalScrollBarThickness', 'scrollable', 'tabsVisible', 'image', 'imageVisible', 'selectTabIndex',
                 'tabLabelIndex', 'childResizable', 'horizontalScrollBarThickness', 'tabLabel', 'innerMarginHeight',
                 'selectTab', 'moveTab', 'innerMarginWidth', 'minChildWidth']
@@ -131,7 +131,7 @@ class TabLayout(Layout):
 
 class ToolBar(Layout):
     """Wrapper class for cmds.toolBar"""
-    CMD = cmds.toolBar
+    CMD = getattr(cmds, 'toolBar', NotImplemented)
     _ATTRIBS = ['allowedArea', 'content', 'area', 'label']
     _CALLBACKS = []
 

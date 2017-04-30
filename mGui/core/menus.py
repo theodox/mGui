@@ -8,7 +8,7 @@ from mGui.core import Nested, Control, cmds
 
 
 class Menu(Nested):
-    CMD = cmds.menu
+    CMD = getattr(cmds, 'menu', NotImplemented)
     _ATTRIBS = ['allowOptionBoxes', 'deleteAllItems', 'defineTemplate', 'docTag', 'enable', 'enableBackground',
                 'exists', 'familyImage', 'helpMenu', 'label', 'mnemonic', 'parent', 'useTemplate', 'visible',
                 'postMenuCommandOnce']
@@ -26,7 +26,7 @@ class Menu(Nested):
         return [MenuItem.wrap(self.fullPathName + '|' + item) for item in self.CMD(self.widget, itemArray=True, q=True) or []]
 
 class MenuItem(Control):
-    CMD = cmds.menuItem
+    CMD = getattr(cmds, 'menuItem', NotImplemented)
     _ATTRIBS = ["altModifier", "annotation", "allowOptionBoxes", "boldFont", "checkBox", "collection",
                 "commandModifier", "ctrlModifier", "divider", "data", "defineTemplate", "docTag", "echoCommand",
                 "enableCommandRepeat", "enable", "exists", "familyImage", "image", "insertAfter", "imageOverlayLabel",
@@ -38,7 +38,7 @@ class MenuItem(Control):
 
 
 class OptionMenu(Nested):
-    CMD = cmds.optionMenu
+    CMD = getattr(cmds, 'optionMenu', NotImplemented)
     _ATTRIBS = ['alwaysCallChangeCommand', 'annotation', 'backgroundColor', 'docTag', 'enableBackground', 'exists',
                 'height', 'label', 'manage', 'parent', 'preventOverride', 'select', 'value', 'visible', 'width']
     _READ_ONLY = ['fullPathName', 'itemListLong', 'itemListShort', 'isObscured', 'numberOfItems', 'numberOfPopupMenus',
@@ -86,7 +86,7 @@ class ActiveOptionMenu(OptionMenu):
 
 
 class PopupMenu(Nested):
-    CMD = cmds.popupMenu
+    CMD = getattr(cmds, 'popupMenu', NotImplemented)
     _ATTRIBS = ['altModifier', 'allowOptionBoxes', 'button', 'ctrlModifier', 'deleteAllItems', 'defineTemplate',
                 'exists', 'markingMenu', 'parent', 'shiftModifier', 'useTemplate', 'visible', 'postMenuCommandOnce']
     _CALLBACKS = ['postMenuCommand']

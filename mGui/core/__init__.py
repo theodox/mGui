@@ -69,6 +69,12 @@ class ControlMeta(type):
         if not kwargs.get('CMD'):
             maya_cmd = parents[0].CMD
 
+        if maya_cmd is NotImplemented:
+            def __init__(self, *args, **kwargs):
+                raise NotImplementedError('{} is not implemented in this version of Maya'.format(name))
+            kwargs['__init__'] = __init__
+            return super(ControlMeta, mcs).__new__(mcs, name, parents, kwargs)
+
         _overridden = ('parent',)
         for item in _READ_ONLY:
             if item not in _overridden:
@@ -96,7 +102,7 @@ class Control(Styled, BindableObject):
     Control inherits from styles.Styled, so it supports styling.
 
     """
-    CMD = cmds.control
+    CMD = getattr(cmds, 'control', NotImplemented)
     _ATTRIBS = ['annotation', 'backgroundColor', 'defineTemplate', 'docTag', 'enable', 'enableBackground', 'exists',
                 'fullPathName', 'height', 'manage', 'noBackground', 'numberOfPopupMenus', 'parent', 'popupMenuArray',
                 'preventOverride', 'useTemplate', 'visible', 'visibleChangeCommand', 'width']
@@ -419,7 +425,7 @@ class Nested(Control):
 # even for flags they have in common
 
 class Layout(Nested):
-    CMD = cmds.layout
+    CMD = getattr(cmds, 'layout', NotImplemented)
     _ATTRIBS = ['annotation', 'backgroundColor', 'defineTemplate', 'docTag', 'dragCallback', 'dropCallback', 'enable',
                 'enableBackground', 'exists', 'fullPathName', 'height', 'manage', 'noBackground', 'numberOfPopupMenus',
                 'parent', 'popupMenuArray', 'preventOverride', 'useTemplate', 'visible', 'visibleChangeCommand',
@@ -446,7 +452,7 @@ class Window(Nested):
     """
     ACTIVE_WINDOWS = []
 
-    CMD = cmds.window
+    CMD = getattr(cmds, 'window', NotImplemented)
     _ATTRIBS = ["backgroundColor", "defineTemplate", "docTag", "exists", "height", "iconify", "iconName", "leftEdge",
                 "menuBarVisible", "menuIndex", "mainMenuBar", "minimizeButton", "maximizeButton", "resizeToFitChildren",
                 "sizeable", "title", "titleBar", "titleBarMenu", "topEdge", "toolbox", "topLeftCorner", "useTemplate",

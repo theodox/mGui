@@ -5,7 +5,7 @@ import mGui.core as core
 
 
 class ModelEditor(core.Control):
-    CMD = cmds.modelEditor
+    CMD = getattr(cmds, 'modelEditor', NotImplemented)
 
     _ATTRIBS = ["activeComponentsXray", "activeOnly", "activeView", "addObjects", "addSelected", "allObjects",
                 "backfaceCulling", "bufferMode", "bumpResolution", "camera", "cameraName", "cameraSetup", "cameras",
@@ -31,7 +31,7 @@ class ModelEditor(core.Control):
 
 
 class Panel(core.Control):
-    CMD = cmds.panel
+    CMD = getattr(cmds, 'panel', NotImplemented)
     PANEL_TYPE = None
     _ATTRIBS = ["copy", "defineTemplate", "docTag", "exists", "init", "label", "menuBarVisible",
                 "needsInit", "parent", "replacePanel", "tearOff", "tearOffCopy", "unParent", "useTemplate"]
@@ -40,7 +40,7 @@ class Panel(core.Control):
 
 
 class ModelPanel(Panel):
-    CMD = cmds.modelPanel
+    CMD = getattr(cmds, 'modelPanel', NotImplemented)
     PANEL_TYPE = 'modelPanel'
 
     _ATTRIBS = ["barLayout", "camera", "copy", "defineTemplate", "docTag", "exists", "init", "label", "menuBarVisible",
