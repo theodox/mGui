@@ -68,7 +68,7 @@ class PanelFactory(object):
         pfclass = cls.TYPES.get(ptype, None)
         if not pfclass:
             raise RuntimeError("Unknown panel type: {}".format(ptype))
-        return pfclass.from_existing(panel_string, panel_string)
+        return pfclass.wrap(panel_string, panel_string)
 
     @classmethod
     def register_type(cls, type_string, type_class):
