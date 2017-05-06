@@ -21,7 +21,7 @@ __defined = copy.copy(__defined)
 __lookup = {}
 
 for k, v in __defined.items():
-    if isinstance(v, ControlMeta) and v.CMD is not NotImplemented:
+    if isinstance(v, ControlMeta):
         __lookup[v.CMD.__name__] = v
 
 __lookup['floatingWindow'] = Window
