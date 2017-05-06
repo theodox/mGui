@@ -1,0 +1,192 @@
+{
+  "controls": [
+    {
+      "imageOverlayLabel": "Basic", 
+      "sourceType": "python", 
+      "image": "commandButton.png", 
+      "label": "BasicList", 
+      "command": ["from mGui.examples import basicList",
+                  "basicList = reload(basicList)",
+                  "basic_list = basicList.basic_list_binding()",
+                  "basic_list.show()"],
+      "key": "BasicList", 
+      "docTag": "d52cc141423c4497ad04e5b19d7a15f0", 
+      "annotation": "Basic List Example"
+    }, 
+    {
+      "imageOverlayLabel": "Bound", 
+      "sourceType": "python", 
+      "image": "commandButton.png", 
+      "label": "Bound Collection", 
+               "command": ["from mGui.examples import boundCollection",
+               "boundCollection = reload(boundCollection)",
+               "bound_collection = boundCollection.run()"], 
+      "key": "BoundCollection", 
+      "docTag": "7b19d89337fd4d5b89a1752e040d69d8", 
+      "annotation": "Bound Collection example"
+    }, 
+    {
+      "imageOverlayLabel": "Filter", 
+      "sourceType": "python", 
+      "image": "commandButton.png", 
+      "label": "Filtered Collection", 
+      "command": ["from mGui.examples import filtered_collection",
+                  "filtered_collection = reload(filtered_collection)",
+                  "fc_window = filtered_collection.main()",
+                  "fc_window.show()"], 
+      "key": "FilteredCollection", 
+      "annotation": "Filtered Collection Example", 
+      "font": "tinyBoldLabelFont", 
+      "docTag": "b990e47f96f744128e9292898b630ec4", 
+      "overlayLabelColor": [1.0, 0.5, 0.5]
+    }, 
+    {
+      "imageOverlayLabel": "Forms", 
+      "sourceType": "python", 
+      "menuItems": [
+        {
+          "command": ["from mGui.examples import formExamples",
+                      "formExamples = reload(formExamples)",
+                      "example_FillForm = formExamples.example_FillForm()"], 
+          "sourceType": "python", 
+          "key": "example_FillForm"
+        }, 
+        {
+          "command": ["from mGui.examples import formExamples",
+                      "formExamples = reload(formExamples)",
+                      "example_FooterForm = formExamples.example_FooterForm()"], 
+          "sourceType": "python", 
+          "key": "example_FooterForm"
+        }, 
+        {
+          "command": ["from mGui.examples import formExamples",
+                      "formExamples = reload(formExamples)",
+                      "example_HeaderForm = formExamples.example_HeaderForm()"], 
+          "sourceType": "python", 
+          "key": "example_HeaderForm"
+        }, 
+        {
+          "command": ["from mGui.examples import formExamples",
+                      "formExamples = reload(formExamples)",
+                      "example_HorizontalExpandForm = formExamples.example_HorizontalExpandForm()"], 
+          "sourceType": "python", 
+          "key": "example_HorizontalExpandForm"
+        }, 
+        {
+          "command": ["from mGui.examples import formExamples",
+                      "formExamples = reload(formExamples)",
+                      "example_HorizontalForm = formExamples.example_HorizontalForm()"], 
+          "sourceType": "python", 
+          "key": "example_HorizontalForm"
+        }, 
+        {
+          "command": ["from mGui.examples import formExamples",
+                      "formExamples = reload(formExamples)",
+                      "example_HorizontalStretchForm = formExamples.example_HorizontalStretchForm()"], 
+          "sourceType": "python", 
+          "key": "example_HorizontalStretchForm"
+        }, 
+        {
+          "command": ["from mGui.examples import formExamples",
+                      "formExamples = reload(formExamples)",
+                      "example_HorizontalThreePane = formExamples.example_HorizontalThreePane()"], 
+          "sourceType": "python", 
+          "key": "example_HorizontalThreePane"
+        }, 
+        {
+          "command": ["from mGui.examples import formExamples",
+                      "formExamples = reload(formExamples)",
+                      "example_VerticalExpandForm = formExamples.example_VerticalExpandForm()"], 
+          "sourceType": "python", 
+          "key": "example_VerticalExpandForm"
+        }, 
+        {
+          "command": ["from mGui.examples import formExamples",
+                      "formExamples = reload(formExamples)",
+                      "example_VerticalForm = formExamples.example_VerticalForm()"], 
+          "sourceType": "python", 
+          "key": "example_VerticalForm"
+        }, 
+        {
+          "command": ["from mGui.examples import formExamples",
+                      "formExamples = reload(formExamples)",
+                      "example_VerticalStretchForm = formExamples.example_VerticalStretchForm()"],
+          "sourceType": "python", 
+          "key": "example_VerticalStretchForm"
+        }, 
+        {
+          "command": ["from mGui.examples import formExamples",
+                      "formExamples = reload(formExamples)",
+                      "example_VerticalThreePane = formExamples.example_VerticalThreePane()"],
+          "sourceType": "python", 
+          "key": "example_VerticalThreePane"
+        }
+      ], 
+      "label": "Form Layout examples", 
+      "command": ["from mGui.examples import formExamples",
+                  "formExamples = reload(formExamples)",
+                  "form_examples = formExamples.example_Forms()"],
+      "doubleClickCommand": ["from mGui.examples import formExamples",
+                  "formExamples = reload(formExamples)",
+                  "form_examples = formExamples.example_Forms()"],
+      "key": "FormExamples", 
+      "annotation": "Form Layout Examples", 
+      "font": "tinyBoldLabelFont", 
+      "docTag": "88f32508a2944a8185873dafeab9267f", 
+      "image": "commandButton.png"
+    }, 
+    {
+      "imageOverlayLabel": "Mods", 
+      "sourceType": "python", 
+      "image": "commandButton.png", 
+      "label": "Module Manager", 
+      "command": ["from mGui.examples import modMgr",
+                  "modMgr = reload(modMgr)",
+                  "module_manager_dialog = modMgr.ModuleManagerDialog()",
+                  "module_manager_dialog.show()"],
+      "key": "ModuleManager", 
+      "docTag": "316da796c2054e96b971e55b80a548a4", 
+      "annotation": "Module Manager"
+    }, 
+    {
+      "imageOverlayLabel": "Simple", 
+      "sourceType": "python", 
+      "image": "commandButton.png", 
+      "label": "Simple Example", 
+      "command": ["from mGui.examples import simple",
+                  "simple = reload(simple)",
+                  "simple_example_window = simple.ExampleWindow()",
+                  "simple_example_window.show()"],
+      "key": "Simple", 
+      "docTag": "a2724008a9f9468d8fe5a58ededfdf76", 
+      "annotation": "Simple Example"
+    }, 
+    {
+      "imageOverlayLabel": "Binding", 
+      "sourceType": "python", 
+      "image": "commandButton.png", 
+      "label": "Simple Binding Example", 
+      "command": ["from mGui.examples import simpleBinding",
+                  "simpleBinding = reload(simpleBinding)",
+                  "binding_example_window = simpleBinding.ExampleWindow()"],
+      "key": "SimpleBinding", 
+      "docTag": "2d9fcacb9f2b46afacbf61e8b074f05b", 
+      "annotation": "Simple Binding Example"
+    }, 
+    {
+      "imageOverlayLabel": "Traditional", 
+      "sourceType": "python", 
+      "image": "commandButton.png", 
+      "label": "Traditional Example", 
+      "command": ["from mGui.examples import traditional",
+                  "traditional = reload(traditional)",
+                  "traditional_window = traditional.main()",
+                  "traditional_window.show()"],
+      "key": "Traditional", 
+      "docTag": "bc921ef74a8b411eb42a0e34ec405fd0", 
+      "annotation": "Traditional Example"
+    }
+  ], 
+  "key": "mGuiExamples", 
+  "parent": "ShelfLayout"
+}

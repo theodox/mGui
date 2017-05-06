@@ -69,11 +69,12 @@ class ControlMeta(type):
         if not kwargs.get('CMD'):
             maya_cmd = parents[0].CMD
 
+        _overridden = ('parent',)
         for item in _READ_ONLY:
-            kwargs[item] = CtlProperty(item, maya_cmd, writeable=False)
+            if item not in _overridden:
+                kwargs[item] = CtlProperty(item, maya_cmd, writeable=False)
         for item in _ATTRIBS:
-            # parent is overidden in the Control class
-            if item not in ('parent',):
+            if item not in _overridden:
                 kwargs[item] = CtlProperty(item, maya_cmd)
         for item in _CALLBACKS:
             kwargs[item] = CallbackProperty(item)
@@ -167,24 +168,6 @@ class Control(Styled, BindableObject):
 
         finally:
             cls.CMD = cache_CMD
-
-    @classmethod
-    def from_existing(cls, key, widget):
-        """
-        Create an instance of <cls> from an existing widgets
-        """
-
-        def fake_init(self, *_, **__):
-            return widget
-
-        _cmd = cls.CMD
-
-        try:
-            cls.CMD = fake_init
-            return cls(key)
-
-        finally:
-            cls.CMD = _cmd
 
     def forget(self, *args, **kwargs):
         self.callbacks.clear()

@@ -41,9 +41,12 @@ def _objectTypeUI(widget):
 
 
 def derive(widget):
-    widget_type = _objectTypeUI(widget)
+    if not isinstance(widget, Control):
+        widget_type = _objectTypeUI(widget)
+        result = __lookup[widget_type].wrap(widget)
+    else:
+        result = widget
 
-    result = __lookup[widget_type].wrap(widget)
     kids = []
     if isinstance(result, Window):
         all_layouts = cmds.lsUI(type='layout', l=True) or []
