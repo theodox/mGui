@@ -15,12 +15,6 @@ class Menu(Nested):
     _CALLBACKS = ['postMenuCommand']
     _READ_ONLY = ['numberOfItems']
 
-    @classmethod
-    def from_existing(cls, widget):
-        key = widget.split("|")[-1]
-        result = super(Menu, cls).from_existing(key, widget)
-        return result
-
     @property
     def itemArray(self):
         return [MenuItem.wrap(self.fullPathName + '|' + item) for item in self.CMD(self.widget, itemArray=True, q=True) or []]
