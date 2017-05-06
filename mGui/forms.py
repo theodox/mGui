@@ -218,7 +218,7 @@ class LayoutDialogForm(Form):
         self.CMD = self.fake_create
         super(LayoutDialogForm, self).__init__(key=None)
         self.modal = True
-        self.CMD = getattr(cmds, 'formLayout', NotImplemented)
+        self.CMD = cmds.formLayout
 
     def __enter__(self):
         return super(LayoutDialogForm, self).__enter__()

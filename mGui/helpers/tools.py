@@ -52,7 +52,7 @@ class CommandInfo(object):
         
             class AttrColorSliderGrp(Control):
                 ''Wrapper class for cmds.attrColorSliderGrp''
-                 CMD = getattr(cmds, 'attrColorSliderGrp', NotImplemented)
+                 CMD = cmds.attrColorSliderGrp
                  _ATTRIBS = ['attribute','rowAttach','columnAttach','columnWidth2','columnWidth3','columnWidth1','columnWidth6','columnWidth4','columnWidth5','columnAlign6','columnAlign5','columnAlign4','columnAlign3','columnAlign2','label','adjustableColumn','columnAlign','columnAttach6','adjustableColumn5','adjustableColumn2','adjustableColumn3','adjustableColumn4','showButton','hsvValue','columnWidth','adjustableColumn6','columnOffset2','columnOffset3','columnOffset4','columnOffset5','columnOffset6','rgbValue','attrNavDecision','columnAttach4','columnAttach5','columnAttach2','columnAttach3']
                  _CALLBACKS = []
 
@@ -62,7 +62,7 @@ class CommandInfo(object):
         code = StringIO()
         code.write('class %s(%s):\n' % (self.Name[0].upper() + self.Name[1:], self.INHERITS))
         code.write("    '''Wrapper class for cmds.%s'''\n"  % self.Name)
-        code.write("    CMD = getatr(cmds, '%s', NotImplemented)\n" % self.Name)
+        code.write('    CMD = cmds.%s\n' % self.Name)
         attribs = [k for k in self.Flags.values() if not k in self.DEFAULTS]
         if includeShortNames:
             attribs += [k for k in self.Flags.keys() if not k in self.DEFAULTS]
