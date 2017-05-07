@@ -136,7 +136,7 @@ The module **mGui.gui** contains most of the key components: the windows, button
     	with ColumnLayout('cl'):
     	    Text('msg', 'Hello World!')
 
-The main components are named identically to their Maya.cmds counterparts except for the fact that, being classes rather than commands, they are capitalized. Thus  **cmds.button** becomes **mGui.gui.Button**. **cmds.wimdow** becomes **mGui.gui.Window** and so on.
+The main components are named identically to their Maya.cmds counterparts except for the fact that, being classes rather than commands, they are capitalized. Thus  **cmds.button** becomes **mGui.gui.Button**. **cmds.window** becomes **mGui.gui.Window** and so on.
 
 ----------------
 
