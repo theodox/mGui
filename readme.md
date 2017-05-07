@@ -1,5 +1,5 @@
-#mGui 
-###A module for simplifying Maya GUI coding
+# mGui 
+### A module for simplifying Maya GUI coding
 
 ## Basics
 mGui is a python module for simplifying GUI creation using Maya's built-in gui widgets. As such it is not a replacement for something more sophisticated, like PyQT or PySide - it's a way to make simple UI more quickly and reliably (and without the need for distributing any DLLs in older versions of Maya).

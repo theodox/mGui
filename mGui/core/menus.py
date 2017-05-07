@@ -10,16 +10,14 @@ from mGui.core import Nested, Control, cmds
 class Menu(Nested):
     CMD = cmds.menu
     _ATTRIBS = ['allowOptionBoxes', 'deleteAllItems', 'defineTemplate', 'docTag', 'enable', 'enableBackground',
-                'exists', 'familyImage', 'helpMenu', 'label', 'mnemonic', 'parent', 'useTemplate', 'visible']
-    _CALLBACKS = ['postMenuCommand', 'postMenuCommandOnce']
-    _READ_ONLY = ['itemArray', 'numberOfItems']
+                'exists', 'familyImage', 'helpMenu', 'label', 'mnemonic', 'parent', 'useTemplate', 'visible',
+                'postMenuCommandOnce']
+    _CALLBACKS = ['postMenuCommand']
+    _READ_ONLY = ['numberOfItems']
 
-    @classmethod
-    def from_existing(cls, widget):
-        key = widget.split("|")[-1]
-        result = super(Menu, cls).from_existing(key, widget)
-        return result
-
+    @property
+    def itemArray(self):
+        return [MenuItem.wrap(self.fullPathName + '|' + item) for item in self.CMD(self.widget, itemArray=True, q=True) or []]
 
 class MenuItem(Control):
     CMD = cmds.menuItem
@@ -28,9 +26,9 @@ class MenuItem(Control):
                 "enableCommandRepeat", "enable", "exists", "familyImage", "image", "insertAfter", "imageOverlayLabel",
                 "italicized", "keyEquivalent", "label", "mnemonic", "optionBox", "optionBoxIcon", "optionModifier",
                 "parent", "radioButton", "radialPosition", "shiftModifier", "subMenu", "sourceType", "tearOff",
-                "useTemplate", "version"]
+                "useTemplate", "version", 'postMenuCommandOnce']
     _READ_ONLY = ['isCheckBox', 'isOptionBox', 'isRadioButton']
-    _CALLBACKS = ['command', 'dragDoubleClickCommand', 'dragMenuCommand', 'postMenuCommand', 'postMenuCommandOnce']
+    _CALLBACKS = ['command', 'dragDoubleClickCommand', 'dragMenuCommand', 'postMenuCommand']
 
 
 class OptionMenu(Nested):
@@ -84,7 +82,11 @@ class ActiveOptionMenu(OptionMenu):
 class PopupMenu(Nested):
     CMD = cmds.popupMenu
     _ATTRIBS = ['altModifier', 'allowOptionBoxes', 'button', 'ctrlModifier', 'deleteAllItems', 'defineTemplate',
-                'exists', 'markingMenu', 'parent', 'shiftModifier', 'useTemplate', 'visible']
-    _CALLBACKS = ['postMenuCommand', 'postMenuCommandOnce']
-    _READ_ONLY = ['itemArray', 'numberOfItems']
+                'exists', 'markingMenu', 'parent', 'shiftModifier', 'useTemplate', 'visible', 'postMenuCommandOnce']
+    _CALLBACKS = ['postMenuCommand']
+    _READ_ONLY = ['numberOfItems']
+
+    @property
+    def itemArray(self):
+        return [MenuItem.wrap(self.fullPathName + '|' + item) for item in self.CMD(self.widget, itemArray=True, q=True) or []]
 
