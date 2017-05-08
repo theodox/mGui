@@ -55,7 +55,7 @@ class QTextField(TextField):
         super(QTextField, self).__init__(key, **kwargs)
 
         self.textBufferChanged = None
-        self._qt_wrapper = as_qt_object(self.widget)
+        self.__qt_object__ = as_qt_object(self.widget)
         self.buffer = None
         self.keypress = Event()
 
@@ -81,7 +81,7 @@ class QTextField(TextField):
                         return True
                 return False
 
-        self._qt_wrapper.installEventFilter(KeypressFilter(self._qt_wrapper))
+        self.__qt_object__.installEventFilter(KeypressFilter(self.__qt_object__))
 
         if interval:
             self.textBufferChanged = Event(**{'sender': self})
@@ -94,6 +94,6 @@ class QPasswordField(TextField):
     def __init__(self, key=None, **kwargs):
         super(QPasswordField, self).__init__(key, **kwargs)
 
-        self._qt_wrapper = as_qt_object(self.widget)
-        self._qt_wrapper.setEchoMode(self._qt_wrapper.EchoMode.Password)
+        self.__qt_object__ = as_qt_object(self.widget)
+        self.__qt_object__.setEchoMode(self.__qt_object__.EchoMode.Password)
         

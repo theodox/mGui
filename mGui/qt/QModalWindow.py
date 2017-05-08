@@ -13,18 +13,18 @@ class QModalWindow(BindingWindow):
 
     def __init__(self, *args, **kwargs):
         super(QModalWindow, self).__init__(*args, **kwargs)
-        self._qt_obj = as_qt_object(self)
-        self._qt_obj.setWindowModality(APPLICATION_MODAL)
+        self.__qt_object__ = as_qt_object(self)
+        self.__qt_object__.setWindowModality(APPLICATION_MODAL)
 
     def show(self):
-        self._qt_obj.show()
+        self.__qt_object__.show()
 
     def forget(self, *args, **kwargs):
         super(QModalWindow, self).forget()
-        self._qt_obj = None
+        self.__qt_object__ = None
 
     def hide(self):
-        self._qt_obj.hide()
+        self.__qt_object__.hide()
 
     def dismiss(self, *args, **kwargs):
         self.hide()
