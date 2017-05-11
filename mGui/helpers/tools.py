@@ -137,5 +137,20 @@ def generate_layouts(filename, includeShortNames=False):
                 filehandle.write("# command '%s' not present in this maya" % each_class)
 
 
-                           
+
+def generate_panels(filename):
+    """
+    write out the text file for the panels classes
+    """
+    with open (filename, 'wt') as filehandle:
+        filehandle.write("'''\nmGui wrapper classes\n\nAuto-generated wrapper classes for use with mGui\n'''\n\n")
+        filehandle.write('import maya.cmds as cmds\n')
+        filehandle.write('from .core import Control\n\n')
+        for each_class in constants.PANEL_COMMANDS:
+            try:
+                filehandle.write(PanelInfo.from_command(each_class).template())
+                filehandle.write('\n\n')
+            except RuntimeError:
+                filehandle.write("# command '%s' not present in this maya" % each_class)
+
             
