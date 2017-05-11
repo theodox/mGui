@@ -131,7 +131,7 @@ def generate_panels(filename):
         from mGui.properties import WrappedCtlProperty
         def make_editor_command(cmd, editorString):
             return WrappedCtlProperty(editorString, cmd, True, EditorFactory.get)
-        '''
+        ''')
 
         for each_class in constants.PANEL_COMMANDS:
             try:
