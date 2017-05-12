@@ -76,3 +76,5 @@ class EditorFactory(object):
             raise RuntimeError("Unknown editor type: {}".format(ptype))
         return pfclass.wrap(editor_string)
 
+__all__ = ['ModelEditor', 'ComponentEditor', 'OutlinerEditor', ]
+

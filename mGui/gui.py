@@ -11,6 +11,8 @@ from mGui.core import Window, BindingWindow, ControlMeta
 from mGui.core.layouts import *
 from mGui.core.menus import *
 from mGui.core.controls import *
+from mGui.core.editors import *
+from mGui.core.panels import *
 
 
 """

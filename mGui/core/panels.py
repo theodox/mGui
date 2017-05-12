@@ -47,7 +47,8 @@ class HardwareRenderPanel(Panel):
     _CALLBACKS = ["popupMenuProcedure"]
     _READ_ONLY = ['control']
 
-    glRenderEditor =make_editor_command(cmds.glRenderEditor, 'glRenderEditor')
+    glRenderEditor = make_editor_command(cmds.glRenderEditor, 'glRenderEditor')
+
 
 class HyperGraph(Panel):
     """Wrapper class for cmds.hyperGraph"""
@@ -117,6 +118,7 @@ class OutlinerPanel(Panel):
     _CALLBACKS = ['popupMenuProcedure']
 
     outlinerEditor = make_editor_command(cmds.outlinerEditor, 'outlinerEditor')
+
 
 class PanelConfiguration(Panel):
     """Wrapper class for cmds.panelConfiguration"""
@@ -208,3 +210,5 @@ class PanelFactory(object):
             raise RuntimeError("Unknown panel type: {}".format(ptype))
         return pfclass.wrap(panel_string, panel_string)
 
+__all__ = ['Panel', 'ModelPanel', 'HardwareRenderPanel', 'HyperGraph', 'HyperPanel', 'HyperShade', 'NodeOutliner',
+           'OutlinerPanel', 'PanelConfiguration', 'PanelHistory', 'ScriptedPanel', 'SpreadSheetEditor', 'Visor', 'PanelFactory', ]
