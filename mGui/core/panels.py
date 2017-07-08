@@ -6,7 +6,7 @@ Auto-generated wrapper classes for use with mGui
 
 import maya.cmds as cmds
 
-from mGui.core import Control
+from mGui.core import Control, Nested
 from mGui.core.editors import EditorFactory
 from mGui.properties import WrappedCtlProperty
 
@@ -15,7 +15,9 @@ def make_editor_command(cmd, editorString):
     return WrappedCtlProperty(editorString, cmd, True, EditorFactory.get)
 
 
-class Panel(Control):
+
+
+class Panel(Nested):
     CMD = cmds.panel
     PANEL_TYPE = None
     _ATTRIBS = ["copy", "defineTemplate", "docTag", "exists", "init", "label", "menuBarVisible",
@@ -81,7 +83,6 @@ class HyperPanel(Panel):
                 "useTemplate"]
     _CALLBACKS = ["popupMenuProcedure"]
 
-    # TODO: need a wrappper for this
     hyperEditor = make_editor_command(cmds.hyperGraph, 'hyperEditor')
 
 
@@ -164,18 +165,6 @@ class Visor(Panel):
                 "selectedGadgets", "showDividers", "showFiles", "showFolders", "showNodes", "stateString", "style",
                 "transform", "type"]
     _CALLBACKS = []
-
-
-# this is deprecated in Maya 2012+
-# class WebBrowser(Panel):
-#    """Wrapper class for cmds.webBrowser"""
-#    CMD = cmds.webBrowser
-#    _ATTRIBS = ['isObscured', 'preventOverride', 'manage', 'back', 'height', 'visible', 'query', 'wrap', 'home',
-#    # 'find',
-#                'numberOfPopupMenus', 'enableBackground', 'searchForward', 'noBackground', 'width', 'backgroundColor',
-#                'forward', 'urlChangedCb', 'enable', 'openURL', 'matchWholeWord', 'stop', 'fullPathName', 'annotation',
-#                'edit', 'popupMenuArray', 'matchCase', 'reload']
-#    _CALLBACKS = ['command', 'dragCallback', 'dropCallback', 'visibleChangeCommand']
 
 
 class PanelFactory(object):

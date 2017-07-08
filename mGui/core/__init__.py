@@ -54,6 +54,7 @@ restart Maya rather than using reload() it will disappear.
 # use this for condtional checks if there are version differences
 MAYA_VERSION = cmds.about(version=True).split(' ')[0]
 
+REGISTRY = {}
 
 class ControlMeta(type):
     """
@@ -81,7 +82,11 @@ class ControlMeta(type):
 
         kwargs['__bases__'] = parents
 
-        return super(ControlMeta, mcs).__new__(mcs, name, parents, kwargs)
+        completed_type =  super(ControlMeta, mcs).__new__(mcs, name, parents, kwargs)
+        if maya_cmd:
+            REGISTRY[maya_cmd.__name__] = completed_type
+
+        return completed_type
 
 
 class Control(Styled, BindableObject):
@@ -164,6 +169,11 @@ class Control(Styled, BindableObject):
         try:
             cache_CMD = cls.CMD
             cls.CMD = _spoof_create
+
+            # allow wrapping of abstract types, but make sure derived types are correct
+            if cls.__name__ not in ('Control', 'Layout', 'Nested', 'Panel'):
+                if not cmds.objectTypeUI(control_name, isType = cache_CMD.__name__):
+                    raise RuntimeError( "{} is not an instance of {}".format(control_name, cache_CMD.__name__))
             return cls(key=control_name)
 
         finally:
@@ -394,6 +404,7 @@ class Nested(Control):
         return self
 
 
+
 # IMPORTANT NOTE
 # this intentionally duplicates redundant property names from Control.
 # That forces the metaclass to F-define the CtlProperties using cmds.layout
@@ -408,6 +419,7 @@ class Layout(Nested):
                 'width']
     _CALLBACKS = ['dragCallback', 'dropCallback', 'visibleChangeCommand']
     _READ_ONLY = ['isObscured', 'popupMenuArray', 'numberOfPopupMenus', 'childArray', 'numberOfChildren']
+
 
 
 class Window(Nested):
@@ -482,3 +494,4 @@ class BindingWindow(Window):
     def forget(self, *args, **kwargs):
         super(BindingWindow, self).forget()
         self.bindingContext = None
+

@@ -5,64 +5,52 @@ forwards all of the widget definitions in the system for easy import.  This
 module is probably safe to import * in a known context
 """
 
-import copy
-
-from mGui.core import Window, BindingWindow, ControlMeta
+from mGui.core.controls import *
 from mGui.core.layouts import *
 from mGui.core.menus import *
-from mGui.core.controls import *
-from mGui.core.editors import *
-from mGui.core.panels import *
+from mGui.core.progress import ProgressBar, MainProgressBar
+from mGui.core.treeView import MTreeView
+from mGui.core import Window, Control, Layout, REGISTRY
 
 
 """
 create a lookup table indexing all UI commands to their corresponding mGui classes
 """
-__defined = locals()
-__defined = copy.copy(__defined)
-__lookup = {}
-
-for k, v in __defined.items():
-    if isinstance(v, ControlMeta):
-        __lookup[v.CMD.__name__] = v
-
-__lookup['floatingWindow'] = Window
-__lookup['commandMenuItem'] = MenuItem
 
 
-def _objectTypeUI(widget):
+def _collect_mappings():
     """
-    objectTypeUI in maya 2011 does not reconize menuItems. This is a fix to that issue.
+    Iterate over the results of cmds.objectTypeUI(listAll=True) which lists the
+    three names for every UI object type. Unfortunately they don't match exactly to the
+    maya.cmds names, so this does its best to find the corresponding mGui wrapper based
+    on the best fit of either the UI name or the mystery name returned by objectTypeUI.
+
+    The goal is to create a mapping between objectTypeUI types and mGui types.  However this won't be
+    100% accurate until ADSK unifies the cmds names and the results of objectTypeUI
     """
-    if cmds.menuItem(widget, q=True, ex=True):
-        widget_type = 'menuItem'
-    else:
-        widget_type = cmds.objectTypeUI(widget)
+    accum = []
+    for c, e in enumerate(cmds.objectTypeUI(listAll=True)):
+        c += 1
+        if c % 3 != 0:
+            accum.append(e)
+        else:
+            key = accum[1]
+            val = REGISTRY.get(accum[0], REGISTRY.get(accum[1]))
+            yield (key, val)
+            accum = []
 
-    return widget_type
 
+_type_mappings = dict(_collect_mappings())
+del _collect_mappings
 
-def derive(widget):
-    if not isinstance(widget, Control):
-        widget_type = _objectTypeUI(widget)
-        result = __lookup[widget_type].wrap(widget)
-    else:
-        result = widget
+def wrap(control):
+    target_class = _type_mappings .get(cmds.objectTypeUI(control))
+    result = None
+    if not target_class:
+        result = Control.wrap(control)
 
-    kids = []
-    if isinstance(result, Window):
-        all_layouts = cmds.lsUI(type='layout', l=True) or []
-        kids = [ly for ly in all_layouts if ly.startswith(widget) and ly.count("|") == 1]
-    if isinstance(result, Layout):
-        kids = result.childArray or []
-    if isinstance(result, Menu) or isinstance(result, PopupMenu):
-        kids = result.itemArray or []
-    if isinstance(result, OptionMenu):
-        kids = result.itemListLong or []
-
-    for k in kids:
-        result.controls.append(derive(k))
-
+    result = target_class.wrap(control)
+    if hasattr(result, 'childArray'):
+        for item in result.childArray:
+            result.add(wrap(item))
     return result
-
-__all__ = [item.__name__ for item in __lookup.values()]
