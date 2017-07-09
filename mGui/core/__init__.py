@@ -171,7 +171,7 @@ class Control(Styled, BindableObject):
             cls.CMD = _spoof_create
 
             # allow wrapping of abstract types, but make sure derived types are correct
-            if cls.__name__ not in ('Control', 'Layout', 'Nested', 'Panel'):
+            if cls.__name__ not in ('Control', 'Layout', 'Nested', 'Panel', 'MenuItem'):
                 if not cmds.objectTypeUI(control_name, isType = cache_CMD.__name__):
                     raise RuntimeError( "{} is not an instance of {}".format(control_name, cache_CMD.__name__))
             return cls(key=control_name)

@@ -17,7 +17,9 @@ class Menu(Nested):
 
     @property
     def itemArray(self):
-        return [MenuItem.wrap(self.fullPathName + '|' + item) for item in self.CMD(self.widget, itemArray=True, q=True) or []]
+        return [MenuItem.wrap(self.fullPathName + '|' + item) for item in
+                self.CMD(self.widget, itemArray=True, q=True) or []]
+
 
 class MenuItem(Control):
     CMD = cmds.menuItem
@@ -67,7 +69,7 @@ class ActiveOptionMenu(OptionMenu):
 
     """
 
-    def __init__(self, key = None, *args, **kwargs):
+    def __init__(self, key=None, *args, **kwargs):
         super(ActiveOptionMenu, self).__init__(key, *args, **kwargs)
         self.changeCommand += self.fire_menu_callback
 
@@ -88,5 +90,5 @@ class PopupMenu(Nested):
 
     @property
     def itemArray(self):
-        return [MenuItem.wrap(self.fullPathName + '|' + item) for item in self.CMD(self.widget, itemArray=True, q=True) or []]
-
+        return [MenuItem.wrap(self.fullPathName + '|' + item) for item in
+                self.CMD(self.widget, itemArray=True, q=True) or []]
