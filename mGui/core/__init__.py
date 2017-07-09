@@ -370,7 +370,13 @@ class Nested(Control):
                     yield grandchild
             yield item
 
-    # note: both of these explicitly use Nested instead of cls
+    def find(self, mGuiType):
+        """
+        return any items of the type <mGuiType> from this items child controls
+        """
+        return [i for i in self.controls if isinstance(i, mGuiType)]
+
+    # note: both of these explicitly use Nested instead of clsm
     # so that there is only one global layout stack...
 
     @classmethod
