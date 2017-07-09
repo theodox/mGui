@@ -5,8 +5,20 @@ forwards all of the widget definitions in the system for easy import.  This
 module is probably safe to import * in a known context
 """
 
-from mGui.core import Window, Control, REGISTRY
+from mGui.core import Window, Control, REGISTRY, MAYA_VERSION
 from mGui.core.menus import *
+from mGui.core.controls import *
+from mGui.core.layouts import *
+from mGui.core.panels import  *
+from mGui.core.editors import *
+from mGui.core.treeView import MTreeView
+
+# conditional imports for api additions
+if MAYA_VERSION >= '2017':
+    from mGui.core.controls_2017 import *
+
+
+
 from mGui.events import event_handler
 
 """

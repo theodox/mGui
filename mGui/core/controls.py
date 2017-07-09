@@ -6,7 +6,7 @@ Originally auto generated using helpers.tools
 
 import maya.cmds as cmds
 from mGui.events import Event
-from mGui.core import Control
+from mGui.core import Control, MAYA_VERSION
 import weakref
 
 
@@ -853,3 +853,6 @@ class TreeView(Control):
                   'itemDblClickCommand', 'itemRenamedCommand', 'pressCommand', 'rightPressCommand', 'selectCommand',
                   'selectionChangedCommand']
     _BIND_TRIGGER = 'selectionChangedCommand'
+
+if MAYA_VERSION >= '2017':
+    from mGui.core.controls_2017 import *
