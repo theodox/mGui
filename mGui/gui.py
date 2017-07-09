@@ -5,7 +5,7 @@ forwards all of the widget definitions in the system for easy import.  This
 module is probably safe to import * in a known context
 """
 
-from mGui.core import Window, Control, REGISTRY, MAYA_VERSION
+from mGui.core import Window, BindingWindow,  Control, REGISTRY, MAYA_VERSION
 from mGui.core.menus import *
 from mGui.core.controls import *
 from mGui.core.layouts import *
@@ -85,10 +85,10 @@ def wrap(control, replace_events=False):
         for item in result.popupMenuArray:
             result.add(wrap(item))
 
-    if target_class is Window:
-        window_children = [i for i in cmds.lsUI(type='layout') if i.startswith(control)]
+    if target_class is Window or target_class is BindingWindow:
+        window_children = [i for i in cmds.lsUI(controlLayouts=True, l=True) if str(i).startswith(control)]
         if window_children:
-            sort(window_children)
+            window_children.sort()
             result.add(wrap(window_children[0]))
 
     return result
