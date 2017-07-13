@@ -169,24 +169,6 @@ class Control(Styled, BindableObject):
         finally:
             cls.CMD = cache_CMD
 
-    @classmethod
-    def from_existing(cls, key, widget):
-        """
-        Create an instance of <cls> from an existing widgets
-        """
-
-        def fake_init(self, *_, **__):
-            return widget
-
-        _cmd = cls.CMD
-
-        try:
-            cls.CMD = fake_init
-            return cls(key)
-
-        finally:
-            cls.CMD = _cmd
-
     def forget(self, *args, **kwargs):
         self.callbacks.clear()
         self.tag = None
@@ -500,3 +482,6 @@ class BindingWindow(Window):
     def forget(self, *args, **kwargs):
         super(BindingWindow, self).forget()
         self.bindingContext = None
+
+
+__all__ = ['Window', 'BindingWindow', 'Layout', 'Control', 'ControlMeta']

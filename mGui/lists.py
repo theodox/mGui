@@ -17,12 +17,11 @@ too large to display.
 """
 import maya.cmds as cmds
 
-import mGui.forms as forms
-import mGui.observable as observable
 import mGui.core.controls as controls
 import mGui.core.layouts as layouts
 import mGui.events as events
-import time
+import mGui.forms as forms
+import mGui.observable as observable
 
 
 class FormList(object):
@@ -217,4 +216,48 @@ class ItemTemplate(object):
     def __call__(self, item):
         return self.widget(item)
 
-__all__ = ['FormList', 'VerticalList', 'HorizontalList', 'ColumnList', 'WrapList', 'Templated', 'ItemTemplate', ]
+
+class ScrollListBase(FormList):
+    """
+    Base class for  bound scroll lists
+    """
+
+    def redraw(self, *args, **kwargs):
+        self.clear()
+        self.append = [i for i in self.collection]
+
+    def clear(self):
+        self.removeAll = True
+
+    @property
+    def inner_list(self):
+        return self
+
+    def gui_contents(self):
+        yield self
+
+
+class BoundScrollList(controls.TextScrollList, ScrollListBase):
+    """
+    Bindable version of a TextScrollList
+    """
+
+    def __init__(self, key=None, *args, **kwargs):
+        self.__init_bound_collection__(kwargs)
+        super(controls.TextScrollList, self).__init__(key, *args, **kwargs)
+        self.redraw()
+
+
+class BoundIconTextScrollList(controls.IconTextScrollList, ScrollListBase):
+    """
+    Bindable version of a IconTextScrollList
+    """
+
+    def __init__(self, key=None, *args, **kwargs):
+        self.__init_bound_collection__(kwargs)
+        super(controls.IconTextScrollList, self).__init__(key, *args, **kwargs)
+        self.redraw()
+
+
+__all__ = ['FormList', 'VerticalList', 'HorizontalList', 'ColumnList', 'WrapList', 'Templated', 'ItemTemplate',
+           'BoundScrollList', 'BoundIconTextScrollList']

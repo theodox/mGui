@@ -22,10 +22,13 @@ _items = gui.__all__ + forms.__all__ + lists.__all__
 
 items = ViewCollection(*_items)
 
+
 class InputBuffer(object):
+
     '''
     accumulate inputs until a certain amount of time passes
     '''
+
     def __init__(self, parent, fn, interval=1):
         self.last = time.time()
         self.interval = interval

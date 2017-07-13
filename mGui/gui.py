@@ -7,7 +7,7 @@ module is probably safe to import * in a known context
 
 import copy
 
-from mGui.core import Window, BindingWindow, ControlMeta
+from mGui.core import *
 from mGui.core.layouts import *
 from mGui.core.menus import *
 from mGui.core.controls import *
