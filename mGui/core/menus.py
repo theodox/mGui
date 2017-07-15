@@ -21,6 +21,26 @@ class Menu(Nested):
                 self.CMD(self.widget, itemArray=True, q=True) or []]
 
 
+class SubMenu(Menu):
+    CMD = cmds.menu
+
+    def __init__(self, key=None, **kwargs):
+        # When creating a submenu, we use the menuItem command, however it returns a menu.
+        # So we shadow the class attribute during initialization
+        self.CMD = cmds.menuItem
+        kwargs['subMenu'] = True
+        super(SubMenu, self).__init__(key, **kwargs)
+        # And remove the shadow once we've finished.
+        del self.CMD
+
+    def __exit__(self, typ, value, tb):
+        mGui_expand_stack = True
+        try:
+            super(SubMenu, self).__exit__(typ, value, tb)
+        except RuntimeError:
+            cmds.setParent(Nested.ACTIVE_LAYOUT, menu=True)
+
+
 class MenuItem(Control):
     CMD = cmds.menuItem
     _ATTRIBS = ["altModifier", "annotation", "allowOptionBoxes", "boldFont", "checkBox", "collection",
@@ -31,6 +51,38 @@ class MenuItem(Control):
                 "useTemplate", "version", 'postMenuCommandOnce']
     _READ_ONLY = ['isCheckBox', 'isOptionBox', 'isRadioButton']
     _CALLBACKS = ['command', 'dragDoubleClickCommand', 'dragMenuCommand', 'postMenuCommand']
+
+
+class MenuDivider(MenuItem):
+    def __init__(self, key=None, **kwargs):
+        kwargs['divider'] = True
+        super(MenuDivider, self).__init__(key, **kwargs)
+
+
+class RadioMenuItemCollection(Control):
+    CMD = cmds.radioMenuItemCollection
+    _READ_ONLY = ['exists', 'defineTemplate', 'gl', 'parent', 'useTemplate']
+
+    def __enter__(self):
+        return self
+
+    def __exit__(self, typ, value, tb):
+        mGui_expand_stack = True
+        # This closes out the collection, usually we'd do a setParent, but that doesn't seem to apply here.
+        self.CMD()
+        return False
+
+
+class RadioMenuItem(MenuItem):
+    def __init__(self, key=None, **kwargs):
+        kwargs['radioButton'] = kwargs.get('radioButton', kwargs.get('rb', False))
+        super(RadioMenuItem, self).__init__(key, **kwargs)
+
+
+class CheckBoxMenuItem(MenuItem):
+    def __init__(self, key=None, **kwargs):
+        kwargs['checkBox'] = kwargs.get('checkBox', kwargs.get('cb', False))
+        super(CheckBoxMenuItem, self).__init__(key, **kwargs)
 
 
 class OptionMenu(Nested):
