@@ -13,6 +13,8 @@ from mGui.core.panels import  *
 from mGui.core.editors import *
 from mGui.core.treeView import MTreeView
 
+import warnings
+
 # conditional imports for api additions
 if MAYA_VERSION >= '2017':
     from mGui.core.controls_2017 import *
@@ -92,3 +94,11 @@ def wrap(control, replace_events=False):
             result.add(wrap(window_children[0]))
 
     return result
+
+
+def derive(control):
+    """
+    gui.derive will be removed after mGui 2.2; for now it's going to issue a deprecation warning and call `wrap()`
+    """
+    warnings.warn("gui.derive() should be replaced by gui.wrap()", PendingDeprecationWarning)
+    return wrap(control)

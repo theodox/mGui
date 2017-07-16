@@ -4,7 +4,7 @@ mGui.menus
 Wrapper classes for Menus and MenuItems
 """
 
-from mGui.core import Nested, Control, cmds
+from mGui.core import Nested, Control, cmds, inspect
 
 
 class Menu(Nested):
@@ -15,10 +15,33 @@ class Menu(Nested):
     _CALLBACKS = ['postMenuCommand']
     _READ_ONLY = ['numberOfItems']
 
-    @property
-    def itemArray(self):
-        return [MenuItem.wrap(self.fullPathName + '|' + item) for item in
-                self.CMD(self.widget, itemArray=True, q=True) or []]
+    ACTIVE_MENU = None
+
+    def __init__(self, key=None, **kwargs):
+        super(Menu, self).__init__(key, **kwargs)
+        self._cache_menu = None
+
+    def __enter__(self):
+        self._cache_menu = Menu.ACTIVE_MENU
+        Menu.ACTIVE_MENU = self
+        return self
+
+    def __exit__(self, typ, value, tb):
+        # see Nested.__exit___ for more details
+        if typ and not self.ignore_exceptions:
+            return False
+
+        owning_scope = inspect.currentframe().f_back
+        if owning_scope.f_back:
+            owning_scope = owning_scope.f_back
+        for key, value in owning_scope.f_locals.items():
+            if type(value) in (Menu, MenuDivider, MenuItem, SubMenu, CheckBoxMenuItem, RadioMenuItem,
+                               RadioMenuItemCollection):
+                self.add(value, key)
+
+        # restore the layout level
+        Menu.ACTIVE_MENU = self._cache_menu
+        self._cache_menu = None
 
 
 class SubMenu(Menu):
@@ -32,13 +55,17 @@ class SubMenu(Menu):
         super(SubMenu, self).__init__(key, **kwargs)
         # And remove the shadow once we've finished.
         del self.CMD
+        self._cache_menu = None
 
-    def __exit__(self, typ, value, tb):
-        mGui_expand_stack = True
-        try:
-            super(SubMenu, self).__exit__(typ, value, tb)
-        except RuntimeError:
-            cmds.setParent(Nested.ACTIVE_LAYOUT, menu=True)
+    def __enter__(self):
+        self._cache_menu = Menu.ACTIVE_MENU
+        Menu.ACTIVE_MENU = self
+        return self
+
+    def __exit__(self, exc_type, exc_val, exc_tb):
+        super(SubMenu, self).__exit__(exc_type, exc_val, exc_tb)
+        if Menu.ACTIVE_MENU:
+            cmds.setParent(Menu.ACTIVE_MENU, menu=True)
 
 
 class MenuItem(Control):
@@ -52,6 +79,10 @@ class MenuItem(Control):
     _READ_ONLY = ['isCheckBox', 'isOptionBox', 'isRadioButton']
     _CALLBACKS = ['command', 'dragDoubleClickCommand', 'dragMenuCommand', 'postMenuCommand']
 
+    def __init__(self, key=None, **kwargs):
+        super(MenuItem, self).__init__(key, **kwargs)
+        self.owner = None
+
 
 class MenuDivider(MenuItem):
     def __init__(self, key=None, **kwargs):
@@ -62,6 +93,10 @@ class MenuDivider(MenuItem):
 class RadioMenuItemCollection(Control):
     CMD = cmds.radioMenuItemCollection
     _READ_ONLY = ['exists', 'defineTemplate', 'gl', 'parent', 'useTemplate']
+
+    def __init__(self, key=None, **kwargs):
+        super(RadioMenuItemCollection, self).__init__(key, **kwargs)
+        self.owner = None
 
     def __enter__(self):
         return self
