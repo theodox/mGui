@@ -3,10 +3,15 @@ import maya.cmds as cmds
 import os
 from mGui.menu_loader import load_menu
 
+"""
+This examples shows how you can use the mGui.menu_loader module to load a menu from a YAML text file.  The sample data
+is included as menu_loader_example.yaml.  It also illustrates some of the features supported in mGui menus.
+"""
+
 
 def load():
     this_dir = os.path.dirname(__file__)
-    with open(os.path.join(this_dir, "MenuLoader.YAML"), 'rt') as handle:
+    with open(os.path.join(this_dir, "menu_loader_example.yaml"), 'rt') as handle:
         yaml = handle.read()
         load_menu(yaml)
 
