@@ -1,0 +1,91 @@
+!MMenu
+    key:   mGuiExampleMenu
+    label: mGui Example Menu
+    items:
+
+
+        - !MMenuItem
+            key:  about
+            label:  About this menu...
+            annotation: Show the about dialog for this menu
+            command: mGui.examples.menu_loader.about
+
+        - !MMenuItem
+            key:  sep
+            options:
+              divider: True
+              dividerLabel: Supported options
+
+        - !MMenuItem
+            key:  regular
+            label:  Regular menus
+            annotation: A regular menu
+            command: mGui.examples.menu_loader.regular
+
+        - !MMenuItem
+            key:  check
+            label:  checkboxes
+            annotation: Toggle me!
+            options:
+              checkBox: True
+            command: mGui.examples.menu_loader.checkbox
+
+
+        - !MSubMenu
+            key: submenu
+            label: submenus
+
+            items:
+                - !MMenuItem
+                  key: sub1
+                  label: Item 1
+
+                - !MMenuItem
+                  key: sub2
+                  label: Item 2
+
+                - !MSubMenu
+                    key: subsub
+                    label: sub-sub menus
+
+                    items:
+                        - !MMenuItem
+                          key: subsub1
+                          label: Item 1
+
+                        - !MMenuItem
+                          key: subsub2
+                          label: Item 2
+
+
+
+        - !MMenuItem
+          key: icon
+          label: icons
+          options:
+            image: out_floatComposite.png
+
+
+        - !MMenuItem
+            key:  sep2
+            options:
+              divider: True
+              dividerLabel: Radio Menus
+
+        - !MRadioCollection
+            key: radio
+
+            items:
+                - !MRadioMenuItem
+                  key: fm
+                  label: FM
+
+                - !MRadioMenuItem
+                  key: am
+                  label: AM
+
+                - !MRadioMenuItem
+                  key: pm
+                  label: CB
+
+
