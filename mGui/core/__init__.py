@@ -107,6 +107,7 @@ class Control(Styled, BindableObject):
                 'preventOverride', 'useTemplate', 'visible', 'visibleChangeCommand', 'width']
     _CALLBACKS = ['dragCallback', 'dropCallback', 'visibleChangeCommand']
     _READ_ONLY = ['isObscured', 'popupMenuArray', 'numberOfPopupMenus']
+    ADD_TO_LAYOUT = True
     __metaclass__ = ControlMeta
 
     onDeleted = ScriptJobCallbackProperty('onDeleted', 'uiDeleted')
@@ -134,7 +135,8 @@ class Control(Styled, BindableObject):
         self._parent = None
 
         # add us to the current layout under our own key name
-        Layout.add_current(self)
+        if self.ADD_TO_LAYOUT:
+            Layout.add_current(self)
         self.onDeleted += self.forget
 
     def register_callback(self, callback_name, event):

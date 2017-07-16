@@ -148,7 +148,7 @@ class MenuProxy(yaml.YAMLObject):
 
         with gui.Menu(self.key, **opts) as result:
             for item in self.items:
-                item.instantiate()
+                item.instantiate(result)
 
         preMenuCommand = self.preMenuCommand or None
         if preMenuCommand:
@@ -349,7 +349,7 @@ class RadioMenuCollectionProxy(yaml.YAMLObject):
         return radioCollection
 
 
-class SubMenuProxy(MenuItemProxy):
+class SubMenuProxy(MenuProxy):
     """
     Represents a menu item with submenus -- equivalent to `cmds.menuItem(subMenu=True)
 
@@ -372,21 +372,19 @@ class SubMenuProxy(MenuItemProxy):
     yaml_tag = "!MSubMenu"
 
     def instantiate(self, parent=None):
-        self.options['subMenu'] = True
+        opts = copy.copy(self.options)
+        opts['label'] = self.label or self.key.replace('_', ' ')
+        after = self.after
+        if after:
+            insertAfter = get_insert_after_item(parent, after)
+            if insertAfter:
+                opts['insertAfter'] = insertAfter
 
-        # we _dont_ use gui.SubMenu because we're just creating the widget here
-        new_menu = super(SubMenuProxy, self).instantiate(parent)
+        with gui.SubMenu(self.key, **opts) as new_item:
+            for item in self.items:
+                item.instantiate(new_item)
 
-        # now we wrap it in a gui.Submeny
-        new_menu = gui.SubMenu.wrap(new_menu.widget)
-        for item in self.items:
-            kid = item.instantiate(parent=new_menu)
-            new_menu.add(kid)
-
-        menu_parent = new_menu.widget.rpartition("|")[0]
-        maya.cmds.setParent(menu_parent, menu=True)
-
-        return new_menu
+        return new_item
 
 
 """

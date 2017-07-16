@@ -13,12 +13,9 @@ def food_selected(*_, **kwargs):
 
 def pizza_selected(*_, **kwargs):
     pizza = kwargs['sender'].parent
-    toppings = [i.label for i in pizza.controls if i.checkBox]
+
+    toppings = [i.label for i in pizza.controls if isinstance(i, gui.CheckBoxMenuItem) and  i.checkBox]
     print "order pizza " + (" and ".join(toppings))
-
-
-def checkbox_selected(*_, **kwargs):
-    print "checkbox is ", kwargs['sender'].checkBox
 
 
 def radio_selected(*_, **kwargs):
@@ -28,18 +25,24 @@ def radio_selected(*_, **kwargs):
 
 # the use of tag here acts as a keepalive, so the functions don't get garbage collected
 # this is a useful alternative to classes  for simple cases
-with gui.Window(menuBar=True, tag=(food_selected, pizza_selected, checkbox_selected, radio_selected)) as test_window:
+with gui.Window(menuBar=True, tag=(food_selected, pizza_selected, radio_selected)) as test_window:
     with gui.Menu(label='TestMenu') as food_menu:
+
         # conventional menu items
-        for v in ('Hot Dog', 'Hamburger'):
-            item = gui.MenuItem(label=v)
-            item.command += food_selected
+        hotdog = gui.MenuItem(label = 'Hot Dog')
+        burger = gui.MenuItem(label = 'Burger')
+        taco = gui.MenuItem(label = 'Taco')
+        for each in (hotdog, burger, taco):
+            each.command += food_selected
 
         # a submenu
         with gui.SubMenu(label='Pizza') as sm:
-            for v in ('Pepperoni', 'Sausage', 'Pineapples'):
-                item = gui.CheckBoxMenuItem(label=v)
-                item.command += pizza_selected
+            pepperoni = gui.CheckBoxMenuItem(label='Pepperoni')
+            sausage = gui.CheckBoxMenuItem(label='Sausage')
+            pineapples = gui.CheckBoxMenuItem(label='Pineapples')
+            for each in (pepperoni, sausage, pineapples):
+                each.command += pizza_selected
+
 
         gui.MenuDivider()
         # radio collection submenu
@@ -47,9 +50,11 @@ with gui.Window(menuBar=True, tag=(food_selected, pizza_selected, checkbox_selec
         # don't keep track of their own selection so we track it in the
         # individual handlers instead.
         with gui.SubMenu(label='Delivery') as sm:
-            with gui.RadioMenuItemCollection() as fred:
-                for v in ('Eat In', 'Take Out', 'Delivery'):
-                    item = gui.RadioMenuItem(label=v)
-                    item.command += radio_selected
+            with gui.RadioMenuItemCollection() as radio:
+                eatin = gui.RadioMenuItem('Eat In')
+                takeout = gui.RadioMenuItem('Take Out')
+                delivery = gui.RadioMenuItem('Delivery')
+                for each in (eatin, takeout, delivery):
+                    each.command += radio_selected
 
 test_window.show()

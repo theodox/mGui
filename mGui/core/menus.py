@@ -16,10 +16,7 @@ class Menu(Nested):
     _READ_ONLY = ['numberOfItems']
 
     ACTIVE_MENU = None
-
-    def __init__(self, key=None, **kwargs):
-        super(Menu, self).__init__(key, **kwargs)
-        self._cache_menu = None
+    ADD_TO_LAYOUT = False
 
     def __enter__(self):
         self._cache_menu = Menu.ACTIVE_MENU
@@ -32,17 +29,23 @@ class Menu(Nested):
             return False
 
         owning_scope = inspect.currentframe().f_back
-        if owning_scope.f_back:
-            owning_scope = owning_scope.f_back
+        print "--------------", self.label
+#        if owning_scope.f_back:
+#            owning_scope = owning_scope.f_back
         for key, value in owning_scope.f_locals.items():
-            if type(value) in (Menu, MenuDivider, MenuItem, SubMenu, CheckBoxMenuItem, RadioMenuItem,
-                               RadioMenuItemCollection):
-                self.add(value, key)
+            if type(value) not in (MenuItem, CheckBoxMenuItem, RadioMenuItem,  RadioMenuItemCollection, SubMenu, Menu):
+                print "skipping", value
+                continue
+            if hasattr(value, 'widget'):
+                parentpath = value.widget.rpartition("|")[0]
+                if parentpath == self.widget:
+                    print "adding ", value, value.label if hasattr(value, 'label') else ""
+                    self.add(value, key)
 
         # restore the layout level
         Menu.ACTIVE_MENU = self._cache_menu
         self._cache_menu = None
-
+        cmds.setParent(Menu.ACTIVE_MENU, menu=True)
 
 class SubMenu(Menu):
     CMD = cmds.menu
@@ -57,15 +60,6 @@ class SubMenu(Menu):
         del self.CMD
         self._cache_menu = None
 
-    def __enter__(self):
-        self._cache_menu = Menu.ACTIVE_MENU
-        Menu.ACTIVE_MENU = self
-        return self
-
-    def __exit__(self, exc_type, exc_val, exc_tb):
-        super(SubMenu, self).__exit__(exc_type, exc_val, exc_tb)
-        if Menu.ACTIVE_MENU:
-            cmds.setParent(Menu.ACTIVE_MENU, menu=True)
 
 
 class MenuItem(Control):
@@ -78,6 +72,7 @@ class MenuItem(Control):
                 "useTemplate", "version", 'postMenuCommandOnce']
     _READ_ONLY = ['isCheckBox', 'isOptionBox', 'isRadioButton']
     _CALLBACKS = ['command', 'dragDoubleClickCommand', 'dragMenuCommand', 'postMenuCommand']
+    ADD_TO_LAYOUT = False
 
     def __init__(self, key=None, **kwargs):
         super(MenuItem, self).__init__(key, **kwargs)
@@ -93,6 +88,7 @@ class MenuDivider(MenuItem):
 class RadioMenuItemCollection(Control):
     CMD = cmds.radioMenuItemCollection
     _READ_ONLY = ['exists', 'defineTemplate', 'gl', 'parent', 'useTemplate']
+    ADD_TO_LAYOUT = False
 
     def __init__(self, key=None, **kwargs):
         super(RadioMenuItemCollection, self).__init__(key, **kwargs)
