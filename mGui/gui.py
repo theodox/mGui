@@ -12,6 +12,7 @@ from mGui.core.layouts import *
 from mGui.core.panels import  *
 from mGui.core.editors import *
 from mGui.core.treeView import MTreeView
+from mGui.core.progress import ProgressBar
 
 import warnings
 
@@ -39,8 +40,7 @@ def _collect_mappings():
     100% accurate until ADSK unifies the cmds names and the results of objectTypeUI
     """
     accum = []
-    for c, e in enumerate(cmds.objectTypeUI(listAll=True)):
-        c += 1
+    for c, e in enumerate(cmds.objectTypeUI(listAll=True), 1):
         if c % 3 != 0:
             accum.append(e)
         else:
