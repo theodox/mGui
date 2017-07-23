@@ -58,6 +58,7 @@ class QTextField(TextField):
         self.__qt_object__ = as_qt_object(self.widget)
         self.buffer = None
         self.keypress = Event()
+        self.modal = False
 
         # this is unduly specific for a simple application
         # should be generalized
