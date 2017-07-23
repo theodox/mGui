@@ -6,6 +6,35 @@ from ..forms import HorizontalStretchForm, VerticalStretchForm
 from ..events import MayaEvent
 
 
+class CompoundControl(type):
+    # Some magic will happen here?
+    pass
+
+
+class IntSpinner:
+    __metaclass__ = CompoundControl
+
+    _CONTROLS = {
+        'root': HorizontalStretchForm,
+        'field': IntField,
+        'label': Text,
+        'decrement': Button,
+        'increment': Button,
+        'form': VerticalStretchForm,
+    }
+    _HIERARCHY = {
+        'root': (
+            'label',
+            'field', {
+                'form': (
+                    'increment',
+                    'decrement'
+                )
+            }
+        )
+    }
+
+
 class IntSpinner(object):
 
     def __init__(self, key=None, **kwargs):
