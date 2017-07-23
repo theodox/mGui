@@ -10,7 +10,7 @@ from weakref import ref
 
 """
 # MGui.Core
-A system for defininng proxies that make it easier to work with maya GUI controls.
+A system for defining proxies that make it easier to work with maya GUI controls.
 
 Proxies are created using the ControlMeta metaclass, which maps existing maya
 GUI commands so that they look like proper object-oriented properties:
@@ -28,7 +28,7 @@ query them:
 
 ## Base Classes
 This module defines the base classes Control and Layout, which are used by all
-wrapper classes. They use the same property-wrapping stategy but Layouts also work as
+wrapper classes. They use the same property-wrapping strategy but Layouts also work as
 context managers, allowing them to call SetParent() when needed and also to
 maintain links to child control wrappers:
 

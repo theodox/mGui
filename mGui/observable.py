@@ -136,7 +136,7 @@ class ViewCollection(ObservableCollection):
     underlying container.
 
     The class exposes the same events as ObservableCollection, as well as a
-    viewChanged event which triggers when the filter is chaanged
+    viewChanged event which triggers when the filter is changed
     """
     _BIND_SRC = 'view'
 

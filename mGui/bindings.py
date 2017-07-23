@@ -60,7 +60,7 @@ class Accessor(object):
         was done without excepting.
 
         If BREAK_ON_ACCESS_FAILURE is true, pass any exceptions; otherwise they
-        are silenly ignored
+        are silently ignored
         """
         try:
             self._set(*args, **kwargs)
@@ -528,7 +528,7 @@ class BindingExpression(object):
     before being bound; you could do
 
         src = object, 'property'
-        tgt = object, 'otherPropery'
+        tgt = object, 'otherProperty'
         src > BindingExpression() > tgt
 
     for the same result.s
@@ -741,7 +741,7 @@ class BindableObject(Bindable):
 
 class BindProxy(Bindable):
     """
-    Creates an bindable Object + Attribute pair
+    Creates a bindable Object + Attribute pair
 
     Note that bindProxies do NOT maintain an internal bindings list - you'll
     need to capture the bindings created by them in a BindingContext or manually
