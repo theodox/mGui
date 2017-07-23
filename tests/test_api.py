@@ -10,8 +10,10 @@ from mGui.gui import *
 from mGui.forms import *
 from mGui.lists import *
 
-class test_mGui_api(TestCase):
-    """These tests just ensure that the mGui.gui api is the same from version to version"""
+"""These tests just ensure that the mGui.gui api is the same from version to version"""
+
+
+class TestMGuiAPI(TestCase):
 
     def test_ActiveOptionMenu(self):
         assert ActiveOptionMenu
@@ -392,7 +394,7 @@ class test_mGui_api(TestCase):
         assert Window
 
 
-class test_forms_api(TestCase):
+class TestFormsAPI(TestCase):
     def test_FillForm(self):
         assert FillForm
 
@@ -436,8 +438,7 @@ class test_forms_api(TestCase):
         assert VerticalThreePane
 
 
-def test_lists_api(TestCase):
-
+def TestListsAPI(TestCase):
     def test_BoundIconTextScrollList(self):
         assert BoundIconTextScrollList
 
@@ -467,3 +468,75 @@ def test_lists_api(TestCase):
 
     def test_WrapList(self):
         assert WrapList
+
+
+class TestControlAPI(TestCase):
+    def test_wrap(self):
+        assert callable(Control.wrap)
+
+    def test_Nested_exists(self):
+        assert 'exists' in Control._ATTRIBS
+
+    def test_Control_onDeleted(self):
+        assert hasattr(Control, 'parent')
+
+    def test_Control_onDeleted(self):
+        assert hasattr(Control, 'delete')
+
+    def test_Control_onDeleted(self):
+        assert hasattr(Control, 'forget')
+
+
+class TestNestedAPI(TestCase):
+    def test_Nested_ProxyFactory(self):
+        assert Nested.ProxyFactory
+
+    def test_Nested_add(self):
+        assert Nested.add
+
+    def test_Nested_add_current(self):
+        assert Nested.add_current
+
+    def test_Nested_as_parent(self):
+        assert Nested.as_parent
+
+    def test_Nested_clear(self):
+        assert Nested.clear
+
+    def test_Nested_current(self):
+        assert Nested.current
+
+    def test_Nested_delete(self):
+        assert Nested.delete
+
+    def test_Nested_find(self):
+        assert Nested.find
+
+    def test_Nested_forget(self):
+        assert Nested.forget
+
+    def test_Nested_layout(self):
+        assert callable(Nested.layout)
+
+    def test_Nested_recurse(self):
+        assert callable(Nested.recurse)
+
+    def test_Nested_register_callback(self):
+        assert Nested.register_callback
+
+    def test_Nested_remove(self):
+        assert Nested.remove
+
+    def test_Nested_replace(self):
+        assert Nested.replace
+
+    def test_Nested_stylesheet(self):
+        assert Nested.stylesheet
+
+
+class TestEindowAPI(TestCase):
+    def test_show(self):
+        assert callable(Window.show)
+
+    def hide(self):
+        assert callable(Windows.hide)
