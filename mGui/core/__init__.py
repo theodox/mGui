@@ -83,7 +83,13 @@ class ControlMeta(type):
         kwargs['__bases__'] = parents
 
         completed_type =  super(ControlMeta, mcs).__new__(mcs, name, parents, kwargs)
-        if maya_cmd:
+
+        # note sometimes more than one subclass uses the same maya command
+        # that makes the registry unable to disambiguate them. The correct
+        # response for gui.wrap will need to be the first class defined
+        # for this to work properly. If we run into future isses we may need to make
+        # this an explicit class attribute instead
+        if maya_cmd and not REGISTRY.get(maya_cmd.__name__):
             REGISTRY[maya_cmd.__name__] = completed_type
 
         return completed_type
