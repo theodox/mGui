@@ -122,7 +122,7 @@ class ImmediateObservableCollection(ObservableCollection):
 
 
     def __init__(self, *items):
-        self._internal_collection = [i for i in items]
+        super(ImmediateObservableCollection, self).__init__(*items)
         self.onCollectionChanged = Event(collection=self)
         self.onItemAdded = Event(collection=self)
         self.onItemRemoved = Event(collection=self)
