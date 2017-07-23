@@ -18,7 +18,7 @@ class QtSignalProperty(object):
     button.command += doSomething
     button.command -= doSomething
 
-    However you can also create events manually and paramaterize them
+    However you can also create events manually and parameterize them
 
     button.command = events.MayaEvent(target = 'pCube1', distance = 2.0)
 

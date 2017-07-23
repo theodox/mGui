@@ -356,7 +356,7 @@ class VerticalStretchForm(Form):
 
 class VerticalThreePane(Form):
     """
-    First child is glued to the top, last child is glued to the bottom, intermediate childredn are stretched
+    First child is glued to the top, last child is glued to the bottom, intermediate childred are stretched
     """
 
     def layout(self):
@@ -374,7 +374,7 @@ class VerticalThreePane(Form):
 
 class HorizontalThreePane(Form):
     """
-    First child is glued to the left, last child is glued to the right, intermediate childredn are stretched
+    First child is glued to the left, last child is glued to the right, intermediate childred are stretched
     """
 
     def layout(self):

@@ -137,7 +137,7 @@ class ModuleManager(object):
 # ======================================
 class ModuleTemplate(lists.ItemTemplate):
     """
-    Create a complex display widger for each ModTuple
+    Create a complex display widget for each ModTuple
     """
 
     def widget(self, item):

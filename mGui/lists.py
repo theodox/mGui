@@ -157,7 +157,7 @@ class ColumnList(forms.FillForm, FormList):
 class WrapList(forms.FillForm, FormList):
     """
     A flowLayout based list of items with optional wrapping. This will clip if
-    the width exceeds the layout width unles 'wrap' is set to true
+    the width exceeds the layout width unless 'wrap' is set to true
     """
     LIST_CLASS = layouts.FlowLayout
 
@@ -197,7 +197,7 @@ class ItemTemplate(object):
     Base class for item template classes.
 
     The job of an itemTemplate is to provide a GUI widget (which can be a single
-    control or a layout with other controls) that represents the underying data    item in the bound data collection.
+    control or a layout with other controls) that represents the underlying data    item in the bound data collection.
 
     """
 
