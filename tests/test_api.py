@@ -534,7 +534,7 @@ class TestNestedAPI(TestCase):
         assert Nested.stylesheet
 
 
-class TestEindowAPI(TestCase):
+class TestWindowAPI(TestCase):
     def test_show(self):
         assert callable(Window.show)
 
