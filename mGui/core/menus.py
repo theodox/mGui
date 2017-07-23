@@ -13,7 +13,7 @@ class Menu(Nested):
                 'exists', 'familyImage', 'helpMenu', 'label', 'mnemonic', 'parent', 'useTemplate', 'visible',
                 'postMenuCommandOnce']
     _CALLBACKS = ['postMenuCommand']
-    _READ_ONLY = ['numberOfItems']
+    _READ_ONLY = ['numberOfItems', 'itemArray']
 
     ACTIVE_MENU = None
     ADD_TO_LAYOUT = False
@@ -41,6 +41,7 @@ class Menu(Nested):
         Menu.ACTIVE_MENU = self._cache_menu
         self._cache_menu = None
         cmds.setParent(Menu.ACTIVE_MENU, menu=True)
+
 
 
 class SubMenu(Menu):
