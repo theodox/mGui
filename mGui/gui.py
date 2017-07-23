@@ -68,6 +68,7 @@ def wrap(control, replace_events=False):
     if not target_class:
         return Control.wrap(control, cmds.objectTypeUI(control))
 
+    print "TARGET CLASS", target_class
     result = target_class.wrap(control)
     if replace_events:
         for cb in target_class._CALLBACKS or []:
@@ -85,6 +86,10 @@ def wrap(control, replace_events=False):
 
     if hasattr(result, 'popupMenuArray'):
         for item in result.popupMenuArray:
+            result.add(wrap(item))
+
+    if hasattr(result, 'itemArray'):
+        for item in result.itemArray:
             result.add(wrap(item))
 
     if target_class is Window or target_class is BindingWindow:
