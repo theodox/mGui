@@ -835,7 +835,11 @@ class TreeLister(Control):
 
 
 class TreeView(Control):
-    """Wrapper class for cmds.treeView"""
+    """Wrapper class for cmds.treeView
+
+    Note that the MTreeView class in mGui.core.treeView is much easier to work with, this is included for
+    compatibility only.
+    """
     CMD = cmds.treeView
     _ATTRIBS = ['buttonState', 'enableButton', 'image', 'showItem', 'buttonVisible', 'buttonTransparencyColor',
                 'allowReparenting', 'buttonStyle', 'itemVisible', 'font', 'children', 'select', 'clearSelection',

@@ -17,8 +17,8 @@ will fire events on every key pres.
 
 This example DOES NOT WORK in Maya 2017 or later due to the QT5 update.
 """
-
-_items = gui.__all__ + forms.__all__ + lists.__all__
+_ctrls = [item.__name__ for item in gui._type_mappings.values() if item]
+_items = forms.__all__ + lists.__all__ + _ctrls
 
 items = ViewCollection(*_items)
 

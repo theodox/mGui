@@ -25,9 +25,9 @@ class ExampleWindow(Bindable):
     Also of interest, the CSS style at the top sets the style context for all of the 
     FloatSliderButtonGrp widgets so they are lined up neatly.  Notice that inherits from
     stylesheets.defaults(), which includes a base style for all '_Grp' controls to set the 
-    text aligments and sizes of the labels consistently.
+    text alignments and sizes of the labels consistently.
     
-    Note on Maya 2011 this color swacth does not fill the entire right-hand
+    Note on Maya 2011 this color swatch does not fill the entire right-hand
     panel; on Maya 2014 it does. This appears to be a change in the behavior of
     the underlying widget between versions.
     """
@@ -35,7 +35,7 @@ class ExampleWindow(Bindable):
     def __init__(self):
         self.color = [0, 0, 0]
 
-        # 2-digit formmating
+        # 2-digit formatting
         pretty = lambda x: '{0[0]:.2f} {0[1]:.2f} {0[2]:.2f}'.format(x)
 
         with stylesheets.CSS(gui.FloatSliderButtonGrp,

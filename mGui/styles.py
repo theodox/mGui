@@ -1,7 +1,7 @@
 """
 Defines the CSS class, a cascading style sheet like class for GUI layout.
 
-Also defines the Bounds class, which reprsents margins
+Also defines the Bounds class, which represents margins
 """
 import inspect
 

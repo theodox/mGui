@@ -4,7 +4,7 @@ mGui.menus
 Wrapper classes for Menus and MenuItems
 """
 
-from mGui.core import Nested, Control, cmds
+from mGui.core import Nested, Control, cmds, inspect
 
 
 class Menu(Nested):
@@ -13,11 +13,50 @@ class Menu(Nested):
                 'exists', 'familyImage', 'helpMenu', 'label', 'mnemonic', 'parent', 'useTemplate', 'visible',
                 'postMenuCommandOnce']
     _CALLBACKS = ['postMenuCommand']
-    _READ_ONLY = ['numberOfItems']
+    _READ_ONLY = ['numberOfItems', 'itemArray']
 
-    @property
-    def itemArray(self):
-        return [MenuItem.wrap(self.fullPathName + '|' + item) for item in self.CMD(self.widget, itemArray=True, q=True) or []]
+    ACTIVE_MENU = None
+    ADD_TO_LAYOUT = False
+
+    def __enter__(self):
+        self._cache_menu = Menu.ACTIVE_MENU
+        Menu.ACTIVE_MENU = self
+        return self
+
+    def __exit__(self, typ, value, tb):
+        # see Nested.__exit___ for more details
+        if typ and not self.ignore_exceptions:
+            return False
+
+        owning_scope = inspect.currentframe().f_back
+        for key, value in owning_scope.f_locals.items():
+            if type(value) not in (MenuItem, CheckBoxMenuItem, RadioMenuItem, RadioMenuItemCollection, SubMenu, Menu):
+                continue
+            if hasattr(value, 'widget'):
+                parentpath = value.widget.rpartition("|")[0]
+                if parentpath == self.widget:
+                    self.add(value, key)
+
+        # restore the layout level
+        Menu.ACTIVE_MENU = self._cache_menu
+        self._cache_menu = None
+        cmds.setParent(Menu.ACTIVE_MENU, menu=True)
+
+
+
+class SubMenu(Menu):
+    CMD = cmds.menu
+
+    def __init__(self, key=None, **kwargs):
+        # When creating a submenu, we use the menuItem command, however it returns a menu.
+        # So we shadow the class attribute during initialization
+        self.CMD = cmds.menuItem
+        kwargs['subMenu'] = True
+        super(SubMenu, self).__init__(key, **kwargs)
+        # And remove the shadow once we've finished.
+        del self.CMD
+        self._cache_menu = None
+
 
 class MenuItem(Control):
     CMD = cmds.menuItem
@@ -29,6 +68,48 @@ class MenuItem(Control):
                 "useTemplate", "version", 'postMenuCommandOnce']
     _READ_ONLY = ['isCheckBox', 'isOptionBox', 'isRadioButton']
     _CALLBACKS = ['command', 'dragDoubleClickCommand', 'dragMenuCommand', 'postMenuCommand']
+    ADD_TO_LAYOUT = False
+
+    def __init__(self, key=None, **kwargs):
+        super(MenuItem, self).__init__(key, **kwargs)
+        self.owner = None
+
+
+class MenuDivider(MenuItem):
+    def __init__(self, key=None, **kwargs):
+        kwargs['divider'] = True
+        super(MenuDivider, self).__init__(key, **kwargs)
+
+
+class RadioMenuItemCollection(Control):
+    CMD = cmds.radioMenuItemCollection
+    _READ_ONLY = ['exists', 'defineTemplate', 'gl', 'parent', 'useTemplate']
+    ADD_TO_LAYOUT = False
+
+    def __init__(self, key=None, **kwargs):
+        super(RadioMenuItemCollection, self).__init__(key, **kwargs)
+        self.owner = None
+
+    def __enter__(self):
+        return self
+
+    def __exit__(self, typ, value, tb):
+        mGui_expand_stack = True
+        # This closes out the collection, usually we'd do a setParent, but that doesn't seem to apply here.
+        self.CMD()
+        return False
+
+
+class RadioMenuItem(MenuItem):
+    def __init__(self, key=None, **kwargs):
+        kwargs['radioButton'] = kwargs.get('radioButton', kwargs.get('rb', False))
+        super(RadioMenuItem, self).__init__(key, **kwargs)
+
+
+class CheckBoxMenuItem(MenuItem):
+    def __init__(self, key=None, **kwargs):
+        kwargs['checkBox'] = kwargs.get('checkBox', kwargs.get('cb', False))
+        super(CheckBoxMenuItem, self).__init__(key, **kwargs)
 
 
 class OptionMenu(Nested):
@@ -67,7 +148,7 @@ class ActiveOptionMenu(OptionMenu):
 
     """
 
-    def __init__(self, key = None, *args, **kwargs):
+    def __init__(self, key=None, *args, **kwargs):
         super(ActiveOptionMenu, self).__init__(key, *args, **kwargs)
         self.changeCommand += self.fire_menu_callback
 
@@ -88,5 +169,5 @@ class PopupMenu(Nested):
 
     @property
     def itemArray(self):
-        return [MenuItem.wrap(self.fullPathName + '|' + item) for item in self.CMD(self.widget, itemArray=True, q=True) or []]
-
+        return [MenuItem.wrap(self.fullPathName + '|' + item) for item in
+                self.CMD(self.widget, itemArray=True, q=True) or []]

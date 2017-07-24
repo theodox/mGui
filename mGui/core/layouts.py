@@ -19,6 +19,7 @@ class ColumnLayout(Layout):
 class DockControl(Layout):
     """Wrapper class for cmds.dockControl"""
     CMD = cmds.dockControl
+    ADD_TO_LAYOUT = False
     _ATTRIBS = ['backgroundColor', 'raise', 'area', 'label', 'content', 'allowedArea', 'floating', 'enablePopupOption']
     _CALLBACKS = ['floatChangeCommand']
 

@@ -122,7 +122,7 @@ class ImmediateObservableCollection(ObservableCollection):
 
 
     def __init__(self, *items):
-        self._internal_collection = [i for i in items]
+        super(ImmediateObservableCollection, self).__init__(*items)
         self.onCollectionChanged = Event(collection=self)
         self.onItemAdded = Event(collection=self)
         self.onItemRemoved = Event(collection=self)
@@ -136,7 +136,7 @@ class ViewCollection(ObservableCollection):
     underlying container.
 
     The class exposes the same events as ObservableCollection, as well as a
-    viewChanged event which triggers when the filter is chaanged
+    viewChanged event which triggers when the filter is changed
     """
     _BIND_SRC = 'view'
 

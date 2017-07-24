@@ -33,7 +33,7 @@ class ShelfLayoutProxy(BaseLoader):
 
     def instantiate(self, parent=None):
         if parent is None:
-            parent = gui.derive(self.parent)
+            parent = gui.wrap(self.parent)
 
         # initializes all the shelves
         current_tab = parent.selectTab

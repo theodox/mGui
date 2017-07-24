@@ -4,14 +4,16 @@ mGui.properties
 Defines Descriptor objects for getting and setting GUI properties
 """
 
-from mGui.events import Event, MayaEvent
-import weakref
 import copy
+import weakref
+from mGui.events import Event, MayaEvent
+
 
 class MGuiAttributeError(AttributeError):
     pass
 
-class CtlProperty (object):
+
+class CtlProperty(object):
     """
     Property descriptor.  When applied to a Control-derived class, invokes the
     correct Maya command under the hood to get or set values
@@ -25,7 +27,7 @@ class CtlProperty (object):
 
     def __get__(self, obj, objtype):
         try:
-            result = self.command(obj.widget, **{'q':True, self.flag:True})
+            result = self.command(obj.widget, **{'q': True, self.flag: True})
         except RuntimeError:
             raise MGuiAttributeError("Cannot access property {0} on {1}".format(self.flag, obj))
         if result is None and self.flag.endswith("rray"):
@@ -36,9 +38,37 @@ class CtlProperty (object):
         if not self.writeable:
             raise MGuiAttributeError('attribute .%s is not writable' % self.flag)
         try:
-            self.command(obj.widget, **{'e':True, self.flag:value})
+            self.command(obj.widget, **{'e': True, self.flag: value})
         except RuntimeError as e:
             raise MGuiAttributeError("Unable to set {0} on {1}".format(self.flag, obj), e)
+
+
+class WrappedCtlProperty(object):
+
+    def __init__(self, flag, cmd, writeable=True, wrapper=None):
+        assert callable(cmd), "cmd flag must be a maya command for editing gui objects"
+        self.flag = flag or self.FLAG
+        self.writeable = writeable
+        self.command = cmd
+        self.wrapper = wrapper if callable(wrapper) else lambda x: x
+
+    def __get__(self, obj, objtype):
+        try:
+            result = self.command(obj.widget, **{'q': True, self.flag: True})
+        except RuntimeError:
+            raise MGuiAttributeError("Cannot access property {0} on {1}".format(self.flag, obj))
+        if result is None and self.flag.endswith("rray"):
+            result = []
+        return self.wrapper(result)
+
+    def __set__(self, obj, value):
+        if not self.writeable:
+            raise MGuiAttributeError('attribute .%s is not writable' % self.flag)
+        try:
+            self.command(obj.widget, **{'e': True, self.flag: value})
+        except RuntimeError as e:
+            raise MGuiAttributeError("Unable to set {0} on {1}".format(self.flag, obj), e)
+
 
 class CallbackProperty(object):
     """
@@ -51,11 +81,12 @@ class CallbackProperty(object):
     button.command += doSomething
     button.command-= doSomething
 
-    However you can also create events manually and paramaterize them
+    However you can also create events manually and parameterize them
 
     button.command = events.MayaEvent(target = 'pCube1', distance = 2.0)
 
     """
+
     def __init__(self, key):
         self.key = key
 
@@ -72,8 +103,8 @@ class CallbackProperty(object):
         return obj.callbacks[self.key]
 
     def __set__(self, obj, value):
-        #if not isinstance(value, Event):
-            #raise ValueError('Callback properties must be instances of mGui.events.Event')
+        # if not isinstance(value, Event):
+        # raise ValueError('Callback properties must be instances of mGui.events.Event')
         obj.callbacks[self.key] = value
         obj.register_callback(self.key, obj.callbacks[self.key])
 
@@ -97,6 +128,7 @@ class LateBoundProperty(object):
     print Target().example
     # 99
     """
+
     def __init__(self, name, class_default="IGNORE"):
         self._class_default_string = class_default
         self._name = "_" + name
@@ -115,5 +147,3 @@ class LateBoundProperty(object):
     def __set__(self, instance, val):
         self.__create_backstore(instance)
         setattr(instance, self._name, val)
-
-

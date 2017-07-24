@@ -1,27 +1,31 @@
+import maya.cmds as cmds
+
+import random
 from mGui import gui, forms, lists
 from mGui.bindings import bind
 from mGui.observable import ViewCollection
-import random
 
 
 def basic_list_binding():
     '''
-    Illustrates the basics of binding to a list.  The collection 'bound' contains some strings,
-    and we bind it to the VerticalList 'list_view'. Adding items to the collection
-    automatically redraws the list with the new items.
+    Illustrates the basics of binding to a list.  The collection 'bound' contains some strings, and we
+    bind it to the VerticalList 'list_view'.
 
-    This example also illustrates how to use closures to capture inter-object references, and how
-    to keep callback functions alive without creating a full class.
+    Adding items to the collection automatically redraws the list with the new items. In this case they are
+    drawn with buttons, but lists allow you to customize the appearance of items extensively.
+
+    This example also illustrates how to use closures to capture inter-object references, and how to keep callback
+    functions alive without creating a full class.
     '''
 
-    with gui.BindingWindow(title='example window') as test_window:
+    with gui.BindingWindow(title='example window', menuBar=True) as test_window:
         bound = ViewCollection('pPlane1', 'pCube2')
         with forms.VerticalThreePane() as main:
-            header = gui.Text(label="The following items don't have vertex colors")
+            header = gui.Text(label="List classes make it easy to manage collections")
             list_view = lists.VerticalList(synchronous=True)
             bound > bind() > list_view.collection
             with forms.HorizontalStretchForm() as buttons:
-                more = gui.Button(label='more!')
+                more = gui.Button(label='Add another')
                 close = gui.Button(label='close')
 
     # use closures to capture the UI names without a full class
@@ -37,6 +41,7 @@ def basic_list_binding():
     more.command += show_more, test_window
 
     return test_window
+
 
 if __name__ == '__main__':
     the_window = basic_list_binding()

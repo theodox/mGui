@@ -10,7 +10,7 @@ from weakref import ref
 
 """
 # MGui.Core
-A system for defininng proxies that make it easier to work with maya GUI controls.
+A system for defining proxies that make it easier to work with maya GUI controls.
 
 Proxies are created using the ControlMeta metaclass, which maps existing maya
 GUI commands so that they look like proper object-oriented properties:
@@ -28,7 +28,7 @@ query them:
 
 ## Base Classes
 This module defines the base classes Control and Layout, which are used by all
-wrapper classes. They use the same property-wrapping stategy but Layouts also work as
+wrapper classes. They use the same property-wrapping strategy but Layouts also work as
 context managers, allowing them to call SetParent() when needed and also to
 maintain links to child control wrappers:
 
@@ -54,6 +54,7 @@ restart Maya rather than using reload() it will disappear.
 # use this for condtional checks if there are version differences
 MAYA_VERSION = cmds.about(version=True).split(' ')[0]
 
+REGISTRY = {}
 
 class ControlMeta(type):
     """
@@ -81,7 +82,17 @@ class ControlMeta(type):
 
         kwargs['__bases__'] = parents
 
-        return super(ControlMeta, mcs).__new__(mcs, name, parents, kwargs)
+        completed_type =  super(ControlMeta, mcs).__new__(mcs, name, parents, kwargs)
+
+        # note sometimes more than one subclass uses the same maya command
+        # that makes the registry unable to disambiguate them. The correct
+        # response for gui.wrap will need to be the first class defined
+        # for this to work properly. If we run into future isses we may need to make
+        # this an explicit class attribute instead
+        if maya_cmd and not REGISTRY.get(maya_cmd.__name__):
+            REGISTRY[maya_cmd.__name__] = completed_type
+
+        return completed_type
 
 
 class Control(Styled, BindableObject):
@@ -102,6 +113,7 @@ class Control(Styled, BindableObject):
                 'preventOverride', 'useTemplate', 'visible', 'visibleChangeCommand', 'width']
     _CALLBACKS = ['dragCallback', 'dropCallback', 'visibleChangeCommand']
     _READ_ONLY = ['isObscured', 'popupMenuArray', 'numberOfPopupMenus']
+    ADD_TO_LAYOUT = True
     __metaclass__ = ControlMeta
 
     onDeleted = ScriptJobCallbackProperty('onDeleted', 'uiDeleted')
@@ -129,7 +141,8 @@ class Control(Styled, BindableObject):
         self._parent = None
 
         # add us to the current layout under our own key name
-        Layout.add_current(self)
+        if self.ADD_TO_LAYOUT:
+            Layout.add_current(self)
         self.onDeleted += self.forget
 
     def register_callback(self, callback_name, event):
@@ -164,6 +177,11 @@ class Control(Styled, BindableObject):
         try:
             cache_CMD = cls.CMD
             cls.CMD = _spoof_create
+
+            # allow wrapping of abstract types, but make sure derived types are correct
+            if cls.__name__ not in ('Control', 'Layout', 'Nested', 'Panel', 'MenuItem', 'PopupMenu'):
+                if not cmds.objectTypeUI(control_name, isType = cache_CMD.__name__):
+                    raise RuntimeError( "{} is not an instance of {}".format(control_name, cache_CMD.__name__))
             return cls(key=control_name)
 
         finally:
@@ -360,7 +378,13 @@ class Nested(Control):
                     yield grandchild
             yield item
 
-    # note: both of these explicitly use Nested instead of cls
+    def find(self, mGuiType):
+        """
+        return any items of the type <mGuiType> from this items child controls
+        """
+        return [i for i in self.controls if isinstance(i, mGuiType)]
+
+    # note: both of these explicitly use Nested instead of clsm
     # so that there is only one global layout stack...
 
     @classmethod
@@ -394,6 +418,7 @@ class Nested(Control):
         return self
 
 
+
 # IMPORTANT NOTE
 # this intentionally duplicates redundant property names from Control.
 # That forces the metaclass to F-define the CtlProperties using cmds.layout
@@ -408,6 +433,7 @@ class Layout(Nested):
                 'width']
     _CALLBACKS = ['dragCallback', 'dropCallback', 'visibleChangeCommand']
     _READ_ONLY = ['isObscured', 'popupMenuArray', 'numberOfPopupMenus', 'childArray', 'numberOfChildren']
+
 
 
 class Window(Nested):
@@ -483,5 +509,3 @@ class BindingWindow(Window):
         super(BindingWindow, self).forget()
         self.bindingContext = None
 
-
-__all__ = ['Window', 'BindingWindow', 'Layout', 'Control', 'ControlMeta']

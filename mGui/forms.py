@@ -281,7 +281,7 @@ class HorizontalForm(Form):
         if len(self.controls):
             ctrls = [i for i in physical_controls(self)]
             af = self.form_attachments('top', 'bottom')
-            af.append([ctrls[0], 'left', self.margin.top])
+            af.append([ctrls[0], 'left', self.margin.left])
             ac = self.form_series('left')
             self.attachForm = af
             self.attachControl = ac
@@ -337,6 +337,9 @@ class HorizontalStretchForm(Form):
             ap = self.percentage_series('left')
             self.attachForm = af
             self.attachPosition = ap
+            self.attachForm = [self.controls[0], 'left', self.margin.left]
+            self.attachForm = [self.controls[-1], 'right', self.margin.right]
+
         return len(self.controls)
 
 
@@ -351,12 +354,14 @@ class VerticalStretchForm(Form):
             ap = self.percentage_series('top')
             self.attachForm = af
             self.attachPosition = ap
+            self.attachForm = [self.controls[0], 'top', self.margin.top]
+            self.attachForm = [self.controls[-1], 'bottom', self.margin.bottom]
         return len(self.controls)
 
 
 class VerticalThreePane(Form):
     """
-    First child is glued to the top, last child is glued to the bottom, intermediate childredn are stretched
+    First child is glued to the top, last child is glued to the bottom, intermediate children are stretched
     """
 
     def layout(self):
@@ -374,7 +379,7 @@ class VerticalThreePane(Form):
 
 class HorizontalThreePane(Form):
     """
-    First child is glued to the left, last child is glued to the right, intermediate childredn are stretched
+    First child is glued to the left, last child is glued to the right, intermediate children are stretched
     """
 
     def layout(self):
@@ -436,6 +441,6 @@ class NavForm(HorizontalForm):
         return len(self.controls)
 
 
-__all__ = ['FillForm', 'VerticalForm', 'HorizontalForm', 'VerticalExpandForm', 'HorizontalExpandForm',
+__all__ = ['Form', 'FillForm', 'VerticalForm', 'HorizontalForm', 'VerticalExpandForm', 'HorizontalExpandForm',
            'VerticalStretchForm', 'HorizontalStretchForm', 'HorizontalThreePane', 'VerticalThreePane',
            'HeaderForm', 'FooterForm', 'NavForm', 'LayoutDialogForm']
