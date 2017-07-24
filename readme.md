@@ -122,11 +122,11 @@ so that a single button press can move an object in your scene, highlight a butt
 line using 3 simple functions rather than one big monster with lots of unrelated moving parts.  
 
 
-## Installation
+# Installation
 
 The directory **mGui** is a Python package. Simply drop a copy of it into a location that's visible to your python path. You can then import modules in the usual way.
 
-## Usage
+# Usage
 
 The module **mGui.gui** contains most of the key components: the windows, buttons, layouts and so on (they are defined in other modules, particulary **mGui.core.controls** and **mGui.core.layouts**, but collected into the *gui** module for easier access in your code.  **mGui.gui** is safe for star imports -- as safe as it can be, anyway --  so a common idiom is
 
@@ -137,6 +137,10 @@ The module **mGui.gui** contains most of the key components: the windows, button
     	    Text('msg', 'Hello World!')
 
 The main components are named identically to their Maya.cmds counterparts except for the fact that, being classes rather than commands, they are capitalized. Thus  **cmds.button** becomes **mGui.gui.Button**. **cmds.window** becomes **mGui.gui.Window** and so on.
+
+# Learm more
+
+Check out our [wiki pages](https://github.com/theodox/mGui/wiki).  We're always looking for volunteers to help us improve our documentation!
 
 ----------------
 
