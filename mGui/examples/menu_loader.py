@@ -27,3 +27,7 @@ def regular(*_, **__):
 
 def checkbox(*_, **kwargs):
     cmds.warning("checkbox menu is  %i" % int(kwargs['sender'].checkBox))
+
+
+if __name__ == '__main__':
+    load()

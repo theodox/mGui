@@ -125,13 +125,16 @@ class ModuleManager(object):
         all_lines = []
         with open(modtuple.file, 'rt') as filehandle:
             for line in filehandle:
-                enable, name, version, path = self.parse_mod_entry(line)
-                if name == modtuple.name and version == modtuple.version:
-                    line = character + line[1:]
+                if line.startswith(("+", "-")):
+                    enable, name, version, path = self.parse_mod_entry(line)
+                    if name == modtuple.name and version == modtuple.version:
+                        line = character + line[1:]
                 all_lines.append(line)
-        with open(modtuple.file, 'wt') as filehandle:
-            filehandle.write('\n'.join(all_lines))
-
+        try:
+            with open(modtuple.file, 'wt') as filehandle:
+                filehandle.write('\n'.join(all_lines))
+        except IOError:
+            pass
 
 # GUI classes
 # ======================================
