@@ -6,50 +6,50 @@ mGui is a python module for simplifying GUI creation using Maya's built-in gui w
 
 The goal is to provide the most consistent and least wordy way of creating simple GUI in Maya. Instead of this:
 
-
-	items = ("pCube1", "pPlane2")
-	window  = cmds.window()
-	w, margin = 400, 10
-	mainform = cmds.formLayout( width=w ) 
-	maincol = cmds.columnLayout( adj=True ) 
-	main_attach = [( maincol, 'top', margin ), ( maincol, 'left', margin ), ( maincol, 'right', margin )]
-	col_w = int( ( w - ( margin * 2 ) ) / 3 ) - 1
-	cmds.setParent( mainform ) 
-	dis_row = cmds.rowLayout( nc=3, ct3=( 'both', 'both', 'both' ), cw3=( col_w, col_w, col_w ) ) 
-	dis_attach = [( dis_row, 'bottom', margin ), ( dis_row, 'left', margin ), ( dis_row, 'right', margin )]
-	cmds.formLayout( mainform, e=True, attachForm=main_attach + dis_attach ) 
-	cmds.formLayout( mainform, e=True, ac=( maincol, 'bottom', margin, dis_row ) ) 
-	cmds.setParent( dis_row ) 
-	cmds.button( "Refresh", width=col_w)
-	cmds.text( ' ' ) 
-	cmds.button( "Close", width=col_w)
-	cmds.setParent( maincol ) 
-	cmds.text( " " ) 
-	cmds.text( "The following items don't have vertex colors:", align='left' ) 
-	cmds.text( " " ) 
-	Itemlist = cmds.textScrollList( numberOfRows=8, allowMultiSelection=True, append=items ) 
-	dis_row = cmds.rowLayout( nc=5, ct5=( 'both', 'both', 'both', 'both', 'both' ) ) 
-	cmds.showWindow(window)
-
+```python
+items = ("pCube1", "pPlane2")
+window  = cmds.window()
+w, margin = 400, 10
+mainform = cmds.formLayout( width=w ) 
+maincol = cmds.columnLayout( adj=True ) 
+main_attach = [( maincol, 'top', margin ), ( maincol, 'left', margin ), ( maincol, 'right', margin )]
+col_w = int( ( w - ( margin * 2 ) ) / 3 ) - 1
+cmds.setParent( mainform ) 
+dis_row = cmds.rowLayout( nc=3, ct3=( 'both', 'both', 'both' ), cw3=( col_w, col_w, col_w ) ) 
+dis_attach = [( dis_row, 'bottom', margin ), ( dis_row, 'left', margin ), ( dis_row, 'right', margin )]
+cmds.formLayout( mainform, e=True, attachForm=main_attach + dis_attach ) 
+cmds.formLayout( mainform, e=True, ac=( maincol, 'bottom', margin, dis_row ) ) 
+cmds.setParent( dis_row ) 
+cmds.button( "Refresh", width=col_w)
+cmds.text( ' ' ) 
+cmds.button( "Close", width=col_w)
+cmds.setParent( maincol ) 
+cmds.text( " " ) 
+cmds.text( "The following items don't have vertex colors:", align='left' ) 
+cmds.text( " " ) 
+Itemlist = cmds.textScrollList( numberOfRows=8, allowMultiSelection=True, append=items ) 
+dis_row = cmds.rowLayout( nc=5, ct5=( 'both', 'both', 'both', 'both', 'both' ) ) 
+cmds.showWindow(window)
+```
 you can write this:
+```python
 
-	     
-    bound = ObservableCollection("pCube1", "pPlane1")
-    
-    with BindingWindow(title = 'example window') as test_window:
-        with VerticalForm() as main:
-            Text(label = "The following items don't have vertex colors")
-            list_view = VerticalList()
-            list_view.bind.collection < bind() < bound
-            with HorizontalStretchForm('buttons'):
-                Button('refresh', l='Refresh')
-                Button('close', l='Close')
-    test_window.show()             
+bound = ObservableCollection("pCube1", "pPlane1")
 
+with BindingWindow(title = 'example window') as test_window:
+    with VerticalForm() as main:
+        Text(label = "The following items don't have vertex colors")
+        list_view = VerticalList()
+        list_view.bind.collection < bind() < bound
+        with HorizontalStretchForm('buttons'):
+            Button('refresh', l='Refresh')
+            Button('close', l='Close')
+test_window.show()             
+```
 And make adjustments like this:
-
-    main.buttons.refresh.backgroundColor = (.7, .7, .5)
-   
+```python
+main.buttons.refresh.backgroundColor = (.7, .7, .5)
+```
 
 
 # Key parts
@@ -64,9 +64,9 @@ treated as context managers,  allowing you to write neatly nested layouts and ke
 logical structure separate from the visual details.  The layouts also 'know' the names of their
 children, so that you can access controls directly through the hierarchy of your layout: 
 in the example above, you can acces the 'close' button as
-
-    example_window.main.buttons.refresh
-    
+```python
+example_window.main.buttons.refresh
+```
 without doing any manual management of variables.
 
 
@@ -88,9 +88,9 @@ a checkbox, and so on.
 In order to simplify this process, **mGui.bindings** defines  _Bindings_ - classes which can get information
  from one place and putting it somewhere else in a structured way. Bindings can be created declaratively,
  rather than requiring you to manually manage the relationships. Thus
- 
-     Text('example').bind.label < bind() < 'pCube1.tx'
-     
+```python
+Text('example').bind.label < bind() < 'pCube1.tx'
+```
  will set the label of a text widget to the X-transform of pCube1, while
  
      CheckBox('vis').bind.value > bind() > 'pCube1.visibility' 
@@ -129,13 +129,13 @@ The directory **mGui** is a Python package. Simply drop a copy of it into a loca
 # Usage
 
 The module **mGui.gui** contains most of the key components: the windows, buttons, layouts and so on (they are defined in other modules, particulary **mGui.core.controls** and **mGui.core.layouts**, but collected into the *gui** module for easier access in your code.  **mGui.gui** is safe for star imports -- as safe as it can be, anyway --  so a common idiom is
+```python
+from mGui.gui import *
 
-    from mGui.gui import *
-    
-    with Window('example') as w:
-    	with ColumnLayout('cl'):
-    	    Text('msg', 'Hello World!')
-
+with Window('example') as w:
+    with ColumnLayout('cl'):
+        Text('msg', 'Hello World!')
+```
 The main components are named identically to their Maya.cmds counterparts except for the fact that, being classes rather than commands, they are capitalized. Thus  **cmds.button** becomes **mGui.gui.Button**. **cmds.window** becomes **mGui.gui.Window** and so on.
 
 # Learm more
@@ -144,5 +144,5 @@ Check out our [wiki pages](https://github.com/theodox/mGui/wiki).  We're always 
 
 ----------------
 
-This project is provided under the MIT License: it's free for any kind of use as long as you retain the copyright notice in *mGui.__init__*.  
+This project is provided under the MIT License: it's free for any kind of use as long as you retain the copyright notice in *`mGui.__init__`*.  
      
