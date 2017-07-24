@@ -436,6 +436,6 @@ class NavForm(HorizontalForm):
         return len(self.controls)
 
 
-__all__ = ['FillForm', 'VerticalForm', 'HorizontalForm', 'VerticalExpandForm', 'HorizontalExpandForm',
+__all__ = ['Form','FillForm', 'VerticalForm', 'HorizontalForm', 'VerticalExpandForm', 'HorizontalExpandForm',
            'VerticalStretchForm', 'HorizontalStretchForm', 'HorizontalThreePane', 'VerticalThreePane',
            'HeaderForm', 'FooterForm', 'NavForm', 'LayoutDialogForm']

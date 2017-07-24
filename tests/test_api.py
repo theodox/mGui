@@ -395,6 +395,10 @@ class TestMGuiAPI(TestCase):
 
 
 class TestFormsAPI(TestCase):
+
+    def test_Form(self):
+        assert Form
+        
     def test_FillForm(self):
         assert FillForm
 
