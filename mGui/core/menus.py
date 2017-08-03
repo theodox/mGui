@@ -160,14 +160,11 @@ class ActiveOptionMenu(OptionMenu):
         selected.command()
 
 
-class PopupMenu(Nested):
+class PopupMenu(Menu):
     CMD = cmds.popupMenu
     _ATTRIBS = ['altModifier', 'allowOptionBoxes', 'button', 'ctrlModifier', 'deleteAllItems', 'defineTemplate',
                 'exists', 'markingMenu', 'parent', 'shiftModifier', 'useTemplate', 'visible', 'postMenuCommandOnce']
     _CALLBACKS = ['postMenuCommand']
-    _READ_ONLY = ['numberOfItems']
+    _READ_ONLY = ['numberOfItems', 'itemArray']
+    ADD_TO_LAYOUT = True
 
-    @property
-    def itemArray(self):
-        return [MenuItem.wrap(self.fullPathName + '|' + item) for item in
-                self.CMD(self.widget, itemArray=True, q=True) or []]
