@@ -126,6 +126,7 @@ class MenuItemProxy(BaseLoader):
     def instantiate(self, parent=None):
         popup = gui.PopupMenu.wrap(parent.fullPathName + "|" + parent.popupMenuArray[0])
         for item in popup.itemArray:
+            item = gui.MenuItem.wrap(popup.fullPathName + "|" + item)
             # widget gets recreated by Maya, but the key is used as the label.
             if item.label == self.key:
                 break
