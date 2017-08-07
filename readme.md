@@ -41,7 +41,7 @@ with BindingWindow(title = 'example window') as test_window:
         Text(label = "The following items don't have vertex colors")
         list_view = VerticalList()
         list_view.bind.collection < bind() < bound
-        with HorizontalStretchForm('buttons'):
+        with HorizontalStretchForm() as buttons:
             Button('refresh', l='Refresh')
             Button('close', l='Close')
 test_window.show()             
