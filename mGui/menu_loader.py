@@ -380,9 +380,15 @@ class SubMenuProxy(MenuProxy):
             if insertAfter:
                 opts['insertAfter'] = insertAfter
 
+        if parent:
+            maya.cmds.setParent(parent, menu=True)
+
         with gui.SubMenu(self.key, **opts) as new_item:
             for item in self.items:
                 item.instantiate(new_item)
+
+        if parent:
+            maya.cmds.setParent(parent, menu=True)
 
         return new_item
 
