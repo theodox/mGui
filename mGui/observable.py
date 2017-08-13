@@ -3,7 +3,8 @@ Observable.py
 @author: stevetheodore
 """
 import itertools
-from collections import MutableSequence, Sequence
+from weakref import proxy
+from collections import MutableSequence, Sequence, Sized
 
 from mGui.bindings import BindableObject
 from mGui.events import MayaEvent, Event
@@ -117,9 +118,11 @@ class ObservableCollection(MutableSequence, BindableObject):
         self.update_bindings()
         self.onCollectionChanged(sorted=True)
 
+    def __repr__(self):
+        return '{0.__class__.__name__}({0._internal_collection!r})'.format(self)
+
 
 class ImmediateObservableCollection(ObservableCollection):
-
 
     def __init__(self, *items):
         super(ImmediateObservableCollection, self).__init__(*items)
@@ -198,6 +201,49 @@ class ViewCollection(ObservableCollection):
 
     def __getitem__(self, item):
         return self.view.__getitem__(item)
+
+
+class FilteredView(Sized, BindableObject):
+    """
+    Creates a filtered view of an observable.
+
+    This allows us to create multiple views from a single observable collection, 
+    and each view can be bound to a different control.
+
+    """
+
+    _BIND_SRC = 'view'
+    _BIND_TGT = None
+
+    def __init__(self, observable, _filter=lambda x: x):
+        if not isinstance(observable, ObservableCollection):
+            raise TypeError()
+        self._observable = proxy(observable)
+        self._filter = _filter
+        self._observable.onCollectionChanged += self.update_bindings
+
+    def __len__(self):
+        return len(self.view)
+
+    @property
+    def view(self):
+        if self._observable is None:
+            return tuple()
+        return tuple(itertools.ifilter(self._filter, self._observable))
+
+    @property
+    def viewCount(self):
+        return len(self)
+
+    def __repr__(self):
+        return '{0.__class__.__name__}({0._observable!r}, {0._filter!r})'.format(self)
+
+    def update_filter(self, _filter=lambda x: x):
+        self._filter = _filter
+        self.update_bindings()
+
+    def update_bindings(self, *args, **kwargs):
+        super(FilteredView, self).update_bindings()
 
 
 class BoundCollection(Sequence, BindableObject):
