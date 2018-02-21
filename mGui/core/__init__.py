@@ -347,7 +347,7 @@ class Nested(Control):
                 self.named_children.pop(key)
 
     def clear(self):
-        delenda = (i for i in self.controls)
+        delenda = self.controls[:]
         for d in delenda:
             self.remove(d)
         self.named_children.clear()
