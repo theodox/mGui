@@ -82,7 +82,7 @@ class ShelfButtonProxy(BaseLoader):
 
     def __init__(self, data_dict):
         super(ShelfButtonProxy, self).__init__(data_dict)
-        self.menuItems = [MenuItemProxy(item) for item in self.menuItems]
+        self.popupMenu = PopupMenuProxy(self.menuItems)
 
     def instantiate(self, parent=None):
         if not parent.controls:
@@ -111,6 +111,20 @@ class ShelfButtonProxy(BaseLoader):
             ctrl.doubleClickCommand = _process_command(self.doubleClickCommand)
         ctrl.font = self.font
 
+        self.popupMenu.instantiate(ctrl)
+
+
+class PopupMenuProxy(BaseLoader):
+    proxy = gui.PopupMenu
+
+    # Note the signature is a bit different here, that is because there is no data_dict for a popupMenu
+    # Instead its existence is defined by the menuItems array from a ShelfButton.
+    # Also why we don't call super
+    def __init__(self, menuItems):
+        self.menuItems = [MenuItemProxy(item) for item in menuItems]
+
+    def instantiate(self, parent=None):
+        ctrl = self.proxy.wrap(parent.fullPathName + "|" + parent.popupMenuArray[0])
         for item in self.menuItems:
             item.instantiate(ctrl)
 
@@ -124,14 +138,13 @@ class MenuItemProxy(BaseLoader):
     sourceType = ''
 
     def instantiate(self, parent=None):
-        popup = self.proxy.wrap(parent.fullPathName + "|" + parent.popupMenuArray[0])
-        for item in popup.itemArray:
-            item = self.proxy.wrap(popup.fullPathName + "|" + item)
+        for item in parent.itemArray:
+            item = self.proxy.wrap(parent.fullPathName + "|" + item)
             # widget gets recreated by Maya, but the key is used as the label.
             if item.label == self.key:
                 break
         else:
-            with popup.as_parent():
+            with parent.as_parent():
                 item = self.proxy(self.key)
 
         item.sourceType = self.sourceType
