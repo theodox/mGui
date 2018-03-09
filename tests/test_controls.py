@@ -4,7 +4,7 @@ Created on Mar 3, 2014
 @author: Stephen Theodore
 '''
 
-from unittest import TestCase
+from unittest import TestCase, main
 
 LAST_ARGS = {}
 
@@ -132,7 +132,7 @@ LAYOUT_CMDS = [
 import inspect
 import mGui.properties as properties
 import mGui.gui as gui
-import mGui.progress as progress
+import mGui.core.progress as progress
 
 
 class test_CtlProperty(TestCase):
@@ -225,3 +225,5 @@ class TestControlsExist(TestCase):
 
 
 
+if __name__ == '__main__':
+    main()
