@@ -36,11 +36,12 @@ class ShelfLayoutProxy(BaseLoader):
             parent = gui.wrap(self.parent)
 
         # initializes all the shelves
-        current_tab = parent.selectTab
-        for child in parent.childArray:
-            parent.selectTab = child
+        if parent.selectTab:
+            current_tab = parent.selectTab
+            for child in parent.childArray:
+                parent.selectTab = child
 
-        parent.selectTab = current_tab
+            parent.selectTab = current_tab
 
         for shelf in parent.controls:
             if shelf.key == self.key:
@@ -48,11 +49,13 @@ class ShelfLayoutProxy(BaseLoader):
         else:
             with parent.as_parent():
                 shelf = self.proxy(self.key)
+    
                 # Needed so that we don't throw a weird maya error until the next restart.
                 # Pulled this from the shelf editor mel script.
-                cmds.optionVar(stringValue=('shelfName{}'.format(parent.numberOfChildren), self.key))
-                cmds.optionVar(intValue=('shelfLoad{}'.format(parent.numberOfChildren), True))
-                cmds.optionVar(stringValue=('shelfFile{}'.format(parent.numberOfChildren), ''))
+                if parent == 'ShelfLayout':
+                    cmds.optionVar(stringValue=('shelfName{}'.format(parent.numberOfChildren), self.key))
+                    cmds.optionVar(intValue=('shelfLoad{}'.format(parent.numberOfChildren), True))
+                    cmds.optionVar(stringValue=('shelfFile{}'.format(parent.numberOfChildren), ''))
 
         for ctrl in self.controls:
             ctrl.instantiate(shelf)
@@ -152,6 +155,6 @@ class MenuItemProxy(BaseLoader):
             item.command = _process_command(self.command)
 
 
-def load_shelf(shelf_dict):
+def load_shelf(shelf_dict, parent=None):
     shelf = ShelfLayoutProxy(shelf_dict)
-    shelf.instantiate()
+    shelf.instantiate(parent)

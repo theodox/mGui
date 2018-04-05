@@ -384,7 +384,7 @@ class Nested(Control):
         """
         return [i for i in self.controls if isinstance(i, mGuiType)]
 
-    # note: both of these explicitly use Nested instead of clsm
+    # note: both of these explicitly use Nested instead of cls
     # so that there is only one global layout stack...
 
     @classmethod
