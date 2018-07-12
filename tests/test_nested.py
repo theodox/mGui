@@ -1,3 +1,8 @@
+import sys
+for module in sys.modules.keys():
+    if 'mGui' in module:
+        del sys.modules[module]
+
 from unittest import TestCase, main
 
 from maya import cmds, standalone
