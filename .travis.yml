@@ -4,5 +4,5 @@ python:
 install:
     pip install mock
 script:
-    export PYTHONPATH=$PYTHONPATH:$(pwd)
-    python tests/test_api.py
+    - export PYTHONPATH=$PYTHONPATH:$(pwd)
+    - python tests/test_api.py
