@@ -4,4 +4,4 @@ python:
 install:
     pip install mock
 script:
-    tests/test_api.py
+    python tests/test_api.py
