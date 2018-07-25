@@ -271,9 +271,6 @@ class TestMGuiAPI(TestCase):
     def test_ProgressBar(self):
         assert ProgressBar
 
-    def test_REGISTRY(self):
-        assert REGISTRY
-
     def test_RadioButton(self):
         assert RadioButton
 
