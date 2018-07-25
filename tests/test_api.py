@@ -1,10 +1,5 @@
 from unittest import TestCase, main
-import maya.standalone
-
-try:
-    maya.standalone.initialize()
-except:
-    pass
+import mock_maya
 
 from mGui.gui import *
 from mGui.forms import *
