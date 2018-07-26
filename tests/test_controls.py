@@ -141,7 +141,7 @@ class test_CtlProperty(TestCase):
     '''
 
     class Example(object):
-        CMD = cmds.control
+        CMD = maya.cmds.control
 
         def __init__(self, *args, **kwargs):
             self.widget = 'path|to|widget'
