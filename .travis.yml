@@ -6,3 +6,4 @@ install:
 script:
     - export PYTHONPATH=$PYTHONPATH:$(pwd)
     - python tests/test_api.py
+    - python tests/test_controls.py

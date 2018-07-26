@@ -3,14 +3,12 @@ Created on Mar 1, 2014
 
 @author: Stephen Theodore
 '''
-import maya.standalone
 
-maya.standalone.initialize()
 import mGui.bindings as bindings
 from unittest import TestCase
 
 import maya.cmds as cmds
-import pymel.core as pm
+#import pymel.core as pm
 
 
 class Test_Accessors(TestCase):
@@ -218,33 +216,33 @@ class Test_Accessors(TestCase):
         ac.push(55)
         assert cmds.getAttr('front.tz') == 55
 
-    def test_py_accessor_get(self):
-        cmds.file(new=True, f=True)
-        test_obj, _ = cmds.polyCube()
-        pynode = pm.PyNode(test_obj)
-        ac = bindings.PyNodeAccessor(pynode, 'rx')
-        assert ac.pull() == 0
+    # def test_py_accessor_get(self):
+    #     cmds.file(new=True, f=True)
+    #     test_obj, _ = cmds.polyCube()
+    #     pynode = pm.PyNode(test_obj)
+    #     ac = bindings.PyNodeAccessor(pynode, 'rx')
+    #     assert ac.pull() == 0
 
-    def test_py_accessor_set(self):
-        cmds.file(new=True, f=True)
-        front = pm.PyNode('front')
-        ac = bindings.PyNodeAccessor(front, 'rx')
-        ac.push(55)
-        assert front.attr('rx').get() == 55
+    # def test_py_accessor_set(self):
+    #     cmds.file(new=True, f=True)
+    #     front = pm.PyNode('front')
+    #     ac = bindings.PyNodeAccessor(front, 'rx')
+    #     ac.push(55)
+    #     assert front.attr('rx').get() == 55
 
-    def test_py_attrib_accessor_get(self):
-        cmds.file(new=True, f=True)
-        front = pm.PyNode('front')
-        ac = bindings.PyAttributeAccessor(front.rx, None)
-        ac.push(55)
-        assert front.attr('rx').get() == 55
+    # def test_py_attrib_accessor_get(self):
+    #     cmds.file(new=True, f=True)
+    #     front = pm.PyNode('front')
+    #     ac = bindings.PyAttributeAccessor(front.rx, None)
+    #     ac.push(55)
+    #     assert front.attr('rx').get() == 55
 
-    def test_py_attrib_accessor_set(self):
-        cmds.file(new=True, f=True)
-        front = pm.PyNode('front')
-        ac = bindings.PyAttributeAccessor(front.rx, None)
-        ac.push(55)
-        assert front.attr('rx').get() == 55
+    # def test_py_attrib_accessor_set(self):
+    #     cmds.file(new=True, f=True)
+    #     front = pm.PyNode('front')
+    #     ac = bindings.PyAttributeAccessor(front.rx, None)
+    #     ac.push(55)
+    #     assert front.attr('rx').get() == 55
 
 
 class TestAccessorFactory(TestCase):
