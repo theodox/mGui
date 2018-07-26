@@ -119,40 +119,40 @@ class test_CtlProperty(TestCase):
     def test_call_uses_widget(self):
         t = self.Example()
         _ = t.fred
-        assert cmds.control.called_with(t.widget)
+        cmds.control.assert_called_with(t.widget)
 
     def test_call_uses_q_flag(self):
         t = self.Example()
         _ = t.fred
-        assert cmds.control.called_with(q=True)
+        cmds.control.assert_called_with(q=True)
 
     def test_call_uses_q_control_flag(self):
         t = self.Example()
         _ = t.fred
-        assert cmds.control.called_with(fred=True)
+        cmds.control.assert_called_with(fred=True)
 
     def test_set_uses_widget(self):
         t = self.Example()
         t.fred = 999
-        assert cmds.control.called_with(t.widget)
+        cmds.control.assert_called_with(t.widget)
 
     def test_set_uses_e_flag(self):
         t = self.Example()
         t.fred = 999
-        assert cmds.control.called_with(e=True)
+        cmds.control.assert_called_with(e=True)
 
     def test_each_property_has_own_command(self):
         t = self.Example()
         _ = t.fred
-        assert cmds.control.called_with(fred=True)
+        cmds.control.assert_called_with(fred=True)
 
         _ = t.barney
-        assert cmds.control.called_with(barney=True)
+        cmds.control.assert_called_with(barney=True)
 
     def test_access_via_getattr(self):
         t = self.Example()
         _ = getattr(t, 'fred')
-        assert cmds.control.called_with(q=True)
+        cmds.control.assert_called_with(q=True)
 
     def test_access_via_dict_fails(self):
         t = self.Example()
