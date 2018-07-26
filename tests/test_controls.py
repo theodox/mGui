@@ -1,39 +1,10 @@
-'''
-Created on Mar 3, 2014
-
-@author: Stephen Theodore
-'''
 import mock_maya
 from unittest import TestCase, main
-
-# LAST_ARGS = {}
-
-
-# def control_mock(*args, **kwargs):
-#     LAST_ARGS['args'] = args
-#     LAST_ARGS['kwargs'] = kwargs
-
-
-# import maya.standalone
-
-# maya.standalone.initialize()
-
-# import maya.cmds as cmds
-
-# cmds.control = control_mock
-# # ===============================================================================
-# # cmds.layout = control_mock
-# # cmds.window = control_mock
-# # cmds.menu = control_mock
-# # cmds.menuItem = control_mock
-# # 
-# # import mGui.styles as styles
-# # class MockStyled(object):
-# #    CMD = cmds.control
-# # 
-# # styles.Styled = MockStyled
-# # ===============================================================================
-
+import inspect
+import mGui.properties as properties
+import mGui.gui as gui
+import mGui.core.progress as progress
+import maya.cmds as cmds
 
 CONTROL_CMDS = ['attrColorSliderGrp',
                 'attrControlGrp',
@@ -129,11 +100,7 @@ LAYOUT_CMDS = [
     'tabLayout',
     'toolBar']
 
-import inspect
-import mGui.properties as properties
-import mGui.gui as gui
-import mGui.core.progress as progress
-import maya.cmds as cmds
+
 
 class test_CtlProperty(TestCase):
     '''
@@ -149,27 +116,25 @@ class test_CtlProperty(TestCase):
         fred = properties.CtlProperty("fred", CMD)
         barney = properties.CtlProperty("barney", CMD)
 
-
     def test_call_uses_widget(self):
         t = self.Example()
-        get = t.fred
+        _ = t.fred
         assert cmds.control.called_with(t.widget)
 
     def test_call_uses_q_flag(self):
         t = self.Example()
-        get = t.fred
+        _ = t.fred
         assert cmds.control.called_with(q=True)
 
     def test_call_uses_q_control_flag(self):
         t = self.Example()
-        get = t.fred
+        _ = t.fred
         assert cmds.control.called_with(fred=True)
 
     def test_set_uses_widget(self):
         t = self.Example()
         t.fred = 999
         assert cmds.control.called_with(t.widget)
-
 
     def test_set_uses_e_flag(self):
         t = self.Example()
@@ -178,21 +143,20 @@ class test_CtlProperty(TestCase):
 
     def test_each_property_has_own_command(self):
         t = self.Example()
-        get = t.fred
+        _ = t.fred
         assert cmds.control.called_with(fred=True)
 
-        get = t.barney
+        _ = t.barney
         assert cmds.control.called_with(barney=True)
 
     def test_access_via_getattr(self):
         t = self.Example()
-        get = getattr(t, 'fred')
+        _ = getattr(t, 'fred')
         assert cmds.control.called_with(q=True)
-
 
     def test_access_via_dict_fails(self):
         t = self.Example()
-        assert not 'fred' in t.__dict__
+        assert 'fred' not in t.__dict__
 
 
 class TestControlsExist(TestCase):
@@ -222,7 +186,6 @@ class TestControlsExist(TestCase):
     def test_has_MenuItem(self):
         gui_items = [i[0] for i in inspect.getmembers(gui)]
         assert 'MenuItem' in gui_items
-
 
 
 if __name__ == '__main__':
