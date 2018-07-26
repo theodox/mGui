@@ -124,7 +124,7 @@ class test_CtlProperty(TestCase):
     def test_set_uses_widget(self):
         t = self.Example()
         t.fred = 999
-        cmds.control.assert_called_with(t.widget, e=True, fred=True)
+        cmds.control.assert_called_with(t.widget, e=True, fred=999)
 
 
     def test_each_property_has_own_command(self):
