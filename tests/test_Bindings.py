@@ -208,7 +208,7 @@ class Test_Accessors(TestCase):
         test_obj, _ = cmds.polyCube()
         cmds.xform(test_obj, rotation=(10, 10, 10))
         ac = bindings.CmdsAccessor(test_obj, 'r')
-        cmds.getAttr.side_effect = [(10,10,10)]
+        cmds.getAttr.side_effect = [[(10,10,10)]]  # nesting is intentional!
         assert ac.pull() == [(10, 10, 10)]
         assert cmds.getAttr.called_with('pCube1.r', q=True)
 
