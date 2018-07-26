@@ -133,7 +133,7 @@ import inspect
 import mGui.properties as properties
 import mGui.gui as gui
 import mGui.core.progress as progress
-
+import maya.cmds as cmds
 
 class test_CtlProperty(TestCase):
     '''
@@ -141,7 +141,7 @@ class test_CtlProperty(TestCase):
     '''
 
     class Example(object):
-        CMD = maya.cmds.control
+        CMD = cmds.control
 
         def __init__(self, *args, **kwargs):
             self.widget = 'path|to|widget'
@@ -153,41 +153,41 @@ class test_CtlProperty(TestCase):
     def test_call_uses_widget(self):
         t = self.Example()
         get = t.fred
-        assert maya.cmds.control.called_with(t.widget)
+        assert cmds.control.called_with(t.widget)
 
     def test_call_uses_q_flag(self):
         t = self.Example()
         get = t.fred
-        assert maya.cmds.control.called_with(q=True)
+        assert cmds.control.called_with(q=True)
 
     def test_call_uses_q_control_flag(self):
         t = self.Example()
         get = t.fred
-        assert maya.cmds.control.called_with(fred=True)
+        assert cmds.control.called_with(fred=True)
 
     def test_set_uses_widget(self):
         t = self.Example()
         t.fred = 999
-        assert maya.cmds.control.called_with(t.widget)
+        assert cmds.control.called_with(t.widget)
 
 
     def test_set_uses_e_flag(self):
         t = self.Example()
         t.fred = 999
-        assert maya.cmds.control.called_with(e=True)
+        assert cmds.control.called_with(e=True)
 
     def test_each_property_has_own_command(self):
         t = self.Example()
         get = t.fred
-        assert maya.cmds.control.called_with(fred=True)
+        assert cmds.control.called_with(fred=True)
 
         get = t.barney
-        assert maya.cmds.control.called_with(barney=True)
+        assert cmds.control.called_with(barney=True)
 
     def test_access_via_getattr(self):
         t = self.Example()
         get = getattr(t, 'fred')
-        assert maya.cmds.control.called_with(q=True)
+        assert cmds.control.called_with(q=True)
 
 
     def test_access_via_dict_fails(self):
