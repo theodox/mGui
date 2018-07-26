@@ -1,34 +1,7 @@
-from unittest import TestCase, main
 import mock_maya
+from unittest import TestCase, main
 import maya.cmds as cmds
 
-# Mocking out the various cmds and events needed to test this without a GUI
-
-def _window(*args, **kwargs):
-    if 'exists' in kwargs:
-        return True
-    return 'window1'
-
-def _formLayout(*args, **kwargs):
-    if 'exists' in kwargs:
-        return True
-    return 'window1|formLayout1'
-
-def _button(*args, **kwargs):
-    if 'exists' in kwargs:
-        return True
-    return 'window1|formLayout1|button1'
-
-def _control(*args, **kwargs):
-    if 'exists' in kwargs:
-        return True
-
-
-cmds.control = cmds.layout = _control
-cmds.window = _window
-cmds.formLayout = _formLayout
-cmds.button = _button
-cmds.setParent = lambda *args, **kwargs: None
 
 from mGui import gui, forms, events
 # Mocking this with an empty event because cmds.scriptJob is annoyingly complex
