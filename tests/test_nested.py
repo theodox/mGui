@@ -1,9 +1,6 @@
 from unittest import TestCase, main
-
-from maya import cmds, standalone
-
-standalone.initialize()
-
+import mock_maya
+import maya.cmds as cmds
 
 # Mocking out the various cmds and events needed to test this without a GUI
 
