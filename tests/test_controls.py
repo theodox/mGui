@@ -3,7 +3,7 @@ Created on Mar 3, 2014
 
 @author: Stephen Theodore
 '''
-
+import maya_mock
 from unittest import TestCase, main
 
 # LAST_ARGS = {}
