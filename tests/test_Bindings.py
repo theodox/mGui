@@ -296,10 +296,12 @@ class TestAccessorFactory(TestCase):
 
     def test_cmds_accessor_excepts_for_nonexistent_object(self):
         cmds.file(new=True, f=True)
+        cmds.getAttr.side_effect = RuntimeError
         self.assertRaises(bindings.BindingError, lambda: bindings.get_accessor('dont_exist', 'tx'))
 
     def test_cmds_accessor_excepts_for_nonexistent_attrrib(self):
         cmds.file(new=True, f=True)
+        cmds.getAttr.side_effect = RuntimeError
         self.assertRaises(bindings.BindingError, lambda: bindings.get_accessor('persp', 'dontexist'))
 
     # def test_pynode_accessor(self):
