@@ -3,14 +3,11 @@ Created on Mar 1, 2014
 
 @author: Stephen Theodore
 '''
-import maya.standalone
-
-maya.standalone.initialize()
+import mock_maya
 import mGui.bindings as bindings
 from unittest import TestCase
-
 import maya.cmds as cmds
-import pymel.core as pm
+#import pymel.core as pm
 
 
 class Test_Accessors(TestCase):
@@ -207,44 +204,48 @@ class Test_Accessors(TestCase):
 
     def test_cmds_accessor_get(self):
         cmds.file(new=True, f=True)
+        cmds.polyCube.side_effect= [('pCube1', 'polyCube1')]
         test_obj, _ = cmds.polyCube()
         cmds.xform(test_obj, rotation=(10, 10, 10))
         ac = bindings.CmdsAccessor(test_obj, 'r')
+        cmds.getAttr.side_effect = [[(10,10,10)]]  # nesting is intentional!
         assert ac.pull() == [(10, 10, 10)]
+        assert cmds.getAttr.called_with('pCube1.r', q=True)
 
     def test_cmds_accessor_set(self):
         cmds.file(new=True, f=True)
         ac = bindings.CmdsAccessor('front', 'tz')
         ac.push(55)
-        assert cmds.getAttr('front.tz') == 55
+        assert cmds.setAttr.called_with('front.tz', q=True)
+#        assert cmds.getAttr('front.tz') == 55
 
-    def test_py_accessor_get(self):
-        cmds.file(new=True, f=True)
-        test_obj, _ = cmds.polyCube()
-        pynode = pm.PyNode(test_obj)
-        ac = bindings.PyNodeAccessor(pynode, 'rx')
-        assert ac.pull() == 0
+    # def test_py_accessor_get(self):
+    #     cmds.file(new=True, f=True)
+    #     test_obj, _ = cmds.polyCube()
+    #     pynode = pm.PyNode(test_obj)
+    #     ac = bindings.PyNodeAccessor(pynode, 'rx')
+    #     assert ac.pull() == 0
 
-    def test_py_accessor_set(self):
-        cmds.file(new=True, f=True)
-        front = pm.PyNode('front')
-        ac = bindings.PyNodeAccessor(front, 'rx')
-        ac.push(55)
-        assert front.attr('rx').get() == 55
+    # def test_py_accessor_set(self):
+    #     cmds.file(new=True, f=True)
+    #     front = pm.PyNode('front')
+    #     ac = bindings.PyNodeAccessor(front, 'rx')
+    #     ac.push(55)
+    #     assert front.attr('rx').get() == 55
 
-    def test_py_attrib_accessor_get(self):
-        cmds.file(new=True, f=True)
-        front = pm.PyNode('front')
-        ac = bindings.PyAttributeAccessor(front.rx, None)
-        ac.push(55)
-        assert front.attr('rx').get() == 55
+    # def test_py_attrib_accessor_get(self):
+    #     cmds.file(new=True, f=True)
+    #     front = pm.PyNode('front')
+    #     ac = bindings.PyAttributeAccessor(front.rx, None)
+    #     ac.push(55)
+    #     assert front.attr('rx').get() == 55
 
-    def test_py_attrib_accessor_set(self):
-        cmds.file(new=True, f=True)
-        front = pm.PyNode('front')
-        ac = bindings.PyAttributeAccessor(front.rx, None)
-        ac.push(55)
-        assert front.attr('rx').get() == 55
+    # def test_py_attrib_accessor_set(self):
+    #     cmds.file(new=True, f=True)
+    #     front = pm.PyNode('front')
+    #     ac = bindings.PyAttributeAccessor(front.rx, None)
+    #     ac.push(55)
+    #     assert front.attr('rx').get() == 55
 
 
 class TestAccessorFactory(TestCase):
@@ -295,32 +296,34 @@ class TestAccessorFactory(TestCase):
 
     def test_cmds_accessor_excepts_for_nonexistent_object(self):
         cmds.file(new=True, f=True)
+        cmds.getAttr.side_effect = RuntimeError
         self.assertRaises(bindings.BindingError, lambda: bindings.get_accessor('dont_exist', 'tx'))
 
     def test_cmds_accessor_excepts_for_nonexistent_attrrib(self):
         cmds.file(new=True, f=True)
+        cmds.getAttr.side_effect = RuntimeError
         self.assertRaises(bindings.BindingError, lambda: bindings.get_accessor('persp', 'dontexist'))
 
-    def test_pynode_accessor(self):
-        cmds.file(new=True, f=True)
-        cube, shape = pm.polyCube()
-        ac = bindings.get_accessor(cube, 'rx')
-        assert isinstance(ac, bindings.PyNodeAccessor)
-        ac2 = bindings.get_accessor(shape, 'width')
-        assert isinstance(ac2, bindings.PyNodeAccessor)
+    # def test_pynode_accessor(self):
+    #     cmds.file(new=True, f=True)
+    #     cube, shape = pm.polyCube()
+    #     ac = bindings.get_accessor(cube, 'rx')
+    #     assert isinstance(ac, bindings.PyNodeAccessor)
+    #     ac2 = bindings.get_accessor(shape, 'width')
+    #     assert isinstance(ac2, bindings.PyNodeAccessor)
 
-    def test_pynode_accessor_excepts_for_nonexistent_attrib(self):
-        cmds.file(new=True, f=True)
-        cube, _ = pm.polyCube()
-        self.assertRaises(bindings.BindingError, lambda: bindings.get_accessor(cube, 'xyz'))
+    # def test_pynode_accessor_excepts_for_nonexistent_attrib(self):
+    #     cmds.file(new=True, f=True)
+    #     cube, _ = pm.polyCube()
+    #     self.assertRaises(bindings.BindingError, lambda: bindings.get_accessor(cube, 'xyz'))
 
-    def test_pyattr_accessor(self):
-        cmds.file(new=True, f=True)
-        cube, shape = pm.polyCube()
-        ac = bindings.get_accessor(cube.rx)
-        assert isinstance(ac, bindings.PyAttributeAccessor)
-        ac2 = bindings.get_accessor(shape.width)
-        assert isinstance(ac2, bindings.PyAttributeAccessor)
+    # def test_pyattr_accessor(self):
+    #     cmds.file(new=True, f=True)
+    #     cube, shape = pm.polyCube()
+    #     ac = bindings.get_accessor(cube.rx)
+    #     assert isinstance(ac, bindings.PyAttributeAccessor)
+    #     ac2 = bindings.get_accessor(shape.width)
+    #     assert isinstance(ac2, bindings.PyAttributeAccessor)
 
 
 class TestBindings(TestCase):
@@ -433,21 +436,21 @@ class TestBindable(TestCase):
         tester2()
         assert cmds.getAttr('pCube1.ty') == 45
 
-    def test_bind_to_pyAttr(self):
-        ex = self.Example('cube', 45)
-        cmds.file(new=True, f=True)
-        cube, shape = pm.polyCube()
-        tester = ex & 'val' > bindings.bind() > cube.tx
-        tester()
-        assert cmds.getAttr('pCube1.tx') == 45
+    # def test_bind_to_pyAttr(self):
+    #     ex = self.Example('cube', 45)
+    #     cmds.file(new=True, f=True)
+    #     cube, shape = pm.polyCube()
+    #     tester = ex & 'val' > bindings.bind() > cube.tx
+    #     tester()
+    #     assert cmds.getAttr('pCube1.tx') == 45
 
-    def test_bind_to_pyNode(self):
-        ex = self.Example('cube', 45)
-        cmds.file(new=True, f=True)
-        cube, shape = pm.polyCube()
-        tester = ex & 'val' > bindings.bind() > (cube, 'tx')
-        tester()
-        assert cmds.getAttr('pCube1.tx') == 45
+    # def test_bind_to_pyNode(self):
+    #     ex = self.Example('cube', 45)
+    #     cmds.file(new=True, f=True)
+    #     cube, shape = pm.polyCube()
+    #     tester = ex & 'val' > bindings.bind() > (cube, 'tx')
+    #     tester()
+    #     assert cmds.getAttr('pCube1.tx') == 45
 
 
 class TestBindableObject(TestCase):

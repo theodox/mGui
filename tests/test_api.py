@@ -1,10 +1,5 @@
 from unittest import TestCase, main
-import maya.standalone
-
-try:
-    maya.standalone.initialize()
-except:
-    pass
+import mock_maya
 
 from mGui.gui import *
 from mGui.forms import *
@@ -275,9 +270,6 @@ class TestMGuiAPI(TestCase):
 
     def test_ProgressBar(self):
         assert ProgressBar
-
-    def test_REGISTRY(self):
-        assert REGISTRY
 
     def test_RadioButton(self):
         assert RadioButton

@@ -89,8 +89,8 @@ class ControlMeta(type):
         # response for gui.wrap will need to be the first class defined
         # for this to work properly. If we run into future isses we may need to make
         # this an explicit class attribute instead
-        if maya_cmd and not REGISTRY.get(maya_cmd.__name__):
-            REGISTRY[maya_cmd.__name__] = completed_type
+        if maya_cmd and not REGISTRY.get(maya_cmd):
+            REGISTRY[maya_cmd] = completed_type
 
         return completed_type
 

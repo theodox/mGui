@@ -6,6 +6,7 @@ multicast delegates and arbitrary message passing. They use weak references so
 they don't keep their handlers alive if they are otherwise out of scope.
 
 """
+from __future__ import print_function
 import weakref
 import maya.utils
 from functools import partial, wraps
@@ -165,7 +166,7 @@ class Event(object):
     __isub__ = _remove_handler
 
     def __del__(self):
-        print 'event expired'
+        print ('event expired')
 
 
 class MayaEvent(Event):

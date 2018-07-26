@@ -1,8 +1,4 @@
-'''
-Created on Mar 14, 2014
-
-@author: Stephen Theodore
-'''
+import mock_maya
 from mGui.bindings import BindableObject, bind
 from mGui.observable import ObservableCollection, ViewCollection, ImmediateObservableCollection
 from unittest import TestCase, main

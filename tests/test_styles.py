@@ -1,8 +1,4 @@
-"""
-Created on Mar 7, 2014
-
-@author: Stephen Theodore
-"""
+import mock_maya
 import mGui.styles as styles
 import unittest
 
