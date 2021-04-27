@@ -9,8 +9,8 @@ from mGui.qt._compat import as_qt_object, QtCore
 
 APPLICATION_MODAL = QtCore.Qt.WindowModality.ApplicationModal
 
-class QModalWindow(BindingWindow):
 
+class QModalWindow(BindingWindow):
     def __init__(self, *args, **kwargs):
         super(QModalWindow, self).__init__(*args, **kwargs)
         self.__qt_object__ = as_qt_object(self)

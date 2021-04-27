@@ -1,6 +1,6 @@
-'''
+"""
 Defines scriptJob based classes which allow binding to conditions or selection state
-'''
+"""
 
 from mGui.scriptJobs import SelectionChanged, SomethingSelected, ScriptJobC
 from mGui.bindings import BindableObject
@@ -12,7 +12,7 @@ def _get_active_ui(fallback):
     result = dict()
     parent = fallback or Layout.current() or Window.current()
     if parent:
-        result['parent'] = parent
+        result["parent"] = parent
     return result
 
 
@@ -34,7 +34,8 @@ class ConditionWatcher(BindableObject):
     In most cases, you'll want to pass in a ScriptJobC created with the "None" argument so that it fires on all
     changes, but you can pass in True to fire only when the condition changes to True, or False for changes to False.
     """
-    _BIND_SRC = 'state'
+
+    _BIND_SRC = "state"
 
     def __init__(self, condition, parent=None):
         """
@@ -83,7 +84,8 @@ class SelectionWatcher(ConditionWatcher):
 
     If you need to bind to the actual selection list, you should use a SelectionListWatcher instead
     """
-    _BIND_SRC = 'is_selected'
+
+    _BIND_SRC = "is_selected"
 
     def __init__(self, parent=None):
         """
@@ -128,7 +130,8 @@ class SelectionListWatcher(BindableObject):
 
 
     """
-    _BIND_SRC = 'selected_items'
+
+    _BIND_SRC = "selected_items"
 
     def __init__(self, parent=None, types=None):
         """

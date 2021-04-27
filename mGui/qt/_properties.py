@@ -7,6 +7,7 @@ from mGui.events import Event, MayaEvent
 from mGui.qt._compat import as_qt_object
 import weakref
 
+
 class QtSignalProperty(object):
     """
     Property descriptor for Qt Signals.  When accessed, returns the appropriate
@@ -23,6 +24,7 @@ class QtSignalProperty(object):
     button.command = events.MayaEvent(target = 'pCube1', distance = 2.0)
 
     """
+
     def __init__(self, key):
         self._key = key
 

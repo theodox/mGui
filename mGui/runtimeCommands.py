@@ -27,16 +27,19 @@ def create_proxy_command(callable_object, *args, **kwargs):
 
     # gymnastics to format the arguments and keywords if they exist
     arg_string = json.dumps(args)[1:-1]
-    k = map(str, kwargs.keys())
-    v = json.dumps(kwargs.values())[1:-1].split(", ")
+    k = list(map(str, list(kwargs.keys())))
+    v = json.dumps(list(kwargs.values()))[1:-1].split(", ")
     kwarg_string = ",".join([kk + "=" + vv for kk, vv in zip(k, v)])
-    arguments = '%s%s%s' % (arg_string, (', ' if arg_string and kwarg_string else ''), kwarg_string)
+    arguments = "%s%s%s" % (
+        arg_string,
+        (", " if arg_string and kwarg_string else ""),
+        kwarg_string,
+    )
     fn = "%s(%s)\n" % (info.callable_name(), arguments)
-    return "\n".join((comment, '', import_line, fn))
+    return "\n".join((comment, "", import_line, fn))
 
 
-
-def create_runtime_command(name, callable_object, category="mGui", annotation="", args=(), kwargs=dict()):
+def create_runtime_command(name, callable_object, category="mGui", annotation="", args=(), kwargs=None):
     """
     creates a simple runTimeCommand which wraps the supplied function.  The function should be a no-argument callable
     which can be called using the pattern:
@@ -46,14 +49,20 @@ def create_runtime_command(name, callable_object, category="mGui", annotation=""
 
     For this reason, this is only appropriate for module-level functions.
     """
-
+    kwargs = {} if kwargs is None else kwargs
     assert callable(callable_object), "function argument must be callable"
 
     if cmds.runTimeCommand(name, exists=True):
-        cmds.runTimeCommand(name, e=True, delete=True)
+        cmds.runTimeCommand(name, edit=True, delete=True)
 
     cb_string = create_proxy_command(callable_object, *args, **kwargs)
-    cmds.runTimeCommand(name, category=category, annotation=annotation, commandLanguage="python", command=cb_string)
+    cmds.runTimeCommand(
+        name,
+        category=category,
+        annotation=annotation,
+        commandLanguage="python",
+        command=cb_string,
+    )
     return name
 
 
@@ -80,6 +89,7 @@ class RuntimeEvent(object):
 
     @note: Don't instantiate this class, it's just a 'namespace' class with a set of related methods.
     """
+
     REGISTRY = {}
 
     @classmethod
@@ -124,7 +134,6 @@ class RuntimeEvent(object):
         cb = cls.find(name)
         cb -= handler
 
-
     @classmethod
     def create_command(cls, name, func, category="mGui", annotation=""):
         """
@@ -167,43 +176,39 @@ def fire_callback(name, *args, **kwargs):
 
 
 class Hotkeyable(object):
-    '''
-    Decorator which calls create_runtime_command on the decorated function, allowing it to be used as a Maya 
+    """
+    Decorator which calls create_runtime_command on the decorated function, allowing it to be used as a Maya
     RunTimeCommand. Since the decorated function will be called using create_runtime_command, it should be a
     module-level function which works with a simple absolute import (see create_runtime_command)
 
     Note the decorated function is returnd unchanged
-    '''
+    """
 
-    def __init__(self, name, category='mGui', annotation=''):
+    def __init__(self, name, category="mGui", annotation=""):
         self._name = name
         self._category = category
         self._annotation = annotation
 
     def __call__(self, fn):
-        create_runtime_command(self._name, fn,
-                               category=self._category,
-                               annotation=self._annotation)
+        create_runtime_command(self._name, fn, category=self._category, annotation=self._annotation)
         return fn
 
 
 class HotkeyableEvent(object):
-    '''
+    """
     Decorator creates a RuntimeEvent for the decorated function and adds the function to the event as a handler.
     Since the function is an event handler it should use the standard mGui fn(*args, **kwargs) handler signature.
 
     Note the decorated function is returnd unchanged
-    '''
+    """
 
-    def __init__(self, name, category='mGui', annotation=''):
+    def __init__(self, name, category="mGui", annotation=""):
         self._name = name
         self._category = category
         self._annotation = annotation
 
     def __call__(self, fn):
-        RuntimeEvent.create_command(self._name, fn,
-                                    category=self._category,
-                                    annotation=self._annotation)
+        RuntimeEvent.create_command(self._name, fn, category=self._category, annotation=self._annotation)
         return fn
 
 
@@ -214,7 +219,7 @@ class ImportInfo(object):
 
     def __init__(self, item):
         self.module = None
-        if hasattr(item, '__module__'):
+        if hasattr(item, "__module__"):
             self.module = item.__module__
         self.cls = None
         self.method = None
@@ -235,7 +240,7 @@ class ImportInfo(object):
         self.method = obj.__name__
 
     def _format_method(self, obj):
-        owner = dict(inspect.getmembers(obj))['im_self']
+        owner = dict(inspect.getmembers(obj))["__func__"]
         self.cls = owner.__name__
         self.method = obj.__name__
 
@@ -243,16 +248,15 @@ class ImportInfo(object):
         self.cls = obj.__name__
         self.method = None
 
-
     def fully_qualified_name(self):
         items = [i for i in [self.module, self.cls, self.method] if i]
         return ".".join(items)
 
     def import_statement(self):
         if self.cls:
-            return 'from %s import %s' % (self.module, self.cls)
+            return "from %s import %s" % (self.module, self.cls)
         else:
-            return 'from %s import %s' % (self.module, self.method)
+            return "from %s import %s" % (self.module, self.method)
 
     def callable_name(self):
         if self.cls and self.method:
@@ -262,4 +266,3 @@ class ImportInfo(object):
         if self.method:
             return self.method
         return ""
-

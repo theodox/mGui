@@ -95,7 +95,7 @@ class Accessor(object):
         """
         return field_name and hasattr(datum, field_name) and not callable(getattr(datum, field_name))
 
-    def __nonzero__(self):
+    def __bool__(self):
         try:
             return self.target is not None
         except ReferenceError:
@@ -125,7 +125,7 @@ class DictAccessor(Accessor):
 
     @classmethod
     def can_access(cls, datum, field_name):
-        return isinstance(datum, Mapping) or (hasattr(datum, '__getitem__') and hasattr(datum, '__setitem__'))
+        return isinstance(datum, Mapping) or (hasattr(datum, "__getitem__") and hasattr(datum, "__setitem__"))
 
 
 class PyNodeAccessor(Accessor):
@@ -141,7 +141,7 @@ class PyNodeAccessor(Accessor):
 
     @classmethod
     def can_access(cls, datum, field_name):
-        return hasattr(datum, '__melcmd__') and hasattr(datum, field_name)
+        return hasattr(datum, "__melcmd__") and hasattr(datum, field_name)
 
 
 class PyAttributeAccessor(Accessor):
@@ -165,7 +165,7 @@ class PyAttributeAccessor(Accessor):
 
     @classmethod
     def can_access(cls, datum, field_name):
-        return 'Attribute' in datum.__class__.__name__
+        return "Attribute" in datum.__class__.__name__
 
 
 class CmdsAccessor(Accessor):
@@ -187,7 +187,7 @@ class CmdsAccessor(Accessor):
         return cmds.getAttr(self._attrib)
 
     @classmethod
-    def can_access(self, datum, field_name):
+    def can_access(cls, datum, field_name):
         try:
             return cmds.ls(datum) and cmds.attributeQuery(field_name, node=datum, w=True)
         except RuntimeError:
@@ -233,9 +233,14 @@ class AccessorFactory(object):
 
     def __init__(self, *acccessor_classes):
 
-        self.tests = [cls for cls in acccessor_classes] + [PyAttributeAccessor, PyNodeAccessor, Accessor,
-                                                           MethodAccessor,
-                                                           DictAccessor, CmdsAccessor]
+        self.tests = [cls for cls in acccessor_classes] + [
+            PyAttributeAccessor,
+            PyNodeAccessor,
+            Accessor,
+            MethodAccessor,
+            DictAccessor,
+            CmdsAccessor,
+        ]
 
     def accessor_class(self, *args):
         """
@@ -276,7 +281,7 @@ def get_accessor(datum, field_name=None, factory_class=None):
     if target_class:
         return target_class(site, field_name)
 
-    raise BindingError('%s is not a bindable attribute of %s' % (field_name, site))
+    raise BindingError("%s is not a bindable attribute of %s" % (field_name, site))
 
 
 class BindingContext(object):
@@ -325,8 +330,6 @@ class BindingContext(object):
                 item.update(recurse)
         return len(self.bindings)
 
-        self.update()
-
     @classmethod
     def add(cls, binding):
         """
@@ -364,17 +367,17 @@ class Binding(object):
         self.getter = source
         self.setter = target
 
-        self.translator = kwargs.get('translator', passthru)
-        assert callable(self.translator), 'Translator must be a single argument callable'
+        self.translator = kwargs.get("translator", passthru)
+        assert callable(self.translator), "Translator must be a single argument callable"
 
         BindingContext.add(self)
-        if hasattr(self.getter.target, 'bindings'):
+        if hasattr(self.getter.target, "bindings"):
             self.getter.target.bindings.append(self)
             if hasattr(self.getter.target, "_BIND_TRIGGER"):
                 cb = getattr(self.getter.target, self.getter.target._BIND_TRIGGER)
                 cb += self.proxy_update
 
-        if hasattr(self.setter.target, 'bindings'):
+        if hasattr(self.setter.target, "bindings"):
             self.setter.target.bindings.append(self)
 
     def invalidate(self):
@@ -384,7 +387,7 @@ class Binding(object):
         self.getter = None
         self.setter = None
 
-    def __nonzero__(self):
+    def __bool__(self):
         if self.setter:
             if self.getter:
                 return True
@@ -406,7 +409,8 @@ class Binding(object):
         """
 
         def safe_binding():
-            if self.__nonzero__() == False: return False
+            if not self:
+                return False
 
             try:
                 val = self.getter.pull()
@@ -418,12 +422,12 @@ class Binding(object):
                     raise BindingError("Bind failure: %s" % str(sys.exc_info()[1]))
                 return False
 
-        return (safe_binding())
+        return safe_binding()
         # this causes a hang
         # return utils.executeInMainThreadWithResult(safe_binding)
 
     def proxy_update(self, *args, **kwargs):
-        self.__call__()
+        return self()
 
 
 class TwoWayBinding(Binding):
@@ -443,7 +447,7 @@ class TwoWayBinding(Binding):
         self._last_setter_value = self.setter.pull()
 
     def __call__(self):
-        if self.__nonzero__() == False:
+        if not self:
             return False
 
         try:
@@ -531,7 +535,7 @@ class BindingExpression(object):
         tgt = object, 'otherProperty'
         src > BindingExpression() > tgt
 
-    for the same result.s
+    for the same results.
     """
 
     def __gt__(self, other):
@@ -576,23 +580,24 @@ class BindingExpression(object):
             return get_accessor(other)
 
         # default bindings
-        if hasattr(other, 'bind_source'):
+        if hasattr(other, "bind_source"):
             if target and other.bind_target:
                 return get_accessor(other, other.bind_target)
             elif other.bind_source:
                 return get_accessor(other, other.bind_source)
 
         # pynodes & pyattrs
-        if hasattr(other, '__melobject__') or hasattr(other, '__melcommand__'):
+        if hasattr(other, "__melobject__") or hasattr(other, "__melcommand__"):
             return get_accessor(other, None)
 
+        # strings
+        if hasattr(other, "split") and "." in other:
+            return get_accessor(*other.split("."))
+
         # obj, attr tuples
-        if hasattr(other, '__iter__'):
+        if hasattr(other, "__iter__"):
             return get_accessor(*other)
 
-        # strings
-        if hasattr(other, 'split') and "." in other:
-            return get_accessor(*other.split("."))
         return get_accessor(other)
 
     def _binding(self):
@@ -602,12 +607,13 @@ class BindingExpression(object):
 
 
 bind = BindingExpression
-'''
+"""
 This is a cheap alias to make the typing less onerous
-'''
+"""
 
 
 # ============================================================================================
+
 
 class Bindable(object):
     """
@@ -654,7 +660,7 @@ class Bindable(object):
             self.owner = owner
 
         def __getattr__(self, name):
-            if name != 'owner':
+            if name != "owner":
                 if hasattr(self.owner, name):
                     return BindProxy(self.owner, name)
             raise BindingError("Object %s does not have a bindable attribute named %s" % (self.owner, name))

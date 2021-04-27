@@ -1,15 +1,19 @@
-'''
+"""
 Created on Mar 14, 2014
 
 @author: Stephen Theodore
-'''
+"""
 from mGui.bindings import BindableObject, bind
-from mGui.observable import ObservableCollection, ViewCollection, ImmediateObservableCollection
+from mGui.observable import (
+    ObservableCollection,
+    ViewCollection,
+    ImmediateObservableCollection,
+)
 from unittest import TestCase, main
 
 
 class TestTarget(BindableObject):
-    _BIND_TGT = 'values'
+    _BIND_TGT = "values"
 
     def __init__(self):
         self.values = []
@@ -41,9 +45,9 @@ class Test_ObservableCollection(TestCase):
         t = TestTarget()
         c = ObservableCollection(1, 2, 3, 4, 5, 6, 7, 8, 9, 10)
         t < bind() < c
-        c._internal_collection = ['a', 'b', 'c']  # don't do this in practice!
+        c._internal_collection = ["a", "b", "c"]  # don't do this in practice!
         c.update_bindings()
-        assert t.values == ('a', 'b', 'c')
+        assert t.values == ("a", "b", "c")
 
     def test_base_binding_clear(self):
         t = TestTarget()
@@ -76,7 +80,8 @@ class Test_ObservableCollection(TestCase):
     def test_iter(self):
         c = ImmediateObservableCollection(1, 2, 3, 4, 5, 6, 7, 8, 9, 10)
         result = []
-        for item in c: result.append(item)
+        for item in c:
+            result.append(item)
         assert result == [1, 2, 3, 4, 5, 6, 7, 8, 9, 10]
 
 
@@ -97,14 +102,14 @@ class TestObservableCollectionEvents(TestCase):
         t = self.Tester()
         c.onCollectionChanged += t.handle_event
         c.add(11)
-        assert t.kwargs['collection'] == c
+        assert t.kwargs["collection"] == c
 
     def test_onCollectionChanged_remove(self):
         c = ImmediateObservableCollection(1, 2, 3, 4, 5, 6, 7, 8, 9, 10)
         t = self.Tester()
         c.onCollectionChanged += t.handle_event
         c.remove(1)
-        assert t.kwargs['collection'] == c
+        assert t.kwargs["collection"] == c
 
     def test_ItemAdded(self):
         c = ImmediateObservableCollection(1, 2, 3, 4)
@@ -112,7 +117,7 @@ class TestObservableCollectionEvents(TestCase):
 
         c.onItemAdded += t.handle_event
         c.add(1)
-        assert t.kwargs['collection'] == c
+        assert t.kwargs["collection"] == c
         assert t.args == (1, 4)
 
     def test_ItemRemoved(self):
@@ -120,7 +125,7 @@ class TestObservableCollectionEvents(TestCase):
         t = self.Tester()
         c.onItemRemoved += t.handle_event
         c.remove(1)
-        assert t.kwargs['collection'] == c
+        assert t.kwargs["collection"] == c
         assert t.args == (1, 0)
 
     def test_ViewChanged(self):
@@ -128,7 +133,7 @@ class TestObservableCollectionEvents(TestCase):
         t = self.Tester()
         v.onViewChanged += t.handle_event
         v.update_filter(lambda x: x < 5)
-        assert t.kwargs['collection'] == v
+        assert t.kwargs["collection"] == v
 
 
 class TestViewCollection(TestCase):
@@ -157,9 +162,9 @@ class TestViewCollection(TestCase):
         t = TestTarget()
         c = ViewCollection(1, 2, 3, 4, 5, 6, 7, 8, 9, 10)
         t < bind() < c
-        c._internal_collection = ['a', 'b', 'c']
+        c._internal_collection = ["a", "b", "c"]
         c.update_bindings()
-        assert t.values == ('a', 'b', 'c')
+        assert t.values == ("a", "b", "c")
 
     def test_base_binding_clear(self):
         t = TestTarget()
@@ -192,7 +197,8 @@ class TestViewCollection(TestCase):
     def test_iter(self):
         c = ViewCollection(1, 2, 3, 4, 5, 6, 7, 8, 9, 10)
         result = []
-        for item in c: result.append(item)
+        for item in c:
+            result.append(item)
         assert result == [1, 2, 3, 4, 5, 6, 7, 8, 9, 10]
 
     def test_filter(self):
@@ -205,5 +211,5 @@ class TestViewCollection(TestCase):
         assert t.values == (2, 4, 6, 8, 10)
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     main()

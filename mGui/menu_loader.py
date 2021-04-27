@@ -61,6 +61,7 @@ class CallbackProxy(object):
     Callbacks are stored in the KEEPALIVE class field so that they don't expire or generate
     DeadReference errors
     """
+
     KEEPALIVE = []
 
     def __init__(self, func, caller):
@@ -126,25 +127,26 @@ class MenuProxy(yaml.YAMLObject):
 
     for a complete example see mGui.examples.menu_loader.
     """
-    yaml_tag = '!MMenu'
+
+    yaml_tag = "!MMenu"
 
     def __new__(cls):
         res = yaml.YAMLObject.__new__(cls)
-        setattr(res, 'key', 'Menu_Proxy')
-        setattr(res, 'label', '')
-        setattr(res, 'items', [])
-        setattr(res, 'after', None)
-        setattr(res, 'options', {})
-        setattr(res, 'preMenuCommand', None)
-        setattr(res, 'postMenuCommand', '')
+        setattr(res, "key", "Menu_Proxy")
+        setattr(res, "label", "")
+        setattr(res, "items", [])
+        setattr(res, "after", None)
+        setattr(res, "options", {})
+        setattr(res, "preMenuCommand", None)
+        setattr(res, "postMenuCommand", "")
         return res
 
     def instantiate(self, parent=None):
         opts = copy.copy(self.options)
-        opts['parent'] = parent
-        opts['label'] = self.label or self.key.replace('_', ' ')
+        opts["parent"] = parent
+        opts["label"] = self.label or self.key.replace("_", " ")
         if self.postMenuCommand:
-            opts['postMenuCommand'] = self.postMenuCommand
+            opts["postMenuCommand"] = self.postMenuCommand
 
         with gui.Menu(self.key, **opts) as result:
             for item in self.items:
@@ -152,7 +154,7 @@ class MenuProxy(yaml.YAMLObject):
 
         preMenuCommand = self.preMenuCommand or None
         if preMenuCommand:
-            exec preMenuCommand
+            exec(preMenuCommand)
 
         return result
 
@@ -187,28 +189,28 @@ class EditMenuProxy(yaml.YAMLObject):
     preMenuCommand can force them to instantiate before you edit them
     """
 
-    yaml_tag = '!MEditMenu'
+    yaml_tag = "!MEditMenu"
 
     def __new__(cls):
         res = yaml.YAMLObject.__new__(cls)
-        setattr(res, 'key', 'Menu_Proxy')
-        setattr(res, 'label', '')
-        setattr(res, 'items', [])
-        setattr(res, 'options', {})
-        setattr(res, 'preMenuCommand', None)
-        setattr(res, 'postMenuCommand', '')
+        setattr(res, "key", "Menu_Proxy")
+        setattr(res, "label", "")
+        setattr(res, "items", [])
+        setattr(res, "options", {})
+        setattr(res, "preMenuCommand", None)
+        setattr(res, "postMenuCommand", "")
         return res
 
     def instantiate(self, parent=None):
         opts = copy.copy(self.options)
-        opts['parent'] = parent
-        opts['label'] = self.label or self.key.replace('_', ' ')
+        opts["parent"] = parent
+        opts["label"] = self.label or self.key.replace("_", " ")
         if self.postMenuCommand:
-            opts['postMenuCommand'] = self.postMenuCommand
+            opts["postMenuCommand"] = self.postMenuCommand
 
         preMenuCommand = self.preMenuCommand or None
         if preMenuCommand:
-            exec preMenuCommand
+            exec(preMenuCommand)
 
         for item in self.items:
             item.instantiate(parent=self.key)
@@ -250,23 +252,24 @@ class MenuItemProxy(MenuProxy):
     this will load the function `mGui.examples.menu_loader.about` -- assuming that the module mGui.examples.menu_loader
     is available on the python path -- and attach it to this menu item as a callback
     """
+
     yaml_tag = "!MMenuItem"
 
     def instantiate(self, parent=None):
         try:
             opts = copy.copy(self.options)
-            opts['label'] = self.label or self.key.replace('_', ' ')
+            opts["label"] = self.label or self.key.replace("_", " ")
             after = self.after
             if after:
                 insertAfter = get_insert_after_item(parent, after)
                 if insertAfter:
-                    opts['insertAfter'] = insertAfter
+                    opts["insertAfter"] = insertAfter
 
             if parent:
                 maya.cmds.setParent(parent, menu=True)
             new_item = gui.MenuItem(self.key, **opts)
 
-            if hasattr(self, 'command') and self.command:
+            if hasattr(self, "command") and self.command:
                 module, _, cmd = self.command.rpartition(".")
                 imports = []
                 segments = module.split(".")
@@ -299,10 +302,11 @@ class RadioMenuItemProxy(MenuItemProxy):
 
 
     """
+
     yaml_tag = "!MRadioMenuItem"
 
     def instantiate(self, parent=None):
-        self.options['radioButton'] = False
+        self.options["radioButton"] = False
         new_menu = super(RadioMenuItemProxy, self).instantiate(parent)
         return new_menu
 
@@ -331,12 +335,13 @@ class RadioMenuCollectionProxy(yaml.YAMLObject):
     thanks, Maya!) so you'll have to manage the state yourself.  RadioMenuItemCollection objects do not have change
     callbacks.
     """
+
     yaml_tag = "!MRadioCollection"
 
     def __new__(cls):
         res = yaml.YAMLObject.__new__(cls)
-        setattr(res, 'items', [])
-        setattr(res, 'options', {})
+        setattr(res, "items", [])
+        setattr(res, "options", {})
         return res
 
     def instantiate(self, parent=None):
@@ -369,16 +374,17 @@ class SubMenuProxy(MenuProxy):
                       label: Item 2
 
     """
+
     yaml_tag = "!MSubMenu"
 
     def instantiate(self, parent=None):
         opts = copy.copy(self.options)
-        opts['label'] = self.label or self.key.replace('_', ' ')
+        opts["label"] = self.label or self.key.replace("_", " ")
         after = self.after
         if after:
             insertAfter = get_insert_after_item(parent, after)
             if insertAfter:
-                opts['insertAfter'] = insertAfter
+                opts["insertAfter"] = insertAfter
 
         if parent:
             maya.cmds.setParent(parent, menu=True)
@@ -405,15 +411,14 @@ and licensed under the PSF License (https://wiki.python.org/moin/PythonSoftwareF
 
 def _resolve_name(name, package, level):
     """Return the absolute name of the module to be imported."""
-    if not hasattr(package, 'rindex'):
+    if not hasattr(package, "rindex"):
         raise ValueError("'package' not set to a string")
     dot = len(package)
-    for x in xrange(level, 1, -1):
+    for x in range(level, 1, -1):
         try:
-            dot = package.rindex('.', 0, dot)
+            dot = package.rindex(".", 0, dot)
         except ValueError:
-            raise ValueError("attempted relative import beyond top-level "
-                             "package")
+            raise ValueError("attempted relative import beyond top-level " "package")
     return "%s.%s" % (package[:dot], name)
 
 
@@ -425,12 +430,12 @@ def import_module(name, package=None):
     relative import to an absolute import.
 
     """
-    if name.startswith('.'):
+    if name.startswith("."):
         if not package:
             raise TypeError("relative imports require the 'package' argument")
         level = 0
         for character in name:
-            if character != '.':
+            if character != ".":
                 break
             level += 1
         name = _resolve_name(name[level:], package, level)
@@ -438,6 +443,6 @@ def import_module(name, package=None):
     return sys.modules[name]
 
 
-'''
+"""
 end python foundation code
-'''
+"""

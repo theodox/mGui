@@ -3,11 +3,11 @@ ModuleManager.py
 
 An example showing data bound collection UI.  The module files on disk are
 collected and managed by the ModuleManager class, which is purely functional and
-has no UI.  
+has no UI.
 
 The UI contains a list which is bound to the ModuleManager's collection of
 mofTuple objects; the list displays the available modules as widgets (created
-using the the ModuleTemplate clas).  
+using the the ModuleTemplate class).
 
 The widgets are directly bound to the ModTuple variables; this means that
 closing the dialog checks the state of the list and updates the files on disk as
@@ -19,7 +19,7 @@ Some other points of note:
 Tags
 ----
 The widgets use the Tag property to make sure that each widget knows what
-object to work on without extra lambdas or partials 
+object to work on without extra lambdas or partials
 
 LayoutDialogForm
 ---------------
@@ -47,6 +47,7 @@ from mGui.bindings import bind, BindingContext
 
 # Mod manager classes
 # ==============================================================================================
+
 
 class ModTuple(object):
     """
@@ -78,11 +79,14 @@ class ModuleManager(object):
         """
         self.modules.clear()
         module_files = []
-        module_paths = os.environ['MAYA_MODULE_PATH'].split(os.pathsep)
+        module_paths = os.environ["MAYA_MODULE_PATH"].split(os.pathsep)
         for p in module_paths:
             try:
-                module_files += [os.path.join(p, x).replace(os.sep, os.altsep or os.sep) for x in os.listdir(p) if
-                                 x.lower()[-3:] == "mod"]
+                module_files += [
+                    os.path.join(p, x).replace(os.sep, os.altsep or os.sep)
+                    for x in os.listdir(p)
+                    if x.lower()[-3:] == "mod"
+                ]
             except OSError:
                 pass  # ignore bad paths
         for eachfile in module_files:
@@ -93,7 +97,7 @@ class ModuleManager(object):
         """
         Yields a modtuple describing the supplied .mod file
         """
-        with open(modfile, 'rt') as filehandle:
+        with open(modfile, "rt") as filehandle:
             for line in filehandle:
                 if line.startswith(("+", "-")):
                     enable, name, version, path = self.parse_mod_entry(line)
@@ -108,7 +112,7 @@ class ModuleManager(object):
         Flags within [] are optional, and can be in any order.
         Currently all optional flags are ignored.
         """
-        split_line = line.split(' ')
+        split_line = line.split(" ")
         enable = split_line.pop(0)
         path = split_line.pop()
         version = split_line.pop()
@@ -116,14 +120,14 @@ class ModuleManager(object):
         return enable, name, version, path
 
     def enable(self, modtuple):
-        self._rewrite_mod(modtuple, '+')
+        self._rewrite_mod(modtuple, "+")
 
     def disable(self, modtuple):
-        self._rewrite_mod(modtuple, '-')
+        self._rewrite_mod(modtuple, "-")
 
     def _rewrite_mod(self, modtuple, character):
         all_lines = []
-        with open(modtuple.file, 'rt') as filehandle:
+        with open(modtuple.file, "rt") as filehandle:
             for line in filehandle:
                 if line.startswith(("+", "-")):
                     enable, name, version, path = self.parse_mod_entry(line)
@@ -131,10 +135,11 @@ class ModuleManager(object):
                         line = character + line[1:]
                 all_lines.append(line)
         try:
-            with open(modtuple.file, 'wt') as filehandle:
-                filehandle.write('\n'.join(all_lines))
+            with open(modtuple.file, "wt") as filehandle:
+                filehandle.write("\n".join(all_lines))
         except IOError:
             pass
+
 
 # GUI classes
 # ======================================
@@ -145,20 +150,20 @@ class ModuleTemplate(lists.ItemTemplate):
 
     def widget(self, item):
         with BindingContext() as bc:
-            with forms.HorizontalExpandForm(height=60, margin=(12, 0), backgroundColor=(.2, .2, .2)) as root:
+            with forms.HorizontalExpandForm(height=60, margin=(12, 0), backgroundColor=(0.2, 0.2, 0.2)) as root:
                 with forms.VerticalExpandForm(width=60) as cbf:
-                    enabled = gui.CheckBox(label='', tag=item, value=item.enabled)
-                    enabled.bind.value > bind() > (item, 'enabled')
+                    enabled = gui.CheckBox(label="", tag=item, value=item.enabled)
+                    enabled.bind.value > bind() > (item, "enabled")
                     cbf.dock(enabled, left=20, top=10, bottom=40, right=5)
                 with forms.FillForm(width=300) as path:
                     with gui.ColumnLayout() as cl:
-                        display_name = gui.Text(font='boldLabelFont')
-                        display_name.bind.label < bind() < (item, 'name')
-                        path = gui.Text(font='smallObliqueLabelFont')
-                        path.bind.label < bind() < (item, 'path')
+                        display_name = gui.Text(font="boldLabelFont")
+                        display_name.bind.label < bind() < (item, "name")
+                        path = gui.Text(font="smallObliqueLabelFont")
+                        path.bind.label < bind() < (item, "path")
                 with gui.GridLayout(width=200, numberOfColumns=2) as btns:
-                    edit = gui.Button(label='Edit', tag=item)
-                    show = gui.Button(label='Show', tag=item)
+                    edit = gui.Button(label="Edit", tag=item)
+                    show = gui.Button(label="Show", tag=item)
         enabled.changeCommand += self.update_status
         show.command += self.show_item
         edit.command += self.edit
@@ -167,21 +172,21 @@ class ModuleTemplate(lists.ItemTemplate):
 
     @classmethod
     def update_status(cls, *args, **kwargs):
-        kwargs['sender'].update_bindings()
+        kwargs["sender"].update_bindings()
 
     @classmethod
     def show_item(cls, *args, **kwargs):
-        wb.open(os.path.dirname(kwargs['sender'].tag.file))
+        wb.open(os.path.dirname(kwargs["sender"].tag.file))
 
     @classmethod
     def edit(cls, *args, **kwargs):
         try:
-            os.startfile(kwargs['sender'].tag.file)
+            os.startfile(kwargs["sender"].tag.file)
         except OSError:
-            if sys.platform.startswith('win'):
-                subprocess.call(['notepad', kwargs['sender'].tag.file])
+            if sys.platform.startswith("win"):
+                subprocess.call(["notepad", kwargs["sender"].tag.file])
             else:
-                subprocess.call(['vi', kwargs['sender'].tag.file])
+                subprocess.call(["vi", kwargs["sender"].tag.file])
 
 
 class ModuleManagerDialog(object):
@@ -198,18 +203,18 @@ class ModuleManagerDialog(object):
             with BindingContext() as bc:
                 with forms.VerticalThreePane(width=512, margin=(4, 4), spacing=(0, 8)) as main:
                     with forms.VerticalForm() as header:
-                        gui.Text(label='Installed Modules')
+                        gui.Text(label="Installed Modules")
 
                     with forms.FillForm() as body:
                         mod_list = lists.VerticalList(itemTemplate=ModuleTemplate)
-                        mod_list.collection < bind() < (self._manager.modules, 'values')
+                        mod_list.collection < bind() < (self._manager.modules, "values")
                         # binds the 'values' method of the ModuleManager's modules{} dictionary
 
                     with forms.HorizontalStretchForm() as footer:
-                        cancel = gui.Button(label='Cancel')
+                        cancel = gui.Button(label="Cancel")
                         cancel.command += self._cancel
                         gui.Separator(style=None)
-                        save = gui.Button(label='Save')
+                        save = gui.Button(label="Save")
                         save.command += self._save
 
         base.fill(main, 5)
@@ -228,9 +233,9 @@ class ModuleManagerDialog(object):
 
     def show(self):
         self._manager.refresh()
-        cmds.layoutDialog(ui=self._layout, title='Module editor')
+        cmds.layoutDialog(ui=self._layout, title="Module editor")
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     m = ModuleManagerDialog()
     m.show()

@@ -26,8 +26,10 @@ class CtlProperty(object):
         self.command = cmd
 
     def __get__(self, obj, objtype):
+        if obj is None:
+            return self
         try:
-            result = self.command(obj.widget, **{'q': True, self.flag: True})
+            result = self.command(obj.widget, **{"q": True, self.flag: True})
         except RuntimeError:
             raise MGuiAttributeError("Cannot access property {0} on {1}".format(self.flag, obj))
         if result is None and self.flag.endswith("rray"):
@@ -36,15 +38,14 @@ class CtlProperty(object):
 
     def __set__(self, obj, value):
         if not self.writeable:
-            raise MGuiAttributeError('attribute .%s is not writable' % self.flag)
+            raise MGuiAttributeError("attribute .%s is not writable" % self.flag)
         try:
-            self.command(obj.widget, **{'e': True, self.flag: value})
+            self.command(obj.widget, **{"e": True, self.flag: value})
         except RuntimeError as e:
             raise MGuiAttributeError("Unable to set {0} on {1}".format(self.flag, obj), e)
 
 
 class WrappedCtlProperty(object):
-
     def __init__(self, flag, cmd, writeable=True, wrapper=None):
         assert callable(cmd), "cmd flag must be a maya command for editing gui objects"
         self.flag = flag or self.FLAG
@@ -53,8 +54,10 @@ class WrappedCtlProperty(object):
         self.wrapper = wrapper if callable(wrapper) else lambda x: x
 
     def __get__(self, obj, objtype):
+        if obj is None:
+            return self
         try:
-            result = self.command(obj.widget, **{'q': True, self.flag: True})
+            result = self.command(obj.widget, **{"q": True, self.flag: True})
         except RuntimeError:
             raise MGuiAttributeError("Cannot access property {0} on {1}".format(self.flag, obj))
         if result is None and self.flag.endswith("rray"):
@@ -63,9 +66,9 @@ class WrappedCtlProperty(object):
 
     def __set__(self, obj, value):
         if not self.writeable:
-            raise MGuiAttributeError('attribute .%s is not writable' % self.flag)
+            raise MGuiAttributeError("attribute .%s is not writable" % self.flag)
         try:
-            self.command(obj.widget, **{'e': True, self.flag: value})
+            self.command(obj.widget, **{"e": True, self.flag: value})
         except RuntimeError as e:
             raise MGuiAttributeError("Unable to set {0} on {1}".format(self.flag, obj), e)
 
@@ -91,6 +94,8 @@ class CallbackProperty(object):
         self.key = key
 
     def __get__(self, obj, objtype):
+        if obj is None:
+            return self
         cb = obj.callbacks.get(self.key, None)
         # @note: don't use simple truth test here! No-handler event evals to false,
         # so manually assigned events are overwritten!

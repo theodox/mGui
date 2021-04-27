@@ -54,8 +54,8 @@ class Colors(object):
     GreenYellow = "#ADFF2F"
     HoneyDew = "#F0FFF0"
     HotPink = "#FF69B4"
-    IndianRed = "="  #CD5C5C"
-    Indigo = "="  #4B0082"
+    IndianRed = "="  # CD5C5C"
+    Indigo = "="  # 4B0082"
     Ivory = "#FFFFF0"
     Khaki = "#F0E68C"
     Lavender = "#E6E6FA"
@@ -140,20 +140,17 @@ class Colors(object):
     Yellow = "#FFFF00"
     YellowGreen = "#9ACD32"
 
-class TextStyle(unicode):
+
+class TextStyle(str):
     """
     for a list of supported text styles, see http://techartsurvival.blogspot.com/2014/04/warning-garish-graphics-ahead.html
     """
-    
-    TAG = '<span{0}>{1}</span>'
+
+    TAG = "<span{0}>{1}</span>"
+
     def __new__(self, val, **attribs):
-        attr = ''
+        attr = ""
         if attribs:
             kv = [str(k).replace("_", "-") + ":" + str(v) for k, v in attribs.items()]
             attr = ' style="{0}"'.format(";".join(kv))
-        return unicode(self.TAG.format(attr, val))
-
-
-
-
-
+        return str(self.TAG.format(attr, val))

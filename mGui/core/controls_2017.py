@@ -6,22 +6,45 @@ from mGui.core import Nested
 from mGui.bindings import BindingContext
 
 
-__all__ = ['WorkspaceControl']
+__all__ = ["WorkspaceControl"]
 
 
 class WorkspaceControl(Nested):
-    '''Wrapper class for cmds.workspaceControl'''
+    """Wrapper class for cmds.workspaceControl"""
+
     CMD = cmds.workspaceControl
-    _ATTRIBS = ['restore', 'dockToPanel', 'tabPosition', 'initialHeight', 'widthProperty', 'requiredControl',
-                'close', 'tabToControl', 'floating', 'stateString', 'r', 'dockToMainWindow',
-                'uiScript', 'label', 'checksPlugins', 'initialWidth', 'minimumWidth', 'collapse',
-                'requiredPlugin', 'dockToControl', 'horizontal', 'heightProperty', 'loadImmediately', 'duplicatable']
-    _CALLBACKS = ['initCallback']
+    _ATTRIBS = [
+        "restore",
+        "dockToPanel",
+        "tabPosition",
+        "initialHeight",
+        "widthProperty",
+        "requiredControl",
+        "close",
+        "tabToControl",
+        "floating",
+        "stateString",
+        "r",
+        "dockToMainWindow",
+        "uiScript",
+        "label",
+        "checksPlugins",
+        "initialWidth",
+        "minimumWidth",
+        "collapse",
+        "requiredPlugin",
+        "dockToControl",
+        "horizontal",
+        "heightProperty",
+        "loadImmediately",
+        "duplicatable",
+    ]
+    _CALLBACKS = ["initCallback"]
 
     def __init__(self, key=None, **kwargs):
         if key is None:
             for i in count(1):
-                key = 'WorkspaceControl{!s}'.format(i)
+                key = "WorkspaceControl{!s}".format(i)
                 if not self.CMD(key, exists=True):
                     break
         super(WorkspaceControl, self).__init__(key, **kwargs)

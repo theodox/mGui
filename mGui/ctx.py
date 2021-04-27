@@ -124,9 +124,9 @@ class ToolEvent(Event):
             v -= tool.start
             v -= tool.finish
             v -= tool.exit
-            if hasattr(tool, 'values'):
+            if hasattr(tool, "values"):
                 v -= tool.values
-            if hasattr(tool, 'create_property_ui'):
+            if hasattr(tool, "create_property_ui"):
                 v -= tool.create_property_ui
 
 
@@ -178,15 +178,16 @@ class Tool(object):
     """
     Represents a scriptContext tool
     """
-    REGISTRY = {}  # don't override this in derived -- always use the Tool version
-    ICON = ''
-    START = 'start'
-    FINISH = 'finish'
-    EXIT = 'exit'
-    PROPERTIES = 'properties'
-    VALUES = 'values'
 
-    EVENT_PREFIX = 'tool'  # give each derived tool a unique name
+    REGISTRY = {}  # don't override this in derived -- always use the Tool version
+    ICON = ""
+    START = "start"
+    FINISH = "finish"
+    EXIT = "exit"
+    PROPERTIES = "properties"
+    VALUES = "values"
+
+    EVENT_PREFIX = "tool"  # give each derived tool a unique name
 
     def __init__(self, name):
         self.name = name
@@ -205,7 +206,7 @@ class Tool(object):
         hook_event(self.EXIT, self.exit)
 
         # if the derived class implements 'properties' and 'values' methods
-        if hasattr(self, 'create_property_ui'):
+        if hasattr(self, "create_property_ui"):
             hook_event(self.PROPERTIES, self.create_property_ui)
             hook_event(self.VALUES, self.values)
 
@@ -215,17 +216,17 @@ class Tool(object):
         """
         Create a context hooked to the events for this instance
         """
-        props = hasattr(self, 'create_property_ui') or None
-        vals = hasattr(self, 'values') or None
+        props = hasattr(self, "create_property_ui") or None
+        vals = hasattr(self, "values") or None
         if not props == vals:
-            raise RuntimeError('Tool classes with custom properties must implement both properties() and values()')
+            raise RuntimeError("Tool classes with custom properties must implement both properties() and values()")
 
         if props and vals:
             props = self.PROPERTIES
             vals = self.VALUES
 
         opts = contextOptions.options(self.EVENT_PREFIX, self.START, self.FINISH, self.EXIT, props, vals)
-        opts['title'] = self.name
+        opts["title"] = self.name
         context_name = cmds.scriptCtx(**opts)
         Tool.REGISTRY[context_name] = self
         self.context_name = context_name
@@ -241,7 +242,6 @@ class Tool(object):
             lazy_reset = lambda: cmds.setToolTo(self.context_name)
             utils.executeDeferred(lazy_reset)
 
-
     def finish(self, *args, **kwargs):
         pass
 
@@ -254,16 +254,16 @@ class Tool(object):
         target = cls.retrieve(name_or_context)
         if target is not None:
             ToolEvent.delete_tool(target)
-            for k, v in Tool.REGISTRY.items():
+            for k, v in Tool.REGISTRY.copy().items():
                 if v == target:
-                    del (Tool.REGISTRY[k])
+                    del Tool.REGISTRY[k]
 
     def set_select_mode(self, *types):
         """
         replace the existing selection mode (object, component etc) with the types supplied.  Cache the existing mode
         for later restore
         """
-        self.select_mode = {k: cmds.selectMode(**{'q': 1, k: 1}) for k in ALL_SELECT_MODES}
+        self.select_mode = {k: cmds.selectMode(**{"q": 1, k: 1}) for k in ALL_SELECT_MODES}
         options = {k: k in types for k in ALL_SELECT_MODES}
         cmds.selectMode(**options)
 
@@ -272,7 +272,7 @@ class Tool(object):
         replace the existing selection type (face, vertex, etc) with the types supplied.  Cache the existing types for
         later restore
         """
-        self.select_type = {k: cmds.selectType(**{'q': 1, k: 1}) for k in ALL_SELECT_TYPES}
+        self.select_type = {k: cmds.selectType(**{"q": 1, k: 1}) for k in ALL_SELECT_TYPES}
         options = {k: k in types for k in ALL_SELECT_TYPES}
         cmds.selectType(**options)
 
@@ -330,7 +330,7 @@ class UITool(object):
         """
         createa BindingContext if needed
         """
-        if not hasattr(self, '_bind_ctx'):
+        if not hasattr(self, "_bind_ctx"):
             self._bind_ctx = BindingContext()
         return self._bind_ctx
 
@@ -365,10 +365,12 @@ class UITool(object):
 # ---------------------------------------------
 # convenience constants
 
+
 class Cursors(object):
     """
     The available cursors for scriptCtx commands
     """
+
     create = "create"
     dolly = "dolly"
     edit = "edit"
@@ -405,6 +407,7 @@ class Cursors(object):
 # ----------------------------------------------
 # helper classes for use in assembling contexts
 
+
 class StructuredOptionProperty(object):
     """
     propety accessor for StructuredOptions.  This is used
@@ -431,24 +434,23 @@ class StructuredOptionsMeta(type):
     """
 
     def __new__(cls, name, bases, kwargs):
-        class_props = {'_PROPERTIES': []}
+        class_props = {"_PROPERTIES": []}
         for k, v in kwargs.items():
             if isinstance(v, tuple):
                 new_prop = StructuredOptionProperty(k, v[0], v[1])
                 class_props[k] = new_prop
-                class_props['_PROPERTIES'].append(new_prop)
+                class_props["_PROPERTIES"].append(new_prop)
             else:
                 class_props[k] = v
         return type.__new__(cls, name, bases, class_props)
 
 
-class StructuredOptionSet(object):
+class StructuredOptionSet(object, metaclass=StructuredOptionsMeta):
     """
     Base class for structured options. They are just a clean way
     to assemble the dictionary of options needed by the scriptCtx
     command
     """
-    __metaclass__ = StructuredOptionsMeta
 
     def value(self):
         results = {}
@@ -461,11 +463,12 @@ class PromptOptions(StructuredOptionSet):
     """
     The prompts for a selection set
     """
-    prompt = 'ssp', ''
-    unselected = 'snp', 'select something'
-    completed = 'dsp', 'selection completed'
-    hud_prompt = 'ssh', ''
-    hud_unselected = 'snh', ''
+
+    prompt = "ssp", ""
+    unselected = "snp", "select something"
+    completed = "dsp", "selection completed"
+    hud_prompt = "ssh", ""
+    hud_unselected = "snh", ""
 
 
 class SelectionSetOptions(StructuredOptionSet):
@@ -473,10 +476,11 @@ class SelectionSetOptions(StructuredOptionSet):
     A selection set. A finished context includes at least one
     and possibly more of these
     """
-    autocomplete = 'sac', False
-    toggle = 'sat', False
-    allow_excess = 'sae', False
-    count = 'ssc', 0
+
+    autocomplete = "sac", False
+    toggle = "sat", False
+    allow_excess = "sae", False
+    count = "ssc", 0
 
     def __init__(self, prompt):
         self.prompt = prompt
@@ -491,15 +495,16 @@ class ScriptContextFactory(StructuredOptionSet):
     """
     Collect selection sets into a single dictionary to be fed to the ScriptCtx command.
     """
-    cursor = 'tct', Cursors.track
-    exit_on_completion = 'euc', True
-    ignore_invalid = 'iii', True
-    root_select = 'ers', False
-    show_manips = 'sm', False
-    cumulative = 'cls', True
-    image1 = 'image1', 'pythonFamily.png'
-    image2 = 'image2', ''
-    image3 = 'image3', ''
+
+    cursor = "tct", Cursors.track
+    exit_on_completion = "euc", True
+    ignore_invalid = "iii", True
+    root_select = "ers", False
+    show_manips = "sm", False
+    cumulative = "cls", True
+    image1 = "image1", "pythonFamily.png"
+    image2 = "image2", ""
+    image3 = "image3", ""
 
     def __init__(self, *selectionSets):
         self.sets = selectionSets
@@ -507,8 +512,8 @@ class ScriptContextFactory(StructuredOptionSet):
     def options(self, tool_class, start_name, finish_name, exit_name, props_name, vals_name):
         result = self.value()
 
-        result['tss'] = len(self.sets)
-        opt_flags = ['snp', 'ssp', 'dsp', 'snh', 'ssh', 'ssc', 'sac', 'sat']
+        result["tss"] = len(self.sets)
+        opt_flags = ["snp", "ssp", "dsp", "snh", "ssh", "ssc", "sac", "sat"]
         for flag in opt_flags:
             result[flag] = []
         for each_set in self.sets:
@@ -518,15 +523,15 @@ class ScriptContextFactory(StructuredOptionSet):
 
         def generate_event_callback(classname, tool_name):
             long_name = classname + "_" + tool_name
-            return '''python("from mGui.ctx import ToolEvent; ToolEvent.fire('%s')")''' % long_name
+            return """python("from mGui.ctx import ToolEvent; ToolEvent.fire('%s')")""" % long_name
 
-        result['ts'] = generate_event_callback(tool_class, start_name)
-        result['tf'] = generate_event_callback(tool_class, finish_name)
-        result['fcs'] = generate_event_callback(tool_class, exit_name)
+        result["ts"] = generate_event_callback(tool_class, start_name)
+        result["tf"] = generate_event_callback(tool_class, finish_name)
+        result["fcs"] = generate_event_callback(tool_class, exit_name)
 
         if props_name:
             # if custom properties are provided, define mel proxies
-            result['bcn'] = tool_class
+            result["bcn"] = tool_class
             prop_event = generate_event_callback(tool_class, props_name)
             val_event = generate_event_callback(tool_class, vals_name)
             maya.mel.eval("""global proc %sProperties(){%s;}""" % (tool_class, prop_event))

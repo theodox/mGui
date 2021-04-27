@@ -14,7 +14,6 @@ from mGui.lists import *
 
 
 class TestMGuiAPI(TestCase):
-
     def test_ActiveOptionMenu(self):
         assert ActiveOptionMenu
 
@@ -395,10 +394,9 @@ class TestMGuiAPI(TestCase):
 
 
 class TestFormsAPI(TestCase):
-
     def test_Form(self):
         assert Form
-        
+
     def test_FillForm(self):
         assert FillForm
 
@@ -479,16 +477,16 @@ class TestControlAPI(TestCase):
         assert callable(Control.wrap)
 
     def test_Nested_exists(self):
-        assert 'exists' in Control._ATTRIBS
+        assert "exists" in Control._ATTRIBS
 
     def test_Control_onDeleted(self):
-        assert hasattr(Control, 'parent')
+        assert hasattr(Control, "parent")
 
     def test_Control_onDeleted(self):
-        assert hasattr(Control, 'delete')
+        assert hasattr(Control, "delete")
 
     def test_Control_onDeleted(self):
-        assert hasattr(Control, 'forget')
+        assert hasattr(Control, "forget")
 
 
 class TestNestedAPI(TestCase):
@@ -545,5 +543,6 @@ class TestWindowAPI(TestCase):
     def hide(self):
         assert callable(Windows.hide)
 
-if __name__ == '__main__':
+
+if __name__ == "__main__":
     main()

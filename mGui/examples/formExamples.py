@@ -8,35 +8,37 @@ This example creates a window which shows many of the different types of form la
 
 
 def create_sphere(*args, **kwargs):
-    print "create my sphere"
+    print("create my sphere")
     cmds.polySphere()
 
 
 def create_cube(*args, **kwargs):
-    print "create my cube"
+    print("create my cube")
     cmds.polyCube()
 
 
 def create_cone(*args, **kwargs):
-    print "create my cone"
+    print("create my cone")
     cmds.polyCone()
 
 
 def create_plane(*args, **kwargs):
-    print "create my plane"
+    print("create my plane")
     cmds.polyPlane()
 
 
 def create_cylinder(*args, **kwargs):
-    print "create my cylinder"
+    print("create my cylinder")
     cmds.polyCylinder()
 
 
-COMMANDS = [('Create Sphere', create_sphere),
-            ('Create Cube', create_cube),
-            ('Create Cone', create_cone),
-            ('Create Plane', create_plane),
-            ('Create Cylinder', create_cylinder)]
+COMMANDS = [
+    ("Create Sphere", create_sphere),
+    ("Create Cube", create_cube),
+    ("Create Cone", create_cone),
+    ("Create Plane", create_plane),
+    ("Create Cylinder", create_cylinder),
+]
 
 
 def example_Forms(*args, **kwargs):
@@ -46,24 +48,29 @@ def example_Forms(*args, **kwargs):
     formExamples.example_Forms()
     """
     # Defining these in here, because well, the functions don't exist yet.
-    examples = [("FillForm", example_FillForm),
-                ("FooterForm", example_FooterForm),
-                ("HeaderForm", example_HeaderForm),
-                ("HorizontalExpandForm", example_HorizontalExpandForm),
-                ("HorizontalForm", example_HorizontalForm),
-                ("HorizontalStretchForm", example_HorizontalStretchForm),
-                ("HorizontalThreePane", example_HorizontalThreePane),
-                ("VerticalExpandForm", example_VerticalExpandForm),
-                ("VerticalForm", example_VerticalForm),
-                ("VerticalStretchForm", example_VerticalStretchForm),
-                ("VerticalThreePane", example_VerticalThreePane)]
+    examples = [
+        ("FillForm", example_FillForm),
+        ("FooterForm", example_FooterForm),
+        ("HeaderForm", example_HeaderForm),
+        ("HorizontalExpandForm", example_HorizontalExpandForm),
+        ("HorizontalForm", example_HorizontalForm),
+        ("HorizontalStretchForm", example_HorizontalStretchForm),
+        ("HorizontalThreePane", example_HorizontalThreePane),
+        ("VerticalExpandForm", example_VerticalExpandForm),
+        ("VerticalForm", example_VerticalForm),
+        ("VerticalStretchForm", example_VerticalStretchForm),
+        ("VerticalThreePane", example_VerticalThreePane),
+    ]
 
     with gui.Window(title="Forms Examples", height=128) as window:
         with forms.FillForm(margin=(12, 12)):
             with forms.HeaderForm(width=320) as main:
-                gui.ScrollField(height=80,
-                                text="""This example shows many of the different kinds of formlayout presets in mGui.forms. Click buttons to show examples, and resize the windows to see the behavior""",
-                                ww=True, ed=0)
+                gui.ScrollField(
+                    height=80,
+                    text="""This example shows many of the different kinds of formlayout presets in mGui.forms. Click buttons to show examples, and resize the windows to see the behavior""",
+                    ww=True,
+                    ed=0,
+                )
                 with forms.VerticalForm(spacing=(0, 4)):
                     for example_name, example_command in examples:
                         gui.Button(label=example_name).command += example_command
@@ -95,7 +102,7 @@ def example_FooterForm(*args, **kwargs):
     with gui.Window(title="FooterForm") as window:
         with forms.FooterForm(width=320, margin=(12, 12)) as main:
             gui.ScrollField(text="expandable top section")
-            gui.Button(label='footer')
+            gui.Button(label="footer")
     window.show()
 
 
@@ -108,7 +115,7 @@ def example_HeaderForm(*args, **kwargs):
     """
     with gui.Window(title="HeaderForm") as window:
         with forms.HeaderForm(width=320, margin=(12, 12)) as main:
-            gui.Button(label='header')
+            gui.Button(label="header")
             gui.ScrollField(text="expandable bottom section")
 
     window.show()
@@ -154,7 +161,13 @@ def example_HorizontalStretchForm(*args, **kwargs):
     """
     with gui.Window(title="HorizontalStretchForm", height=64, width=512) as window:
         with forms.HorizontalStretchForm(width=320, margin=(12, 12)) as main:
-            gui.ScrollField(text="Components stretch horizontally", ed=0, ww=True, width=64, height=40)
+            gui.ScrollField(
+                text="Components stretch horizontally",
+                ed=0,
+                ww=True,
+                width=64,
+                height=40,
+            )
 
             for label, command in COMMANDS:
                 gui.Button(label=label, height=40).command += command
@@ -247,5 +260,5 @@ def example_VerticalThreePane(*args, **kwargs):
     window.show()
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     example = example_Forms()

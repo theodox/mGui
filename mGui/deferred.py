@@ -7,11 +7,13 @@ import maya.cmds as cmds
 
 Maya_is_ready = MayaEvent()
 
+
 class MayaUIStatus(object):
     """
     This object can be used to check to see if the maya UI has finished booting. When the UI has loaded,
     MayaUIStatus.ready will be True; until them it will be false
     """
+
     ready = False
 
     @classmethod
@@ -19,5 +21,5 @@ class MayaUIStatus(object):
         cls.ready = True
 
 
-cmds.scriptJob(e=('idle', Maya_is_ready), runOnce=True)
+cmds.scriptJob(e=("idle", Maya_is_ready), runOnce=True)
 Maya_is_ready += MayaUIStatus.maya_is_ready

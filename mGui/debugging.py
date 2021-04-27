@@ -17,6 +17,7 @@ class DevFilter(logging.Filter):
     This is really duplicating what I think is the basic functionality of the setLevel command in base Loggers,
     but going the 'obvious' route did not work.  If you can do the same thing in the canonical way, replace this!
     """
+
     _active_level = logging.WARNING
 
     def filter(self, record):
@@ -34,6 +35,7 @@ class DevFormatter(logging.Formatter):
     """
     Use a more detailed printout in dev mode
     """
+
     DEV = "%(module)s.%(funcName)s(%(lineno)s):  %(message)s"
     USER = "  %(message)s"
 
@@ -55,7 +57,7 @@ class DevFormatter(logging.Formatter):
 
 
 # log to the maya listener
-Logger = logging.getLogger('mGui')
+Logger = logging.getLogger("mGui")
 _listener_handler = logging.StreamHandler(sys.stdout)
 _listener_handler.setFormatter(DevFormatter())
 Logger.addHandler(_listener_handler)
@@ -64,16 +66,15 @@ Logger.setLevel(1)
 Logger.addFilter(DevFilter())
 
 
-
 def verbose(state):
-    '''
+    """
     if True, print all log messages; if not, print only INFO or higher.  Use the dev format when true and the plain
     format when false.
-    '''
+    """
     onoff = lambda p: "ON" if p else "OFF"
     sys.stdout.write("# verbose output is %s" % onoff(state))
     DevFilter.set_dev(state)
     DevFormatter.set_dev(state)
 
 
-__all__ = ['Logger', 'verbose']
+__all__ = ["Logger", "verbose"]

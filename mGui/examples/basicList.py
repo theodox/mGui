@@ -7,7 +7,7 @@ from mGui.observable import ViewCollection
 
 
 def basic_list_binding():
-    '''
+    """
     Illustrates the basics of binding to a list.  The collection 'bound' contains some strings, and we
     bind it to the VerticalList 'list_view'.
 
@@ -16,17 +16,17 @@ def basic_list_binding():
 
     This example also illustrates how to use closures to capture inter-object references, and how to keep callback
     functions alive without creating a full class.
-    '''
+    """
 
-    with gui.BindingWindow(title='example window', menuBar=True) as test_window:
-        bound = ViewCollection('pPlane1', 'pCube2')
+    with gui.BindingWindow(title="example window", menuBar=True) as test_window:
+        bound = ViewCollection("pPlane1", "pCube2")
         with forms.VerticalThreePane() as main:
             header = gui.Text(label="List classes make it easy to manage collections")
             list_view = lists.VerticalList(synchronous=True)
             bound > bind() > list_view.collection
             with forms.HorizontalStretchForm() as buttons:
-                more = gui.Button(label='Add another')
-                close = gui.Button(label='close')
+                more = gui.Button(label="Add another")
+                close = gui.Button(label="close")
 
     # use closures to capture the UI names without a full class
     def close_window(*_, **__):
@@ -43,6 +43,6 @@ def basic_list_binding():
     return test_window
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     the_window = basic_list_binding()
     the_window.show()

@@ -1,4 +1,4 @@
-__author__ = 'stevet'
+__author__ = "stevet"
 import re
 import time
 import inspect
@@ -25,9 +25,9 @@ items = ViewCollection(*_items)
 
 class InputBuffer(object):
 
-    '''
+    """
     accumulate inputs until a certain amount of time passes
-    '''
+    """
 
     def __init__(self, parent, fn, interval=1):
         self.last = time.time()
@@ -81,6 +81,6 @@ def main():
     return w
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     win = main()
     win.show()

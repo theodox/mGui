@@ -25,16 +25,47 @@ class ProgressBar(Control):
         for item in progbar.iter(range(0,100)):
             print item
     """
+
     CMD = cmds.progressBar
 
-    _ATTRIBS = ['annotation', 'backgroundColor', 'beginProgress', 'defineTemplate', 'docTag', 'enable',
-                'enableBackground', 'endProgress', 'exists', 'fullPathName', 'height', 'isCancelled',
-                'isInterruptable', 'isObscured', 'manage', 'maxValue', 'minValue',
-                'numberOfPopupMenus', 'parent', 'popupMenuArray', 'preventOverride', 'progress', 'status',
-                'step', 'useTemplate', 'visible', 'visibleChangeCommand', 'width']
+    _ATTRIBS = [
+        "annotation",
+        "backgroundColor",
+        "beginProgress",
+        "defineTemplate",
+        "docTag",
+        "enable",
+        "enableBackground",
+        "endProgress",
+        "exists",
+        "fullPathName",
+        "height",
+        "isCancelled",
+        "isInterruptable",
+        "isObscured",
+        "manage",
+        "maxValue",
+        "minValue",
+        "numberOfPopupMenus",
+        "parent",
+        "popupMenuArray",
+        "preventOverride",
+        "progress",
+        "status",
+        "step",
+        "useTemplate",
+        "visible",
+        "visibleChangeCommand",
+        "width",
+    ]
 
-    _CALLBACKS = ['dragCallback', 'dropCallback', 'visibleChangeCommand']
-    _READ_ONLY = ['isObscured', 'popupMenuArray', 'numberOfPopupMenus', 'isMainProgressBar']
+    _CALLBACKS = ["dragCallback", "dropCallback", "visibleChangeCommand"]
+    _READ_ONLY = [
+        "isObscured",
+        "popupMenuArray",
+        "numberOfPopupMenus",
+        "isMainProgressBar",
+    ]
 
     def start(self):
         """
@@ -86,9 +117,8 @@ class MainProgressBar(ProgressBar):
     """
 
     def __init__(self):
-
         def fake_init(self, *_, **__):
-            return mel.eval('$__mGui_tmp_gMainProgressBar = $gMainProgressBar')
+            return mel.eval("$__mGui_tmp_gMainProgressBar = $gMainProgressBar")
 
         self.CMD = fake_init
         super(MainProgressBar, self).__init__()
@@ -112,15 +142,15 @@ class MainProgressBar(ProgressBar):
 
     def iter(self, generator, increment=1, close=True, interruptable=False, handler=None):
         """
-        iterate over <generator>, updating the progress bar for each item. The progress bar will show the string
-        representation of each item in the status bar.  Each item is yielded up after the progress bar updates.
+                iterate over <generator>, updating the progress bar for each item. The progress bar will show the string
+                representation of each item in the status bar.  Each item is yielded up after the progress bar updates.
 
-        If interruptable is True, the user can cancel using the escape key. This raises a UserCancelledProgress
-        exception.  If a callable is supplied as  <handler>, that function will be called with no arguments
-        when the user requests the cancellation.
+                If interruptable is True, the user can cancel using the escape key. This raises a UserCancelledProgress
+                exception.  If a callable is supplied as  <handler>, that function will be called with no arguments
+                when the user requests the cancellation.
 
-        If 'close' is true, the progress bar wil clean itself up with end() when completed
-=       """
+                If 'close' is true, the progress bar wil clean itself up with end() when completed
+        ="""
         should_close = close
         self.start(interruptable=interruptable)
         try:
@@ -128,7 +158,7 @@ class MainProgressBar(ProgressBar):
                 if self.isCancelled:
                     if handler:
                         handler()
-                    raise UserCancelledProgress('User requested cancellation')
+                    raise UserCancelledProgress("User requested cancellation")
 
                 self.update(increment, str(item))
                 yield item

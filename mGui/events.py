@@ -42,7 +42,7 @@ class Event(object):
 
     a hard reference to a handler can be stored on another object when binding to the event, this can be used
     for when handlers are defined inside another functions scope. For example:
-        
+
         > x = Event()
         > def test(*args, **kwargs):
         >   print 'hello world'
@@ -88,10 +88,10 @@ class Event(object):
     """
 
     def __init__(self, **data):
+        # Set list of handlers callables. Use a set to avoid multiple calls on one handler
         self._handlers = set()
-        '''Set list of handlers callables. Use a set to avoid multiple calls on one handler'''
         self.data = data
-        self.data['event'] = self
+        self.data["event"] = self
 
     def _add_handler(self, handler):
         """
@@ -105,7 +105,7 @@ class Event(object):
             raise ValueError("%s is not callable", handler)
 
         if stash is not None:
-            setattr(stash, '_sh_{}'.format(id(handler)), handler)
+            setattr(stash, "_sh_{}".format(id(handler)), handler)
 
         self._handlers.add(get_weak_reference(handler))
         return self
@@ -119,7 +119,7 @@ class Event(object):
             handler, stash = handler
 
         try:
-            delattr(stash, '_sh_{}'.format(id(handler)))
+            delattr(stash, "_sh_{}".format(id(handler)))
         except AttributeError:
             pass
 
@@ -164,8 +164,8 @@ class Event(object):
     __iadd__ = _add_handler
     __isub__ = _remove_handler
 
-    def __del__(self):
-        print 'event expired'
+    # def __del__(self):
+    #     print(f'event expired {self!s}')
 
 
 class MayaEvent(Event):
@@ -195,6 +195,7 @@ class DeadReferenceError(TypeError):
     has been garbage collected. Used by Events to know when to drop dead
     references
     """
+
     pass
 
 
@@ -208,24 +209,25 @@ class WeakMethodBound(object):
     hashable ID so that Events can identify multiple references to the same
     method and not duplicate them
     """
-    __slots__ = ('function', 'referent', 'ID', '_ref_name')
+
+    __slots__ = ("function", "referent", "ID", "_ref_name")
 
     def __init__(self, f):
 
-        self.function = f.im_func
-        self.referent = weakref.ref(f.im_self)
-        self._ref_name = f.im_func.__name__
-        self.ID = id(f.im_self) ^ id(f.im_func.__name__)
+        self.function = f.__func__
+        self.referent = weakref.ref(f.__self__)
+        self._ref_name = f.__func__.__name__
+        self.ID = id(f.__self__) ^ id(f.__func__.__name__)
 
     def __call__(self, *args, **kwargs):
         ref = self.referent()
         if not ref is False and not ref is None:
-            return apply(self.function, (self.referent(),) + args, kwargs)
+            return self.function(*(self.referent(),) + args, **kwargs)
         else:
             raise DeadReferenceError("Reference to the bound method {0} no longer exists".format(self._ref_name))
 
     def __eq__(self, other):
-        if not hasattr(other, 'ID'):
+        if not hasattr(other, "ID"):
             return False
         return self.ID == other.ID
 
@@ -237,21 +239,22 @@ class WeakMethodFree(object):
     """
     Encapsulates a weak reference to an unbound method
     """
-    __slots__ = ('function', 'ID', '_ref_name')
+
+    __slots__ = ("function", "ID", "_ref_name")
 
     def __init__(self, f):
         self.function = weakref.ref(f)
         self.ID = id(f)
-        self._ref_name = getattr(f, '__name__', "'unnamed'")
+        self._ref_name = getattr(f, "__name__", "'unnamed'")
 
     def __call__(self, *args, **kwargs):
         if self.function():
-            return apply(self.function(), args, kwargs)
+            return self.function()(*args, **kwargs)
         else:
             raise DeadReferenceError("Reference to unbound method {0} no longer exists".format(self._ref_name))
 
     def __eq__(self, other):
-        if not hasattr(other, 'ID'):
+        if not hasattr(other, "ID"):
             return False
         return self.ID == other.ID
 
@@ -265,7 +268,7 @@ def get_weak_reference(f):
     appropriate
     """
     try:
-        f.im_func
+        f.__func__
     except AttributeError:
         return WeakMethodFree(f)
     return WeakMethodBound(f)

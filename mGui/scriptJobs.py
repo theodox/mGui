@@ -8,7 +8,8 @@ import maya.cmds as cmds
 import mGui.events as events
 import mGui.properties as properties
 from mGui.debugging import Logger
-import  weakref
+import weakref
+
 
 class ScriptJobEvent(events.Event):
     """
@@ -41,23 +42,23 @@ class ScriptJobEvent(events.Event):
         self.script_flag = scriptJobFlag
         self.event_type = eventType
         super(ScriptJobEvent, self).__init__(**kwargs)
-        self.data['scriptJob'] = -1
+        self.data["scriptJob"] = -1
 
     def start(self, **sjFlags):
         kwargs = {self.script_flag: (self.event_type, self)}
         kwargs.update(sjFlags)
-        self.data['scriptJob'] = cmds.scriptJob(**kwargs)
-        Logger.info('start scriptJob %s' % self.__class__)
+        self.data["scriptJob"] = cmds.scriptJob(**kwargs)
+        Logger.info("start scriptJob %s" % self.__class__)
 
     def kill(self):
-        if self.data.get('scriptJob') > 0:
-            cmds.scriptJob(k=self.data['scriptJob'])
-            self.data['scriptJob'] = -1
-            Logger.info('kill scriptJob %s' % self.__class__)
+        if self.data.get("scriptJob") > 0:
+            cmds.scriptJob(k=self.data["scriptJob"])
+            self.data["scriptJob"] = -1
+            Logger.info("kill scriptJob %s" % self.__class__)
 
     @property
     def running(self):
-        sid = self.data['scriptJob']
+        sid = self.data["scriptJob"]
         return sid != -1 and cmds.scriptJob(exists=sid)
 
 
@@ -66,6 +67,7 @@ class ScriptJobEvent(events.Event):
 #
 # See maya docs for more on the distinction between scriptJob -e, scriptJob -ct , etc
 # ======================================================================================================================
+
 
 class AttributeChange(ScriptJobEvent):
     def __init__(self, attrib, **kwargs):
@@ -90,6 +92,7 @@ class AttributeDeleted(ScriptJobEvent):
 #
 # See maya docs for more on the distinction between scriptJob -e, scriptJob -ct , etc
 # ======================================================================================================================
+
 
 class ScriptJobE(ScriptJobEvent):
     EVENT = ""
@@ -452,6 +455,7 @@ class RebuildUIValues(ScriptJobE):
 # See maya docs for more on the distinction between scriptJob -e, scriptJob -ct , etc
 # ======================================================================================================================
 
+
 class ScriptJobC(ScriptJobEvent):
     CONDITION = ""
 
@@ -725,6 +729,7 @@ class CustomCondition(ScriptJobC):
 # Property Descriptor
 # used by all ScriptJobEvent classes
 
+
 class ScriptJobCallbackProperty(properties.CallbackProperty):
     """
     A property descriptor that creates a scriptJob and a corresponding ScriptJobEvent
@@ -749,7 +754,7 @@ class ScriptJobCallbackProperty(properties.CallbackProperty):
 
     def __set__(self, obj, sjEvent):
         if not isinstance(sjEvent, ScriptJobEvent):
-            raise ValueError('Callback properties must be instances of mGui.scriptJobs.ScriptJobEvent')
+            raise ValueError("Callback properties must be instances of mGui.scriptJobs.ScriptJobEvent")
         obj.callbacks[self.key] = sjEvent
         if not sjEvent.running:
             sjEvent.start(**self.run_flags)

@@ -33,8 +33,17 @@ from mGui.styles import Bounds
 
 
 def physical_controls(widget):
-    return (i for i in widget.controls if
-            i.CMD not in (cmds.popupMenu, cmds.menuItem, cmds.radioCollection, cmds.iconTextRadioCollection))
+    return (
+        i
+        for i in widget.controls
+        if i.CMD
+        not in (
+            cmds.popupMenu,
+            cmds.menuItem,
+            cmds.radioCollection,
+            cmds.iconTextRadioCollection,
+        )
+    )
 
 
 class Form(FormLayout):
@@ -47,68 +56,68 @@ class Form(FormLayout):
     """
 
     def __init__(self, key=None, **kwargs):
-
         margin, spacing = None, None
-        if 'margin' in kwargs:
-            margin = kwargs.pop('margin')
-        if 'spacing' in kwargs:
-            spacing = kwargs.pop('spacing')
+        if "margin" in kwargs:
+            margin = kwargs.pop("margin")
+        if "spacing" in kwargs:
+            spacing = kwargs.pop("spacing")
         super(Form, self).__init__(key, **kwargs)
         if margin:
-            self._style['margin'] = margin
+            self._style["margin"] = margin
         if spacing:
-            self._style['spacing'] = spacing
+            self._style["spacing"] = spacing
 
-        self.margin = Bounds(*self._style.get('margin', (0, 0)))
-        self.spacing = Bounds(*self._style.get('spacing', (0, 0)))
+        self.margin = Bounds(*self._style.get("margin", (0, 0)))
+        self.spacing = Bounds(*self._style.get("spacing", (0, 0)))
 
     def _fill(self, ctrl, *sides, **kwargs):
         """
         convenience wrapper for tedious formLayout editing
         """
-        margin = kwargs.get('margin', None)
+        margin = kwargs.get("margin", None)
         ct = [ctrl for _ in sides]
         mr = [margin for _ in sides]
         if margin is None:
             mr = [self.margin[_] for _ in sides]
-        self.attachForm = zip(ct, sides, mr)
+        self.attachForm = list(zip(ct, sides, mr))
 
     def top(self, ctrl, margin=None):
         """
         Docks 'ctrl' against the top of the form, with the supplied margin on top, left and right
         """
-        self._fill(ctrl, 'top', 'left', 'right', margin=margin)
+        self._fill(ctrl, "top", "left", "right", margin=margin)
 
     def left(self, ctrl, margin=None):
         """
         dock 'ctrl' along the left side of the form with the supplied margin
         """
-        self._fill(ctrl, 'top', 'left', 'bottom', margin=margin)
+        self._fill(ctrl, "top", "left", "bottom", margin=margin)
 
     def right(self, ctrl, margin=None):
         """
         dock 'ctrl' along the right side of the form with the supplied margin
         """
-        self._fill(ctrl, 'top', 'bottom', 'right', margin=margin)
+        self._fill(ctrl, "top", "bottom", "right", margin=margin)
 
     def bottom(self, ctrl, margin=None):
         """
         dock 'ctrl' along the bottom of the form with the supplied margin
         """
-        self._fill(ctrl, 'bottom', 'left', 'right', margin=margin)
+        self._fill(ctrl, "bottom", "left", "right", margin=margin)
 
     def fill(self, ctrl, margin=None):
         """
         docks 'ctrl' into the form filling it completely with suppled margin on all sides
         """
-        sides = ['top', 'bottom', 'left', 'right']
+        sides = ["top", "bottom", "left", "right"]
         self._fill(ctrl, *sides, margin=margin)
 
     def snap(self, ctrl1, ctrl2, edge, space=None):
         """
         docs 'ctrl1' to 'ctrl2' along the supplied edge (top, left, etc) with the supplied margin
         """
-        if space is None: space = self.spacing[edge]
+        if space is None:
+            space = self.spacing[edge]
         self.attachControl = (ctrl1, edge, space, ctrl2)
 
     def form_attachments(self, *sides):
@@ -124,36 +133,36 @@ class Form(FormLayout):
         returns a series of (control, side, space, control) for use in serial placement
         """
         first, second = itertools.tee(physical_controls(self))
-        second.next()
-        return [(s, side, self.spacing[side], f) for f, s in itertools.izip(first, second)]
+        next(second)
+        return [(s, side, self.spacing[side], f) for f, s in zip(first, second)]
 
     def percentage_series(self, side):
 
-        side2 = {'left': 'right', 'right': 'left', 'top': 'bottom', 'bottom': 'top'}[side]
+        side2 = {"left": "right", "right": "left", "top": "bottom", "bottom": "top"}[side]
 
-        widths = [i.width if hasattr(i, 'width') else 0 for i in physical_controls(self)]
+        widths = [i.width if hasattr(i, "width") else 0 for i in physical_controls(self)]
         total_width = sum(widths)
-        proportions = map(lambda q: q * 100.0 / total_width, widths)
+        proportions = [q * 100.0 / total_width for q in widths]
         p_l = len(proportions)
         left_edges = [sum(proportions[:r]) for r in range(0, p_l)]
         right_edges = [sum(proportions[:r]) for r in range(1, p_l + 1)]
         ap = []
-        for c, l, r in itertools.izip(physical_controls(self), left_edges, right_edges):
+        for c, l, r in zip(physical_controls(self), left_edges, right_edges):
             ap.append((c, side, self.spacing[side], l))
             ap.append((c, side2, self.spacing[side2], r))
         return ap
 
     def equal_series(self, side):
-        side2 = {'left': 'right', 'right': 'left', 'top': 'bottom', 'bottom': 'top'}[side]
+        side2 = {"left": "right", "right": "left", "top": "bottom", "bottom": "top"}[side]
 
         widths = [1 for each_item in physical_controls(self)]
         total_width = sum(widths)
-        proportions = map(lambda q: q * 100.0 / total_width, widths)
+        proportions = [q * 100.0 / total_width for q in widths]
         p_l = len(proportions)
         left_edges = [sum(proportions[:r]) for r in range(0, p_l)]
         right_edges = [sum(proportions[:r]) for r in range(1, p_l + 1)]
         ap = []
-        for c, l, r in itertools.izip(physical_controls(self), left_edges, right_edges):
+        for c, l, r in zip(physical_controls(self), left_edges, right_edges):
             ap.append((c, side, self.spacing[side], l))
             ap.append((c, side2, self.spacing[side2], r))
         return ap
@@ -167,42 +176,49 @@ class Form(FormLayout):
         Number (eg 10):  dock to form with this margin along this edge
         (ctrl2, number): dock to other control 'ctrl2' along this edge, with supplied margin
         """
-
-        if not hasattr(top, '__iter__'): top = (None, top)
-        if not hasattr(bottom, '__iter__'): bottom = (None, bottom)
-        if not hasattr(left, '__iter__'): left = (None, left)
-        if not hasattr(right, '__iter__'): right = (None, right)
+        # TODO: Should we keep these as hasattr checks? or just check if kw is None?
+        if not hasattr(top, "__iter__"):
+            top = (None, top)
+        if not hasattr(bottom, "__iter__"):
+            bottom = (None, bottom)
+        if not hasattr(left, "__iter__"):
+            left = (None, left)
+        if not hasattr(right, "__iter__"):
+            right = (None, right)
 
         ac = lambda edge, other, margin: cmds.formLayout(self.widget, e=True, ac=(ctrl, edge, margin, other))
         af = lambda edge, ignore, margin: cmds.formLayout(self.widget, e=True, af=(ctrl, edge, margin))
 
         if top[0]:
-            ac('top', *top)
+            ac("top", *top)
         elif top[1]:
-            af('top', *top)
+            af("top", *top)
 
         if left[0]:
-            ac('left', *left)
+            ac("left", *left)
         elif left[1]:
-            af('left', *left)
+            af("left", *left)
 
         if bottom[0]:
-            ac('bottom', *bottom)
+            ac("bottom", *bottom)
         elif bottom[1]:
-            af('bottom', *bottom)
+            af("bottom", *bottom)
 
         if right[0]:
-            ac('right', *right)
+            ac("right", *right)
         elif right[1]:
-            af('right', *right)
+            af("right", *right)
 
     def detach(self, *controls):
         """
         call AttachNone on all
         """
-        sides = ('top', 'bottom', 'left', 'right')
+        sides = ("top", "bottom", "left", "right")
         # note the order : it's backwards from the others!
-        cmds.formLayout(self.widget, an=[(ctl, side) for side, ctl in itertools.product(sides, controls)])
+        cmds.formLayout(
+            self.widget,
+            an=[(ctl, side) for side, ctl in itertools.product(sides, controls)],
+        )
 
 
 class LayoutDialogForm(Form):
@@ -225,7 +241,6 @@ class LayoutDialogForm(Form):
 
     def __exit__(self, typ, value, tb):
         return super(LayoutDialogForm, self).__exit__(typ, value, tb)
-
 
     @staticmethod
     def fake_create(*args, **kwargs):
@@ -260,9 +275,9 @@ class VerticalForm(Form):
         if len(self.controls):
             ctrls = [i for i in physical_controls(self)]
 
-            af = self.form_attachments('left', 'right')
-            af.append([ctrls[0], 'top', self.margin.top])
-            ac = self.form_series('top')
+            af = self.form_attachments("left", "right")
+            af.append([ctrls[0], "top", self.margin.top])
+            ac = self.form_series("top")
             self.attachForm = af
             self.attachControl = ac
 
@@ -280,9 +295,9 @@ class HorizontalForm(Form):
     def layout(self):
         if len(self.controls):
             ctrls = [i for i in physical_controls(self)]
-            af = self.form_attachments('top', 'bottom')
-            af.append([ctrls[0], 'left', self.margin.left])
-            ac = self.form_series('left')
+            af = self.form_attachments("top", "bottom")
+            af.append([ctrls[0], "left", self.margin.left])
+            ac = self.form_series("left")
             self.attachForm = af
             self.attachControl = ac
         return len(self.controls)
@@ -298,10 +313,10 @@ class VerticalExpandForm(Form):
     def layout(self):
         if len(self.controls):
             ctrls = [i for i in physical_controls(self)]
-            af = self.form_attachments('left', 'right')
-            af.append([ctrls[0], 'top', self.margin.top])
-            af.append([ctrls[-1], 'bottom', self.margin.bottom])
-            ac = self.form_series('top')
+            af = self.form_attachments("left", "right")
+            af.append([ctrls[0], "top", self.margin.top])
+            af.append([ctrls[-1], "bottom", self.margin.bottom])
+            ac = self.form_series("top")
             self.attachForm = af
             self.attachControl = ac
         return len(self.controls)
@@ -317,10 +332,10 @@ class HorizontalExpandForm(Form):
     def layout(self):
         if len(self.controls):
             ctrls = [i for i in physical_controls(self)]
-            af = self.form_attachments('top', 'bottom')
-            af.append([ctrls[0], 'left', self.margin.left])
-            af.append([ctrls[-1], 'right', self.margin.right])
-            ac = self.form_series('left')
+            af = self.form_attachments("top", "bottom")
+            af.append([ctrls[0], "left", self.margin.left])
+            af.append([ctrls[-1], "right", self.margin.right])
+            ac = self.form_series("left")
             self.attachForm = af
             self.attachControl = ac
         return len(self.controls)
@@ -333,12 +348,12 @@ class HorizontalStretchForm(Form):
 
     def layout(self):
         if len(self.controls):
-            af = self.form_attachments('top', 'bottom')
-            ap = self.percentage_series('left')
+            af = self.form_attachments("top", "bottom")
+            ap = self.percentage_series("left")
             self.attachForm = af
             self.attachPosition = ap
-            self.attachForm = [self.controls[0], 'left', self.margin.left]
-            self.attachForm = [self.controls[-1], 'right', self.margin.right]
+            self.attachForm = [self.controls[0], "left", self.margin.left]
+            self.attachForm = [self.controls[-1], "right", self.margin.right]
 
         return len(self.controls)
 
@@ -350,12 +365,12 @@ class VerticalStretchForm(Form):
 
     def layout(self):
         if len(self.controls):
-            af = self.form_attachments('left', 'right')
-            ap = self.percentage_series('top')
+            af = self.form_attachments("left", "right")
+            ap = self.percentage_series("top")
             self.attachForm = af
             self.attachPosition = ap
-            self.attachForm = [self.controls[0], 'top', self.margin.top]
-            self.attachForm = [self.controls[-1], 'bottom', self.margin.bottom]
+            self.attachForm = [self.controls[0], "top", self.margin.top]
+            self.attachForm = [self.controls[-1], "bottom", self.margin.bottom]
         return len(self.controls)
 
 
@@ -367,13 +382,23 @@ class VerticalThreePane(Form):
     def layout(self):
         if len(self.controls) < 3:
             raise ValueError("VerticalThreePane requires at least 3 children")
-        af = self.form_attachments('left', 'right')
-        ap = self.percentage_series('top')
+        af = self.form_attachments("left", "right")
+        ap = self.percentage_series("top")
         self.attachForm = af
-        self.attachForm = (self.controls[-1], 'bottom', self.margin.bottom)
+        self.attachForm = (self.controls[-1], "bottom", self.margin.bottom)
         self.attachPosition = ap[2:-2]
-        self.attachControl = (self.controls[1], 'top', self.spacing.top, self.controls[0])
-        self.attachControl = (self.controls[-2], 'bottom', self.spacing.bottom, self.controls[-1])
+        self.attachControl = (
+            self.controls[1],
+            "top",
+            self.spacing.top,
+            self.controls[0],
+        )
+        self.attachControl = (
+            self.controls[-2],
+            "bottom",
+            self.spacing.bottom,
+            self.controls[-1],
+        )
         return len(self.controls)
 
 
@@ -385,13 +410,23 @@ class HorizontalThreePane(Form):
     def layout(self):
         if len(self.controls) < 3:
             raise ValueError("HorizontalThreePane requires at least 3 children")
-        af = self.form_attachments('top', 'bottom')
-        ap = self.percentage_series('left')
+        af = self.form_attachments("top", "bottom")
+        ap = self.percentage_series("left")
         self.attachForm = af
-        self.attachForm = (self.controls[-1], 'right', self.margin.right)
+        self.attachForm = (self.controls[-1], "right", self.margin.right)
         self.attachPosition = ap[2:-2]
-        self.attachControl = (self.controls[1], 'left', self.spacing.left, self.controls[0])
-        self.attachControl = (self.controls[-2], 'right', self.spacing.right, self.controls[-1])
+        self.attachControl = (
+            self.controls[1],
+            "left",
+            self.spacing.left,
+            self.controls[0],
+        )
+        self.attachControl = (
+            self.controls[-2],
+            "right",
+            self.spacing.right,
+            self.controls[-1],
+        )
         return len(self.controls)
 
 
@@ -403,11 +438,16 @@ class FooterForm(VerticalForm):
     def layout(self):
         if len(self.controls) != 2:
             raise ValueError("FooterForm requires at exactly 2 children")
-        af = self.form_attachments('left', 'right')
+        af = self.form_attachments("left", "right")
         self.attachForm = af
-        self.attachForm = (self.controls[0], 'top', self.margin.top)
-        self.attachForm = (self.controls[-1], 'bottom', self.margin.bottom)
-        self.attachControl = (self.controls[0], 'bottom', self.spacing.bottom, self.controls[1])
+        self.attachForm = (self.controls[0], "top", self.margin.top)
+        self.attachForm = (self.controls[-1], "bottom", self.margin.bottom)
+        self.attachControl = (
+            self.controls[0],
+            "bottom",
+            self.spacing.bottom,
+            self.controls[1],
+        )
         return len(self.controls)
 
 
@@ -419,11 +459,16 @@ class HeaderForm(VerticalForm):
     def layout(self):
         if len(self.controls) != 2:
             raise ValueError("FooterForm requires at exactly 2 children")
-        af = self.form_attachments('left', 'right')
+        af = self.form_attachments("left", "right")
         self.attachForm = af
-        self.attachForm = (self.controls[0], 'top', self.margin.top)
-        self.attachForm = (self.controls[-1], 'bottom', self.margin.bottom)
-        self.attachControl = (self.controls[1], 'top', self.spacing.bottom, self.controls[0])
+        self.attachForm = (self.controls[0], "top", self.margin.top)
+        self.attachForm = (self.controls[-1], "bottom", self.margin.bottom)
+        self.attachControl = (
+            self.controls[1],
+            "top",
+            self.spacing.bottom,
+            self.controls[0],
+        )
         return len(self.controls)
 
 
@@ -433,14 +478,32 @@ class NavForm(HorizontalForm):
     """
 
     def layout(self):
-        af = self.form_attachments('top', 'bottom')
+        af = self.form_attachments("top", "bottom")
         self.attachForm = af
-        self.attachForm = (self.controls[0], 'left', self.margin.left)
-        self.attachForm = (self.controls[-1], 'right', self.margin.right)
-        self.attachControl = (self.controls[1], 'left', self.spacing.left, self.controls[0])
+        self.attachForm = (self.controls[0], "left", self.margin.left)
+        self.attachForm = (self.controls[-1], "right", self.margin.right)
+        self.attachControl = (
+            self.controls[1],
+            "left",
+            self.spacing.left,
+            self.controls[0],
+        )
         return len(self.controls)
 
 
-__all__ = ['Form', 'FillForm', 'VerticalForm', 'HorizontalForm', 'VerticalExpandForm', 'HorizontalExpandForm',
-           'VerticalStretchForm', 'HorizontalStretchForm', 'HorizontalThreePane', 'VerticalThreePane',
-           'HeaderForm', 'FooterForm', 'NavForm', 'LayoutDialogForm']
+__all__ = [
+    "Form",
+    "FillForm",
+    "VerticalForm",
+    "HorizontalForm",
+    "VerticalExpandForm",
+    "HorizontalExpandForm",
+    "VerticalStretchForm",
+    "HorizontalStretchForm",
+    "HorizontalThreePane",
+    "VerticalThreePane",
+    "HeaderForm",
+    "FooterForm",
+    "NavForm",
+    "LayoutDialogForm",
+]

@@ -52,9 +52,10 @@ restart Maya rather than using reload() it will disappear.
 """
 
 # use this for condtional checks if there are version differences
-MAYA_VERSION = cmds.about(version=True).split(' ')[0]
+MAYA_VERSION = cmds.about(version=True).split(" ")[0]
 
 REGISTRY = {}
+
 
 class ControlMeta(type):
     """
@@ -63,14 +64,14 @@ class ControlMeta(type):
 
     def __new__(mcs, name, parents, kwargs):
 
-        maya_cmd = kwargs.get('CMD', None)
-        _READ_ONLY = kwargs.get('_READ_ONLY', [])
-        _ATTRIBS = kwargs.get('_ATTRIBS', [])
-        _CALLBACKS = kwargs.get('_CALLBACKS', [])
-        if not kwargs.get('CMD'):
+        maya_cmd = kwargs.get("CMD", None)
+        _READ_ONLY = kwargs.get("_READ_ONLY", [])
+        _ATTRIBS = kwargs.get("_ATTRIBS", [])
+        _CALLBACKS = kwargs.get("_CALLBACKS", [])
+        if not kwargs.get("CMD"):
             maya_cmd = parents[0].CMD
 
-        _overridden = ('parent',)
+        _overridden = ("parent",)
         for item in _READ_ONLY:
             if item not in _overridden:
                 kwargs[item] = CtlProperty(item, maya_cmd, writeable=False)
@@ -80,9 +81,9 @@ class ControlMeta(type):
         for item in _CALLBACKS:
             kwargs[item] = CallbackProperty(item)
 
-        kwargs['__bases__'] = parents
+        kwargs["__bases__"] = parents
 
-        completed_type =  super(ControlMeta, mcs).__new__(mcs, name, parents, kwargs)
+        completed_type = super(ControlMeta, mcs).__new__(mcs, name, parents, kwargs)
 
         # note sometimes more than one subclass uses the same maya command
         # that makes the registry unable to disambiguate them. The correct
@@ -95,7 +96,7 @@ class ControlMeta(type):
         return completed_type
 
 
-class Control(Styled, BindableObject):
+class Control(Styled, BindableObject, metaclass=ControlMeta):
     """
     Base class for all mGui controls.  Provides the necessary frameworks for
     CtlProperty and CallbackProperty access to the underlying widget.
@@ -107,23 +108,41 @@ class Control(Styled, BindableObject):
     Control inherits from styles.Styled, so it supports styling.
 
     """
-    CMD = cmds.control
-    _ATTRIBS = ['annotation', 'backgroundColor', 'defineTemplate', 'docTag', 'enable', 'enableBackground', 'exists',
-                'fullPathName', 'height', 'manage', 'noBackground', 'numberOfPopupMenus', 'parent', 'popupMenuArray',
-                'preventOverride', 'useTemplate', 'visible', 'visibleChangeCommand', 'width']
-    _CALLBACKS = ['dragCallback', 'dropCallback', 'visibleChangeCommand']
-    _READ_ONLY = ['isObscured', 'popupMenuArray', 'numberOfPopupMenus']
-    ADD_TO_LAYOUT = True
-    __metaclass__ = ControlMeta
 
-    onDeleted = ScriptJobCallbackProperty('onDeleted', 'uiDeleted')
+    CMD = cmds.control
+    _ATTRIBS = [
+        "annotation",
+        "backgroundColor",
+        "defineTemplate",
+        "docTag",
+        "enable",
+        "enableBackground",
+        "exists",
+        "fullPathName",
+        "height",
+        "manage",
+        "noBackground",
+        "numberOfPopupMenus",
+        "parent",
+        "popupMenuArray",
+        "preventOverride",
+        "useTemplate",
+        "visible",
+        "visibleChangeCommand",
+        "width",
+    ]
+    _CALLBACKS = ["dragCallback", "dropCallback", "visibleChangeCommand"]
+    _READ_ONLY = ["isObscured", "popupMenuArray", "numberOfPopupMenus"]
+    ADD_TO_LAYOUT = True
+
+    onDeleted = ScriptJobCallbackProperty("onDeleted", "uiDeleted")
 
     def __init__(self, key=None, **kwargs):
         # apply Styled, and filter out any CSS tags
         super(Control, self).__init__(kwargs)
 
         # arbitrary tag data. Use with care to avoid memory leaks
-        self.tag = kwargs.pop('tag', None)
+        self.tag = kwargs.pop("tag", None)
 
         maya_kwargs = self.format_maya_arguments(**kwargs)
 
@@ -150,10 +169,10 @@ class Control(Styled, BindableObject):
         when a callback property is first accessed this creates an Event named <callback_name> for the specified
         callback and hooks it to the gui widget's callback function
         """
-        kwargs = {'e': True, callback_name: event}
+        kwargs = {"e": True, callback_name: event}
         self.CMD(self.widget, **kwargs)
 
-    def __nonzero__(self):
+    def __bool__(self):
         return self.exists
 
     def __repr__(self):
@@ -170,7 +189,6 @@ class Control(Styled, BindableObject):
 
     @classmethod
     def wrap(cls, control_name, key=None):
-
         def _spoof_create(*_, **__):
             return control_name
 
@@ -179,9 +197,16 @@ class Control(Styled, BindableObject):
             cls.CMD = _spoof_create
 
             # allow wrapping of abstract types, but make sure derived types are correct
-            if cls.__name__ not in ('Control', 'Layout', 'Nested', 'Panel', 'MenuItem', 'PopupMenu'):
-                if not cmds.objectTypeUI(control_name, isType = cache_CMD.__name__):
-                    raise RuntimeError( "{} is not an instance of {}".format(control_name, cache_CMD.__name__))
+            if cls.__name__ not in (
+                "Control",
+                "Layout",
+                "Nested",
+                "Panel",
+                "MenuItem",
+                "PopupMenu",
+            ):
+                if not cmds.objectTypeUI(control_name, isType=cache_CMD.__name__):
+                    raise RuntimeError("{} is not an instance of {}".format(control_name, cache_CMD.__name__))
             return cls(key=control_name)
 
         finally:
@@ -219,6 +244,7 @@ class Nested(Control):
     to it.
 
     """
+
     ACTIVE_LAYOUT = None
 
     def __init__(self, key=None, **kwargs):
@@ -252,7 +278,7 @@ class Nested(Control):
         # this supports a more natural, keyless idiom (see 'add')
 
         owning_scope = inspect.currentframe().f_back
-        if owning_scope.f_locals.get('mGui_expand_stack'):
+        if owning_scope.f_locals.get("mGui_expand_stack"):
             owning_scope = owning_scope.f_back
         for key, value in owning_scope.f_locals.items():
             if value in self:
@@ -339,10 +365,10 @@ class Nested(Control):
         remove <control> from my children
         """
         if control not in self.controls:
-            raise KeyError('{0} is not a child of {1}'.format(control, self))
+            raise KeyError("{0} is not a child of {1}".format(control, self))
         self.controls.remove(control)
         control.delete(control)
-        for key, ctrl in self.named_children.items():
+        for key, ctrl in self.named_children.copy().items():
             if ctrl == control:
                 self.named_children.pop(key)
 
@@ -373,7 +399,7 @@ class Nested(Control):
 
     def recurse(self):
         for item in self.controls:
-            if hasattr(item, 'recurse'):
+            if hasattr(item, "recurse"):
                 for grandchild in item.recurse():
                     yield grandchild
             yield item
@@ -418,22 +444,46 @@ class Nested(Control):
         return self
 
 
-
 # IMPORTANT NOTE
 # this intentionally duplicates redundant property names from Control.
-# That forces the metaclass to F-define the CtlProperties using cmds.layout
+# That forces the metaclass to redefine the CtlProperties using cmds.layout
 # instead of cmds.control. In Maya 2014, using cmds.control to query a layout fails,
 # even for flags they have in common
 
+
 class Layout(Nested):
     CMD = cmds.layout
-    _ATTRIBS = ['annotation', 'backgroundColor', 'defineTemplate', 'docTag', 'dragCallback', 'dropCallback', 'enable',
-                'enableBackground', 'exists', 'fullPathName', 'height', 'manage', 'noBackground', 'numberOfPopupMenus',
-                'parent', 'popupMenuArray', 'preventOverride', 'useTemplate', 'visible', 'visibleChangeCommand',
-                'width']
-    _CALLBACKS = ['dragCallback', 'dropCallback', 'visibleChangeCommand']
-    _READ_ONLY = ['isObscured', 'popupMenuArray', 'numberOfPopupMenus', 'childArray', 'numberOfChildren']
-
+    _ATTRIBS = [
+        "annotation",
+        "backgroundColor",
+        "defineTemplate",
+        "docTag",
+        "dragCallback",
+        "dropCallback",
+        "enable",
+        "enableBackground",
+        "exists",
+        "fullPathName",
+        "height",
+        "manage",
+        "noBackground",
+        "numberOfPopupMenus",
+        "parent",
+        "popupMenuArray",
+        "preventOverride",
+        "useTemplate",
+        "visible",
+        "visibleChangeCommand",
+        "width",
+    ]
+    _CALLBACKS = ["dragCallback", "dropCallback", "visibleChangeCommand"]
+    _READ_ONLY = [
+        "isObscured",
+        "popupMenuArray",
+        "numberOfPopupMenus",
+        "childArray",
+        "numberOfChildren",
+    ]
 
 
 class Window(Nested):
@@ -452,13 +502,37 @@ class Window(Nested):
     of forms, or set 'sizeable' to TRUE.  Bug is not present in 2014 +, not sure
     about 2012 or 2013
     """
+
     ACTIVE_WINDOWS = []
 
     CMD = cmds.window
-    _ATTRIBS = ["backgroundColor", "defineTemplate", "docTag", "exists", "height", "iconify", "iconName", "leftEdge",
-                "menuBarVisible", "menuIndex", "mainMenuBar", "minimizeButton", "maximizeButton", "resizeToFitChildren",
-                "sizeable", "title", "titleBar", "titleBarMenu", "topEdge", "toolbox", "topLeftCorner", "useTemplate",
-                "visible", "width", "widthHeight"]
+    _ATTRIBS = [
+        "backgroundColor",
+        "defineTemplate",
+        "docTag",
+        "exists",
+        "height",
+        "iconify",
+        "iconName",
+        "leftEdge",
+        "menuBarVisible",
+        "menuIndex",
+        "mainMenuBar",
+        "minimizeButton",
+        "maximizeButton",
+        "resizeToFitChildren",
+        "sizeable",
+        "title",
+        "titleBar",
+        "titleBarMenu",
+        "topEdge",
+        "toolbox",
+        "topLeftCorner",
+        "useTemplate",
+        "visible",
+        "width",
+        "widthHeight",
+    ]
     _CALLBACKS = ["minimizeCommand", "restoreCommand"]
     _READ_ONLY = ["numberOfMenus", "menuArray", "menuBar", "retain"]
 
@@ -508,4 +582,3 @@ class BindingWindow(Window):
     def forget(self, *args, **kwargs):
         super(BindingWindow, self).forget()
         self.bindingContext = None
-

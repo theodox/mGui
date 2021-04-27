@@ -30,6 +30,7 @@ class FormList(object):
     layout() method when the collection changes, and will prune the layouts
     control sets as items are added to or removed from the bound collection.
     """
+
     SCROLL_WIDTH = 33
 
     def __init_bound_collection__(self, kwargs):
@@ -40,8 +41,8 @@ class FormList(object):
             self.__init_bound_collection__()
 
         """
-        self.template = kwargs.pop('itemTemplate', ItemTemplate)(self)
-        self.sync = kwargs.pop('synchronous', True)
+        self.template = kwargs.pop("itemTemplate", ItemTemplate)(self)
+        self.sync = kwargs.pop("synchronous", True)
         self.redraw_options = {}
 
         event_class = events.Event
@@ -52,8 +53,8 @@ class FormList(object):
             collection_class = observable.BoundCollection
 
         self.collection = collection_class()
-        self.onWidgetCreated = event_class(type='widget created')
-        self.onUpdated = event_class(type='updated')
+        self.onWidgetCreated = event_class(type="widget created")
+        self.onUpdated = event_class(type="updated")
 
         self.collection.onCollectionChanged += self.redraw  # automatically forward collection changes
 
@@ -68,8 +69,8 @@ class FormList(object):
 
             cmds.setParent(self)
             with self:
-                with layouts.ScrollLayout('mgScroll#', childResizable=True) as inner_scroll:
-                    with self.LIST_CLASS('mgList#', **self.redraw_options) as inner_list:
+                with layouts.ScrollLayout("mgScroll#", childResizable=True) as inner_scroll:
+                    with self.LIST_CLASS("mgList#", **self.redraw_options) as inner_list:
                         for item in self.collection:
                             w = self.template.widget(item)
                             self.widget_added(w)
@@ -78,10 +79,9 @@ class FormList(object):
             cmds.setParent("..")
 
             # controls only includes 'inner_scroll' for layout
-            self.named_children['inner_scroll'] = inner_scroll
-            self.named_children['inner_list'] = inner_list
+            self.named_children["inner_scroll"] = inner_scroll
+            self.named_children["inner_list"] = inner_list
             self.controls = [inner_scroll]
-
 
         finally:
             self.layout()
@@ -104,7 +104,7 @@ class FormList(object):
 
     @property
     def inner_list(self):
-        return self.named_children['inner_list']
+        return self.named_children["inner_list"]
 
 
 class VerticalList(forms.FillForm, FormList):
@@ -159,12 +159,13 @@ class WrapList(forms.FillForm, FormList):
     A flowLayout based list of items with optional wrapping. This will clip if
     the width exceeds the layout width unless 'wrap' is set to true
     """
+
     LIST_CLASS = layouts.FlowLayout
 
     def __init__(self, key=None, *args, **kwargs):
-        self.wrap = kwargs.pop('wrap', False)
+        self.wrap = kwargs.pop("wrap", False)
         self.__init_bound_collection__(kwargs)
-        self.redraw_options['wrap'] = self.wrap
+        self.redraw_options["wrap"] = self.wrap
 
         super(WrapList, self).__init__(key, *args, **kwargs)
         self.redraw()
@@ -259,5 +260,14 @@ class BoundIconTextScrollList(controls.IconTextScrollList, ScrollListBase):
         self.redraw()
 
 
-__all__ = ['FormList', 'VerticalList', 'HorizontalList', 'ColumnList', 'WrapList', 'Templated', 'ItemTemplate',
-           'BoundScrollList', 'BoundIconTextScrollList']
+__all__ = [
+    "FormList",
+    "VerticalList",
+    "HorizontalList",
+    "ColumnList",
+    "WrapList",
+    "Templated",
+    "ItemTemplate",
+    "BoundScrollList",
+    "BoundIconTextScrollList",
+]

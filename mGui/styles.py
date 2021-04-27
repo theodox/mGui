@@ -9,11 +9,11 @@ import inspect
 class Bounds(object):
     """
     A bounding area (in pixels).  Can be constructed 3 ways:
-    
+
         Bounds (10) : 10 pixel margin on all sides
         Bounds (5, 10):  5 pixel horizontal and 10 pixel vertical margin
         Bounds (5, 10, 15, 20) : eplicit left, top, right, bottom
-    
+
     left, right, top and bottom can be accessed by point or dictionary style
     notation
         B = Bounds(10,20)
@@ -33,10 +33,10 @@ class Bounds(object):
 
     def __getitem__(self, key):
         return {
-            'left': self.left,
-            'right': self.right,
-            'top': self.top,
-            'bottom': self.bottom
+            "left": self.left,
+            "right": self.right,
+            "top": self.top,
+            "bottom": self.bottom,
         }[key]
 
     def __iter__(self):
@@ -125,12 +125,12 @@ class CSS(dict):
 
     def __init__(self, target, *templates, **kwarg):
         super(CSS, self).__init__()
-        inherit = kwarg.get('inherit', True)
+        inherit = kwarg.get("inherit", True)
 
         if inherit and CSS.ACTIVE:
             templates = [CSS.ACTIVE] + [i for i in templates]
 
-        map(self.update, templates)
+        list(map(self.update, templates))
         self.update(**kwarg)
 
         self.target = target
@@ -156,7 +156,7 @@ class CSS(dict):
 
         if len(args) == 1:
             ctrl = args[0]
-            if (hasattr(ctrl, 'key') and self.target == ctrl.key) or target_in_mro(ctrl.__class__):
+            if (hasattr(ctrl, "key") and self.target == ctrl.key) or target_in_mro(ctrl.__class__):
                 return True
         if len(args) == 2:
             instance, klass = args
@@ -206,7 +206,7 @@ class CSS(dict):
 
     def apply_recursive(self, *controls):
         for c in controls:
-            if hasattr(c, 'recurse'):
+            if hasattr(c, "recurse"):
                 for gc in c.recurse():
                     self.apply(gc)
             else:
@@ -217,15 +217,34 @@ class Styled(object):
     """
     Mixin class which makes an object try to hook the appropriate style from CSS.current
     """
+
     DEFAULT_ATTRIBS = set(
-        ('annotation', 'backgroundColor', 'defineTemplate', 'docTag', 'enable', 'enableBackground', 'exists',
-         'fullPathName', 'height', 'manage', 'noBackground', 'numberOfPopupMenus', 'parent', 'popupMenuArray',
-         'preventOverride', 'useTemplate', 'visible', 'visibleChangeCommand', 'width')
+        (
+            "annotation",
+            "backgroundColor",
+            "defineTemplate",
+            "docTag",
+            "enable",
+            "enableBackground",
+            "exists",
+            "fullPathName",
+            "height",
+            "manage",
+            "noBackground",
+            "numberOfPopupMenus",
+            "parent",
+            "popupMenuArray",
+            "preventOverride",
+            "useTemplate",
+            "visible",
+            "visibleChangeCommand",
+            "width",
+        )
     )
 
     def __init__(self, kwargs):
         # note this removes 'css' from the kwargs before they are processed by Control!
-        self._style = kwargs.pop('css', {})
+        self._style = kwargs.pop("css", {})
         self.key = None
         if not self._style:
             current_style = CSS.current()

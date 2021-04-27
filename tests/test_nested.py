@@ -7,23 +7,27 @@ standalone.initialize()
 
 # Mocking out the various cmds and events needed to test this without a GUI
 
+
 def _window(*args, **kwargs):
-    if 'exists' in kwargs:
+    if "exists" in kwargs:
         return True
-    return 'window1'
+    return "window1"
+
 
 def _formLayout(*args, **kwargs):
-    if 'exists' in kwargs:
+    if "exists" in kwargs:
         return True
-    return 'window1|formLayout1'
+    return "window1|formLayout1"
+
 
 def _button(*args, **kwargs):
-    if 'exists' in kwargs:
+    if "exists" in kwargs:
         return True
-    return 'window1|formLayout1|button1'
+    return "window1|formLayout1|button1"
+
 
 def _control(*args, **kwargs):
-    if 'exists' in kwargs:
+    if "exists" in kwargs:
         return True
 
 
@@ -34,18 +38,18 @@ cmds.button = _button
 cmds.setParent = lambda *args, **kwargs: None
 
 from mGui import gui, forms, events
+
 # Mocking this with an empty event because cmds.scriptJob is annoyingly complex
 gui.Control.onDeleted = events.MayaEvent()
 
 
 class TestNesting(TestCase):
-
     def setUp(self):
         with gui.Window() as win:
             with forms.VerticalForm() as vf:
                 btn = gui.Button()
                 btn2 = gui.Button()
-                for i in xrange(3):
+                for i in range(3):
                     gui.Button()
 
         self._win = win
@@ -72,7 +76,5 @@ class TestNesting(TestCase):
         assert self._vf not in self._win
 
 
-
-
-if __name__ == '__main__':
+if __name__ == "__main__":
     main()

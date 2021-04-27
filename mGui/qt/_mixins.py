@@ -1,10 +1,8 @@
-
 from maya import cmds
 from maya.app.general.mayaMixin import MayaQWidgetBaseMixin
 
 
 class QWidgetBaseMixin(MayaQWidgetBaseMixin):
-
     def __init__(self, parent=None, *args, **kwargs):
         super(QWidgetBaseMixin, self).__init__(parent, *args, **kwargs)
         try:
@@ -12,11 +10,8 @@ class QWidgetBaseMixin(MayaQWidgetBaseMixin):
         except RuntimeError:
             pass
 
-    def __str__(self):
-        return self.objectName().encode('utf-8')
-
     def __unicode__(self):
         return self.objectName()
 
     def __repr__(self):
-        return self.objectName().encode('utf-8')
+        return self.objectName()

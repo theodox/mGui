@@ -1,8 +1,8 @@
-'''
+"""
 Created on Mar 13, 2014
 
 @author: stevetheodore
-'''
+"""
 import mGui.events as events
 import unittest
 
@@ -27,7 +27,7 @@ class TestWeakRefs(unittest.TestCase):
             return -99
 
         wr = events.get_weak_reference(example)
-        del (example)
+        del example
         self.assertRaises(events.DeadReferenceError, wr)
 
     def test_free_method_ids_are_stable(self):
@@ -63,7 +63,7 @@ class TestWeakRefs(unittest.TestCase):
     def test_bound_method_excepts_on_dead_ref(self):
         b = self.bound_tester()
         wr = events.get_weak_reference(b.example)
-        del (b)
+        del b
         self.assertRaises(events.DeadReferenceError, wr)
 
     def test_bound_method_ids_are_stable(self):
@@ -78,18 +78,18 @@ class TestWeakRefs(unittest.TestCase):
         assert wr.ID != wr4.ID
 
     def test_bound_method_DOES_NOT_except_on_dead_method_ref(self):
-        '''
+        """
         you can't 'delete' a bound method, even if you overwrite it's name
         in a particular instance. bound methods work like descriptors under
         the hood.
-        '''
+        """
         b = self.bound_tester()
         wr = events.get_weak_reference(b.example)
         b.example = lambda x: 121
         try:
             wr()
         except events.DeadReferenceError:
-            self.fail('this should not raise')
+            self.fail("this should not raise")
 
 
 class TestEvents(unittest.TestCase):
@@ -123,7 +123,7 @@ class TestEvents(unittest.TestCase):
         test -= handle
         sample_data.remove("OK")
         test()
-        assert 'OK' not in sample_data
+        assert "OK" not in sample_data
 
     def test_bound_derefencing(self):
         sample_data = []
@@ -142,41 +142,43 @@ class TestEvents(unittest.TestCase):
         sample_data = []
 
         def handle(*args, **kwargs):
-            sample_data.append('OK')
+            sample_data.append("OK")
 
         class Stash(object):
             pass
-        
+
         stash = Stash()
 
         test = events.Event()
         test += handle, stash
         del handle
         test()
-        assert 'OK' in sample_data
+        assert "OK" in sample_data
 
     def test_stash_derefencing(self):
         sample_data = []
 
         def handle(*args, **kwargs):
-            sample_data.append('OK')
+            sample_data.append("OK")
 
         handle_id = id(handle)
+
         class Stash(object):
             pass
-        
+
         stash = Stash()
 
         test = events.Event()
         test += handle, stash
         del handle
         test()
-        assert 'OK' in sample_data
-        handle = getattr(stash, '_sh_{}'.format(handle_id))
+        assert "OK" in sample_data
+        handle = getattr(stash, "_sh_{}".format(handle_id))
         sample_data = []
         test -= handle, stash
         test()
-        assert 'OK' not in sample_data
+        assert "OK" not in sample_data
 
-if __name__ == '__main__':
+
+if __name__ == "__main__":
     unittest.main()

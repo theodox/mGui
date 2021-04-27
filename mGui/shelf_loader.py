@@ -10,11 +10,10 @@ from mGui import gui
 
 
 def _process_command(cmd):
-    return cmd if isinstance(cmd, basestring) else '\n'.join(cmd)
+    return cmd if isinstance(cmd, str) else "\n".join(cmd)
 
 
 class BaseLoader(object):
-
     def __init__(self, data_dict):
         self.__dict__.update(data_dict)
 
@@ -23,8 +22,8 @@ class ShelfLayoutProxy(BaseLoader):
     proxy = gui.ShelfLayout
 
     # Shelf Defaults
-    parent = 'ShelfLayout'
-    key = 'ShelfProxy'
+    parent = "ShelfLayout"
+    key = "ShelfProxy"
     controls = tuple()
 
     def __init__(self, data_dict):
@@ -49,13 +48,18 @@ class ShelfLayoutProxy(BaseLoader):
         else:
             with parent.as_parent():
                 shelf = self.proxy(self.key)
-    
+
                 # Needed so that we don't throw a weird maya error until the next restart.
                 # Pulled this from the shelf editor mel script.
-                if parent == 'ShelfLayout':
-                    cmds.optionVar(stringValue=('shelfName{}'.format(parent.numberOfChildren), self.key))
-                    cmds.optionVar(intValue=('shelfLoad{}'.format(parent.numberOfChildren), True))
-                    cmds.optionVar(stringValue=('shelfFile{}'.format(parent.numberOfChildren), ''))
+                if parent == "ShelfLayout":
+                    cmds.optionVar(
+                        stringValue=(
+                            "shelfName{}".format(parent.numberOfChildren),
+                            self.key,
+                        )
+                    )
+                    cmds.optionVar(intValue=("shelfLoad{}".format(parent.numberOfChildren), True))
+                    cmds.optionVar(stringValue=("shelfFile{}".format(parent.numberOfChildren), ""))
 
         for ctrl in self.controls:
             ctrl.instantiate(shelf)
@@ -63,25 +67,24 @@ class ShelfLayoutProxy(BaseLoader):
         cmds.saveAllShelves(parent)
 
 
-
 class ShelfButtonProxy(BaseLoader):
     proxy = gui.ShelfButton
 
     # Button Defaults
-    key = 'ShelfButtonProxy'
-    annotation = ''
-    docTag = ''
-    image = 'commandButton.png'
-    imageOverlayLabel = ''
+    key = "ShelfButtonProxy"
+    annotation = ""
+    docTag = ""
+    image = "commandButton.png"
+    imageOverlayLabel = ""
     overlayLabelColor = (0.8, 0.8, 0.8)
     enableBackground = False
     overlayLabelBackColor = (0, 0, 0, 0.5)
-    label = ''
-    sourceType = 'python'
-    command = ''
-    doubleClickCommand = ''
+    label = ""
+    sourceType = "python"
+    command = ""
+    doubleClickCommand = ""
     menuItems = tuple()
-    font = 'plainLabelFont'
+    font = "plainLabelFont"
 
     def __init__(self, data_dict):
         super(ShelfButtonProxy, self).__init__(data_dict)
@@ -100,7 +103,7 @@ class ShelfButtonProxy(BaseLoader):
                 ctrl = self.proxy(self.key)
 
         ctrl.annotation = self.annotation
-        ctrl.docTag = (self.docTag or self.key)
+        ctrl.docTag = self.docTag or self.key
         ctrl.image = os.path.expandvars(self.image)
         ctrl.label = self.label
         ctrl.sourceType = self.sourceType
@@ -136,9 +139,9 @@ class MenuItemProxy(BaseLoader):
     proxy = gui.MenuItem
 
     # MenuItem Defaults
-    key = 'MenuItemProxy'
-    command = ''
-    sourceType = ''
+    key = "MenuItemProxy"
+    command = ""
+    sourceType = ""
 
     def instantiate(self, parent=None):
         for item in parent.itemArray:

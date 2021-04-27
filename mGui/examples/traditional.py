@@ -1,10 +1,12 @@
 import mGui.gui as gui
 import maya.cmds as cmds
+
 """
 This example shows a cleaned up version of traditional Maya GUI using context managers and addressing but no other new features
 
 Note: buttons are non-functional; this just shows layout style
 """
+
 
 def main():
     with gui.Window(title="Ugly version") as main_window:
@@ -48,6 +50,7 @@ def main():
     item.cellWidth = 128
     return main_window
 
-if __name__ == '__main__':
+
+if __name__ == "__main__":
     main_window = main()
     main_window.show()

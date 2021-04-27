@@ -5,11 +5,11 @@ forwards all of the widget definitions in the system for easy import.  This
 module is probably safe to import * in a known context
 """
 
-from mGui.core import Window, BindingWindow,  Control, REGISTRY, MAYA_VERSION
+from mGui.core import Window, BindingWindow, Control, REGISTRY, MAYA_VERSION
 from mGui.core.menus import *
 from mGui.core.controls import *
 from mGui.core.layouts import *
-from mGui.core.panels import  *
+from mGui.core.panels import *
 from mGui.core.editors import *
 from mGui.core.treeView import MTreeView
 from mGui.core.progress import ProgressBar
@@ -17,9 +17,8 @@ from mGui.core.progress import ProgressBar
 import warnings
 
 # conditional imports for api additions
-if MAYA_VERSION >= '2017':
+if MAYA_VERSION >= "2017":
     from mGui.core.controls_2017 import *
-
 
 
 from mGui.events import event_handler
@@ -72,23 +71,23 @@ def wrap(control, replace_events=False):
     result = target_class.wrap(control)
     if replace_events:
         for cb in target_class._CALLBACKS or []:
-            handler = target_class.CMD(control, **{'q': True, cb: True})
+            handler = target_class.CMD(control, **{"q": True, cb: True})
             if handler and callable(handler):
                 setattr(result, cb, event_handler(handler))
 
-    if hasattr(result, 'childArray'):
+    if hasattr(result, "childArray"):
         for item in result.childArray:
             result.add(wrap(item))
 
-    if hasattr(result, 'menuArray'):
+    if hasattr(result, "menuArray"):
         for item in result.menuArray:
             result.add(wrap(item))
 
-    if hasattr(result, 'popupMenuArray') and hasattr(result, 'add'):
+    if hasattr(result, "popupMenuArray") and hasattr(result, "add"):
         for item in result.popupMenuArray:
             result.add(wrap(item))
 
-    if hasattr(result, 'itemArray'):
+    if hasattr(result, "itemArray"):
         for item in result.itemArray:
             result.add(wrap(item))
 

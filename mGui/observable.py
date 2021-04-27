@@ -2,6 +2,7 @@
 Observable.py
 @author: stevetheodore
 """
+import functools
 import itertools
 from collections import MutableSequence, Sequence
 
@@ -31,7 +32,7 @@ class ObservableCollection(MutableSequence, BindableObject):
     Inherits methods from BindableObject, so you can manually trigger an update with update_bindings
     """
 
-    _BIND_SRC = 'contents'
+    _BIND_SRC = "contents"
     _BIND_TGT = None
 
     def __init__(self, *items):
@@ -90,7 +91,9 @@ class ObservableCollection(MutableSequence, BindableObject):
         Sort the collection with the supplied comparison, key and reverse
         arguments (see list.sort)
         """
-        self._internal_collection.sort(comp, key, reverse)
+        if comp:
+            key = functools.cmp_to_key(comp)
+        self._internal_collection.sort(reverse=reverse, key=key)
         self.update_bindings()
         self.onCollectionChanged(sorted=True)
 
@@ -119,8 +122,6 @@ class ObservableCollection(MutableSequence, BindableObject):
 
 
 class ImmediateObservableCollection(ObservableCollection):
-
-
     def __init__(self, *items):
         super(ImmediateObservableCollection, self).__init__(*items)
         self.onCollectionChanged = Event(collection=self)
@@ -138,11 +139,12 @@ class ViewCollection(ObservableCollection):
     The class exposes the same events as ObservableCollection, as well as a
     viewChanged event which triggers when the filter is changed
     """
-    _BIND_SRC = 'view'
+
+    _BIND_SRC = "view"
 
     def __init__(self, *items, **kwargs):
-        self._max_size = kwargs.pop('limit', 0)
-        synchronous = kwargs.pop('synchronous', False)
+        self._max_size = kwargs.pop("limit", 0)
+        synchronous = kwargs.pop("synchronous", False)
         super(ViewCollection, self).__init__(*items)
         self.onViewChanged = MayaEvent(collection=self)
         if synchronous:
@@ -158,7 +160,7 @@ class ViewCollection(ObservableCollection):
         Returns a tuple of all the items in this collection which pass the
         current filter. Bindable.
         """
-        filtered = itertools.ifilter(self._filter, self._internal_collection)
+        filtered = filter(self._filter, self._internal_collection)
         result = None
         if self._max_size > 0:
             result = tuple(itertools.islice(filtered, self._max_size))
@@ -207,7 +209,8 @@ class BoundCollection(Sequence, BindableObject):
     callbacks.
 
     """
-    _BIND_TGT = 'set_collection'
+
+    _BIND_TGT = "set_collection"
 
     def __init__(self):
         self._internal_collection = ()
@@ -240,7 +243,7 @@ class BoundCollection(Sequence, BindableObject):
 
 class ImmediateBoundCollection(BoundCollection):
 
-    _BIND_TGT = 'set_collection'
+    _BIND_TGT = "set_collection"
 
     def __init__(self):
         self._internal_collection = ()
